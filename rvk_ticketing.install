@@ -209,8 +209,6 @@ function _rvk_ticketing_create_indication_content_type() {
     'Ábending frá íbúa', 'Ábending', 'text_textarea');
   _rvk_ticketing_add_fields_to_bundle('field_indication_location', 'text', $type_name,
     'Staðsetning (götunafn í nefnifalli)', 'Staðsetning', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_house_number', 'text',
-    $type_name, 'Húsnúmer', 'Húsnúmer', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_name', 'text',
     $type_name, 'Nafn sendanda', 'Nafn sendanda', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',

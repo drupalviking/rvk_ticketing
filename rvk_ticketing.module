@@ -1,4 +1,7 @@
 <?php
+define('RVK_TICKETING_STREET_LOOKUP_API', variable_get('rvk_ticketing_street_lookup_api'));
+define('RVK_TICKETING_STREET_LOOKUP_MAX_HITS', variable_get('rvk_ticketing_street_lookup_max_hits'));
+
 /**
  * MODULE FILE
  */
@@ -9,10 +12,28 @@ function rvk_ticketing_menu() {
     'access arguments' => ['access content'],
   ];
 
+  $items['gata/fletta_upp_gotu_autocomplete_callback'] = array(
+    'page callback' => 'rvik_ticketing_street_lookup_autocomplete_callback',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+
   $items['test'] = [
     'title' => 'Hundur',
     'access arguments' => ['access content'],
   ];
+
+  $items['admin/config/services/rvk_ticketing'] = array(
+    'title' => t('Reykjavik Ticketing System'),
+    'description' => 'Misc settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('rvk_ticketing_admin'),
+    'access arguments' => array('administer ticketing settings'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'rvk_ticketing.admin.inc',
+    'file path' => drupal_get_path('module', 'rvk_ticketing'),
+  );
+
   return $items;
 }
 
@@ -101,12 +122,8 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   else {
     $form['address'] = [
       '#type' => 'textfield',
-      '#title' => 'Götuheiti (í nefnifalli)',
-    ];
-
-    $form['house_number'] = [
-      '#type' => 'textfield',
-      '#title' => 'Húsnúmer',
+      '#title' => 'Staðsetning (Götuheiti í nefnifalli)',
+      '#autocomplete_path' => 'gata/fletta_upp_gotu_autocomplete_callback',
     ];
 
     $form['submit'] = array(
@@ -114,8 +131,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       '#value' => 'Halda áfram',
     );
   }
-
-
 
   return $form;
 }
@@ -182,6 +197,19 @@ function rvk_ticketing_views_api() {
   if ($module == "views" && $api == "views_default") {
     return array("api" => "3.0");
   }
+}
+
+function rvik_ticketing_street_lookup_autocomplete_callback($string = "") {
+  $matches = [];
+  $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
+    RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
+    '&type=2&Addr=' . rawurlencode($string);
+  $streets = _rvk_ticketing_get_query($uri);
+  foreach($streets as $street) {
+    $matches[$street['text']] = $street['text'];
+  }
+
+  drupal_json_output($matches);
 }
 
 /**
@@ -380,4 +408,44 @@ function rvk_ticketing_views_default_views() {
   $export['test'] = $view;
 
   return $export;
+}
+
+/**
+ * Sends a GET query to Spotify for specific URL
+ *
+ * @param $uri string
+ *   The fully generated search string
+ * @return object
+ *   Returns a stdClass with the search results or an error message
+ */
+function _rvk_ticketing_get_query($uri) {
+  $search_results = null;
+
+  if (!empty($cache)) {
+    $search_results = $cache;
+  }
+  else {
+    $options = array(
+      'method' => 'GET',
+      'timeout' => 3,
+      'headers' => array(
+        'Accept' => 'application/json',
+      ),
+    );
+
+    $search_results = drupal_http_request($uri, $options);
+
+    if (empty($search_results->error)) {
+      $search_results = drupal_json_decode($search_results->data);
+    }
+    else {
+      drupal_set_message(t('The search request resulted in the following error: @error.', array(
+        '@error' => $search_results->error,
+      )));
+
+      return $search_results->error;
+    }
+  }
+
+  return $search_results;
 }
