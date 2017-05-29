@@ -135,6 +135,20 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   return $form;
 }
 
+function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
+  //If storage is not set, we're at step one
+  if(!isset($form_state['storage'])) {
+    $values = $form_state['values'];
+    $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
+      RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
+      '&type=2&Addr=' . rawurlencode($values['address']);
+    $street = _rvk_ticketing_get_query($uri);
+    if($street[0]['text'] != $values['address']) {
+      form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
+    }
+  }
+}
+
 function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   //If storage is not set, we're at step one
@@ -143,6 +157,14 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
     $form_state['storage']['page_three'] = FALSE;
     $form_state['storage']['page_one_values'] = $values;
     $form_state['rebuild'] = TRUE;
+
+    //Send another query to the Street lookup API, to get the X and Y coords
+    $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
+      RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
+      '&type=2&Addr=' . rawurlencode($values['address']);
+    $street = _rvk_ticketing_get_query($uri);
+    $form_state['storage']['page_one_values']['xcoord'] = $street[0]['x'];
+    $form_state['storage']['page_one_values']['ycoord'] = $street[0]['y'];
   }
   elseif(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
     $form_state['storage']['page_two'] = FALSE;
@@ -164,6 +186,10 @@ function rvk_ticketing_create_indication_node($data) {
 
   $node->field_indication_location[LANGUAGE_NONE][0]['value'] =
     $data['page_one_values']['address'];
+  $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] =
+    $data['page_one_values']['xcoord'];
+  $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] =
+    $data['page_one_values']['ycoord'];
   $node->field_indication_house_number[LANGUAGE_NONE][0]['value'] =
     $data['page_one_values']['house_number'];
   $node->field_indication_text[LANGUAGE_NONE][0]['value'] =
