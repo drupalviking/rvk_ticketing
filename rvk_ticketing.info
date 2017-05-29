@@ -1,0 +1,7 @@
+name = Reykjavik Ticketing
+description = Module to work with ticketing requests on Reykjavik.is
+core = 7.x
+package = 1xInternet
+
+dependencies[] = entityreference
+dependencies[] = views

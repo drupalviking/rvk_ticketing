@@ -1,0 +1,289 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install, update and uninstall functions for the rvk_ticketing module
+ *
+ * Download the schema module to auto-generate a schema array for a table:
+ * http://drupal.org/project/schema.
+ *
+ * In this file, we grab the output from the schema 'info' page, paste it
+ * in here and update the descriptions.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function rvk_ticketing_install() {
+  /*_rvk_ticketing_create_indication_type_taxonomy_vocabulary();
+  _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
+  _rvk_ticketing_create_indication_content_type();*/
+}
+
+/**
+ * Implements hook_enable().
+ */
+function rvk_ticketing_enable() {
+  _rvk_ticketing_create_indication_type_taxonomy_vocabulary();
+  _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
+  _rvk_ticketing_create_indication_content_type();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function rvk_ticketing_disable() {
+  $view = views_get_view('indications');
+  views_delete_view($view);
+
+  $types = taxonomy_vocabulary_machine_name_load('indication_types');
+  $status = taxonomy_vocabulary_machine_name_load('indication_status');
+  taxonomy_vocabulary_delete($types->vid);
+  taxonomy_vocabulary_delete($status->vid);
+
+  _rvk_ticketing_remove_content_type(['indications']);
+
+  variable_del('comment_indication');
+  variable_del('comment_preview_indications');
+  variable_del('comment_subject_field_indications');
+  variable_del('node_options_indications');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function rvk_ticketing_uninstall() {
+
+}
+
+function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
+  if($tax = taxonomy_vocabulary_machine_name_load('indication_types')) {
+    return;
+  }
+
+  $vocabulary = new stdClass();
+  $vocabulary->name = 'Ábendingategundir';
+  $vocabulary->machine_name = 'indication_types';
+  $vocabulary->description = "Ábendingar til rafrænnar Reykjavíkur um úrbætur";
+  $vocabulary->module = 'taxonomy';
+
+  taxonomy_vocabulary_save($vocabulary);
+
+  $indications = [
+    'Götur og stígar',
+    'Götulýsing',
+    'Hundahald',
+    'Sorphirða',
+    'Sjórinn',
+    'Framkvæmdir',
+    'Loftgæði',
+    'Trjágróður',
+  ];
+
+  foreach($indications as $indication) {
+    $term = new stdClass();
+    $term->name = $indication;
+    $term->vid = $vocabulary->vid;
+    taxonomy_term_save($term);
+  }
+}
+
+function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
+  if($tax = taxonomy_vocabulary_machine_name_load('indication_status')) {
+    return;
+  }
+
+  $vocabulary = new stdClass();
+  $vocabulary->name = 'Staða ábendingar';
+  $vocabulary->machine_name = 'indication_status';
+  $vocabulary->description = 'Staða ábendingar í kerfinu';
+  $vocabulary->module = 'taxonomy';
+
+  taxonomy_vocabulary_save($vocabulary);
+
+  $status = [
+    'Ný ábending',
+    'Móttekin',
+    'Í úrvinnslu',
+    'Lokið',
+  ];
+
+  foreach($status as $s) {
+    $term = new stdClass();
+    $term->name = $s;
+    $term->vid = $vocabulary->vid;
+    taxonomy_term_save($term);
+  }
+}
+
+/**
+ * Created a function for this code, since I have to use it multiple times.
+ *
+ * It took a long time to find the correct place to run the allowed values code,
+ * since that setting is not within the instance, but within the field creation
+ * itself.
+ *
+ * @param $field_machine_name
+ * @param $field_type
+ * @param $bundle
+ * @param $field_description
+ * @param $field_label
+ * @param $widget
+ * @param string $entity_type
+ * @param null|array $allowed_values
+ * @throws \Exception
+ * @throws \FieldException
+ */
+function _rvk_ticketing_add_fields_to_bundle(
+  $field_machine_name, $field_type, $bundle, $field_description, $field_label,
+  $widget, $entity_type = 'node', $allowed_values = null
+){
+  //  The machine name of the field can contain only lowercase alphanumeric characters and underscores.
+  $field_name = $field_machine_name;
+
+  //  Verify the field does not already exist.
+  if ( !field_info_field( $field_name ) ) {
+    //  Create the field definition array.
+    $field = array(
+      'field_name' => $field_name,
+      'type' => $field_type,
+    );
+
+    if($allowed_values){
+      $field['settings'] = $allowed_values;
+    }
+    //  Create the field.
+    $field = field_create_field( $field );
+  }
+  else{
+    $field = field_info_field($field_name);
+  }
+
+  //  Create the field instance definition array.
+  $instance = array(
+    'field_name' => $field[ 'field_name' ],
+    'entity_type' => $entity_type,
+    'bundle' => $bundle,
+    'description' => $field_description,
+    'label' => $field_label,
+    'widget' => array(
+      'type' => $widget,
+    ),
+  );
+
+//  Create an instance of the field and bind it to the bundle.
+  field_create_instance($instance);
+}
+
+function _rvk_ticketing_create_indication_content_type() {
+  //CODE FROM THE DRUPAL WATCHDOG:  https://www.drupalwatchdog.com/volume-3/issue-2/drupal-7-content-types-code
+  //  The machine name of the content type can contain only lowercase alphanumeric
+  //  characters and underscores.
+  $type_name = 'indications';
+
+  //  Verify the content type does not already exist. To instead get the node types
+  //  as objects, use node_type_get_types().
+  if ( in_array( $type_name, node_type_get_names() ) ) {
+    return;
+  }
+
+  //  Create the type definition array.
+  $type = array(
+    'type' => $type_name,
+    'name' => t( 'Ábendingar' ),
+    'base' => 'node_content',
+    'description' => t( 'Geymir upplýsingar um ábendingar frá íbúm til þjónustuvers' ),
+    'custom' => 1,
+    'modified' => 1,
+    'locked' => 0,
+  );
+  $type = node_type_set_defaults( $type );
+  node_type_save( $type );
+
+  _rvk_ticketing_add_fields_to_bundle('field_indication_type_ref', 'taxonomy_term_reference',
+    $type_name, 'Ábendingategund', 'Ábendingategund', 'autocomplete', 'node',
+    ['allowed_values' => [0 => ['vocabulary' => 'indication_types', 'parent' => 0]],
+      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+  _rvk_ticketing_add_fields_to_bundle('field_indication_text', 'text_long', $type_name,
+    'Ábending frá íbúa', 'Ábending', 'text_textarea');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_location', 'text', $type_name,
+    'Staðsetning (götunafn í nefnifalli)', 'Staðsetning', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_house_number', 'text',
+    $type_name, 'Húsnúmer', 'Húsnúmer', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_name', 'text',
+    $type_name, 'Nafn sendanda', 'Nafn sendanda', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',
+    $type_name, 'Kennitala sendanda', 'Kennitala sendanda', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_email', 'text',
+    $type_name, 'Netfang', 'Netfang', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_phone', 'text',
+    $type_name, 'Símanúmer', 'Símanúmer', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_status_ref', 'taxonomy_term_reference',
+    $type_name, 'Staða ábendingar', 'Staða', 'autocomplete', 'node',
+    ['allowed_values' => [0 => ['vocabulary' => 'indication_status', 'parent' => 0]],
+      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+  _rvk_ticketing_add_fields_to_bundle('field_indication_int_comm', 'text_long', $type_name,
+    'Innri málsmeðferð', 'Innri málsmeðferð', 'text_textarea', 'node');
+
+  /**
+   * Entity Reference field, with autocomplete widget, to reference Users.
+   */
+  $field = [
+    'field_name' => 'field_indication_controller_new',
+    'type' => 'entityreference',
+    'cardinailty' => FIELD_CARDINALITY_UNLIMITED,
+    'settings' => [
+      'target_type' => 'user',
+      'target_bundles' => 'indications'
+    ],
+  ];
+  field_create_field($field);
+
+  $instance = [
+    'field_name' => 'field_indication_controller_new',
+    'entity_type' => 'node',
+    'bundle' => 'indications',
+    'label' => 'Ábyrgðaraðili',
+    'widget' => [
+      'type' => 'entityreference_autocomplete',
+    ]
+  ];
+
+  field_create_instance($instance);
+
+  //Set preview to none and disable the subject line for comments
+  variable_set('comment_indication', '1');
+  variable_set('comment_preview_indications', 0);
+  variable_set('comment_subject_field_indications', 0);
+  variable_set('node_options_indications', array('status'));
+}
+
+/**
+ * Helper function to remove content type, upon uninstall
+ *
+ * @param array $type_name
+ */
+function _rvk_ticketing_remove_content_type(array $type_name){
+  foreach($type_name as $type){
+    if (in_array($type, array_keys(node_type_get_names()))) {
+      $query = new EntityFieldQuery;
+      $results = $query
+        ->entityCondition('entity_type', 'node')
+        ->propertyCondition('type', $type_name)
+        ->propertyCondition('status', 1, '=')
+        ->execute();
+
+      if($results) {
+        $results = array_values($results['node']);
+
+        foreach($results as $result) {
+          node_delete($result->nid);
+        }
+      }
+
+      node_type_delete($type);
+      variable_del('node_preview_' . $type);
+    }
+  }
+}
