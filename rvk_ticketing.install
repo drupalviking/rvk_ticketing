@@ -223,6 +223,10 @@ function _rvk_ticketing_create_indication_content_type() {
       'options_list_callback' => 'i18n_taxonomy_allowed_values']);
   _rvk_ticketing_add_fields_to_bundle('field_indication_int_comm', 'text_long', $type_name,
     'Innri málsmeðferð', 'Innri málsmeðferð', 'text_textarea', 'node');
+  _rvk_ticketing_add_fields_to_bundle('field_position_x', 'text', $type_name,
+    'XHnit frá Borgarvefsjá', 'XHnit', 'text_textarea');
+  _rvk_ticketing_add_fields_to_bundle('field_position_y', 'text', $type_name,
+    'YHnit frá Borgarvefsjá', 'YHnit', 'text_textarea');
 
   /**
    * Entity Reference field, with autocomplete widget, to reference Users.
