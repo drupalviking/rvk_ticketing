@@ -1,11 +1,18 @@
 var map, baseLayer, graphicLayer;
 
-require(["esri/map", "dojo/domReady!"], function (Map) {
+require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map, LocateButton) {
     var initialExtent = new esri.geometry.Extent({ "xmin": 352100, "ymin": 401000, "xmax": 367700, "ymax": 412000, "spatialReference": { "wkid": 3057 } });
     map = new Map("mapDiv", {
         extent: initialExtent,
-        logo: false
+        logo: false,
+        zoom: 3,
+        center: [-21.898063,62.132953],
     });
+
+    geoLocatebutton = new LocateButton({
+        map: map
+    }, "LocateButton");
+    geoLocatebutton.startup();
 
     //þegar kortið er tilbúið er punkti bætt á kortið
     map.on("load", function () {
@@ -45,9 +52,6 @@ function addPointToMap(pointX, PointY) {
             pX: pointX,
             pY: PointY
         };
-        console.log(attributes);
-
-
         var graphic = new Graphic(qPoint);
         var sym = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0]), 1), new Color([255, 0, 0, 0.5]));
         graphic.symbol = sym;

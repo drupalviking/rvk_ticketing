@@ -1,0 +1,6 @@
+#LocateButton {
+    position: absolute;
+    top: 120px;
+    left: 30px;
+    z-index: 50;
+}

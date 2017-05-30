@@ -124,6 +124,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       'http://js.arcgis.com/3.13/esri/css/esri.css' => [
         'type' => 'external',
       ],
+      drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
     ];
 
     $form['address_fieldset'] = [
@@ -147,6 +148,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       '#type' => 'markup',
       '#prefix' => '<div id="mapDiv">',
       '#postfix' => '</div>',
+      '#markup' => '<div id="LocateButton"></div>',
     ];
     $form['xcoords'] = [
       '#type' => 'hidden',
