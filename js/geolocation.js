@@ -29,7 +29,7 @@ require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map
     baseLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja/MapServer");
     graphicLayer = new esri.layers.GraphicsLayer();
     graphicLayer.on("click", function (evt) {
-        alert("Nafn " + evt.graphic.attributes.Name + " ,xhnit:" + evt.graphic.attributes.pX + ",yhnit:" + evt.graphic.attributes.pY);
+        alert("Xhnit:" + evt.graphic.attributes.pX + "\nYhnit:" + evt.graphic.attributes.pY);
     });
     map.addLayers([baseLayer, graphicLayer]);
 });
