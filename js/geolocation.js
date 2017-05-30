@@ -9,7 +9,20 @@ require(["esri/map", "dojo/domReady!"], function (Map) {
 
     //þegar kortið er tilbúið er punkti bætt á kortið
     map.on("load", function () {
-        //bæta punkti á kortið með GPS hnitum
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function() {
+                var crd = pos.coords;
+                var ISN93coords = getLambert(crd.latitude, crd.longitude);
+                addPointToMap(ISN93coords[0], ISN93coords[1]);
+            }, function(err) {
+                alert(err.code + " - " + err.message);
+            }, options);
+        }
+        else {
+            //bæta punkti á kortið með GPS hnitum
+            var ISN93coords = getLambert(64.132953, -21.898063);
+            addPointToMap(ISN93coords[0], ISN93coords[1]);
+        }
         var ISN93coords = getLambert(64.132953, -21.898063);
         addPointToMap(ISN93coords[0], ISN93coords[1]);
     });
@@ -110,3 +123,16 @@ function deg2rad(deg) {
     var rad = deg * 2 * Math.PI / 360;
     return rad;
 };
+
+function errorPosition() {
+    alert('Sorry couldn\'t find your location');
+}
+
+function exportPosition(position) {
+
+    // Get the geolocation properties and set them as variables
+    latitude = position.coords.latitude;
+    longitude = position.coords.longitude;
+    console.log(latitude);
+    console.log(longitude);
+}
