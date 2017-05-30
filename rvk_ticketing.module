@@ -120,15 +120,58 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   }
   //Original state (step 1) of the form
   else {
-    $form['address'] = [
+    $form['#attached']['css'] = [
+      'http://js.arcgis.com/3.13/esri/css/esri.css' => [
+        'type' => 'external',
+      ],
+    ];
+
+    $form['address_fieldset'] = [
+      '#type' => 'fieldset',
+      '#weight' => 20,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Address'),
+    ];
+    $form['map_fieldset'] = [
+      '#type' => 'fieldset',
+      '#weight' => 10,
+      '#collapsible' => FALSE,
+    ];
+    $form['address_fieldset']['address'] = [
       '#type' => 'textfield',
       '#title' => 'Staðsetning (Götuheiti í nefnifalli)',
       '#autocomplete_path' => 'gata/fletta_upp_gotu_autocomplete_callback',
+    ];
+    $form['map_fieldset']['map_markup'] = [
+      '#type' => 'markup',
+      '#prefix' => '<div id="mapDiv">',
+      '#postfix' => '</div>',
+    ];
+    $form['xcoords'] = [
+      '#type' => 'hidden',
+      '#title' => 'xcoords',
+      '#attributes' => [
+        'id' => ['xcoords']
+      ],
+    ];
+    $form['ycoords'] = [
+      '#type' => 'hidden',
+      '#title' => 'ycoords',
+      '#attributes' => [
+        'id' => ['ycoords']
+      ],
     ];
 
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Halda áfram',
+    );
+    $form['#attached']['js'] = array(
+      'http://js.arcgis.com/3.13/init.js' => array(
+        'type' => 'external',
+      ),
+      drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js',
     );
   }
 
@@ -139,14 +182,28 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   //If storage is not set, we're at step one
   if(!isset($form_state['storage'])) {
     $values = $form_state['values'];
-    $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
-      RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
-      '&type=2&Addr=' . rawurlencode($values['address']);
-    $street = _rvk_ticketing_get_query($uri);
-    if($street[0]['text'] != $values['address']) {
-      form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
+    if(strlen($values['xcoords']) == 0 && strlen($values['address']) == 0) {
+      form_set_error('address', 'Velja þarf annað hvort stað á korti eða slá inn heimilisfang');
+    }
+    elseif(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
+      if(!rvk_ticket_check_street_address_valid($values['address'])) {
+        form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
+      }
     }
   }
+}
+
+/**
+ * @param $values
+ * @return bool
+ */
+function rvk_ticket_check_street_address_valid($address) {
+  $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
+    RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
+    '&type=2&Addr=' . rawurlencode($address);
+  $street = _rvk_ticketing_get_query($uri);
+
+  return($street[0]['text'] != $address) ? false : true;
 }
 
 function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
@@ -158,13 +215,19 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
     $form_state['storage']['page_one_values'] = $values;
     $form_state['rebuild'] = TRUE;
 
-    //Send another query to the Street lookup API, to get the X and Y coords
-    $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
-      RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
-      '&type=2&Addr=' . rawurlencode($values['address']);
-    $street = _rvk_ticketing_get_query($uri);
-    $form_state['storage']['page_one_values']['xcoord'] = $street[0]['x'];
-    $form_state['storage']['page_one_values']['ycoord'] = $street[0]['y'];
+    if(strlen($values['xcoords']) > 0 && strlen($values['ycoords']) > 0) {
+      $form_state['storage']['page_one_values']['xcoord'] = $values['xcoords'];
+      $form_state['storage']['page_one_values']['ycoord'] = $values['ycoords'];
+    }
+    elseif(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
+      //Send another query to the Street lookup API, to get the X and Y coords
+      $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
+        RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
+        '&type=2&Addr=' . rawurlencode($values['address']);
+      $street = _rvk_ticketing_get_query($uri);
+      $form_state['storage']['page_one_values']['xcoord'] = $street[0]['x'];
+      $form_state['storage']['page_one_values']['ycoord'] = $street[0]['y'];
+    }
   }
   elseif(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
     $form_state['storage']['page_two'] = FALSE;
@@ -190,8 +253,6 @@ function rvk_ticketing_create_indication_node($data) {
     $data['page_one_values']['xcoord'];
   $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] =
     $data['page_one_values']['ycoord'];
-  $node->field_indication_house_number[LANGUAGE_NONE][0]['value'] =
-    $data['page_one_values']['house_number'];
   $node->field_indication_text[LANGUAGE_NONE][0]['value'] =
     $data['page_two_values']['content'];
   $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] =

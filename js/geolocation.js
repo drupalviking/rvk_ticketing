@@ -2,7 +2,6 @@ var map, baseLayer, graphicLayer;
 
 require(["esri/map", "dojo/domReady!"], function (Map) {
     var initialExtent = new esri.geometry.Extent({ "xmin": 352100, "ymin": 401000, "xmax": 367700, "ymax": 412000, "spatialReference": { "wkid": 3057 } });
-
     map = new Map("mapDiv", {
         extent: initialExtent,
         logo: false
@@ -17,8 +16,8 @@ require(["esri/map", "dojo/domReady!"], function (Map) {
     //smellt á kortið til að bæta við punkti
     map.on("click", function(evt) {
         addPointToMap(evt.mapPoint.x, evt.mapPoint.y);
-        xhttp.open("GET", "example3.html?t=" + Math.random(), true);
-        xhttp.send();
+        document.getElementById("xcoords").value = evt.mapPoint.x;
+        document.getElementById("ycoords").value = evt.mapPoint.y;
     });
 
     baseLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja/MapServer");
