@@ -168,6 +168,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Halda áfram',
+      '#weight' => 1000
     );
     $form['#attached']['js'] = array(
       'http://js.arcgis.com/3.13/init.js' => array(
