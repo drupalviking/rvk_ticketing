@@ -37,6 +37,20 @@ function rvk_ticketing_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_permission().
+ */
+function rvk_ticketing_permission() {
+  return array(
+    'view ticketing content' => array(
+      'title' => t('View ticketing content'),
+    ),
+    'administer ticketing content' => array(
+      'title' => t('Administer ticketing content'),
+    ),
+  );
+}
+
 function rvk_ticketing_create_ticket_page() {
   $build = [
     'header_text' => [
