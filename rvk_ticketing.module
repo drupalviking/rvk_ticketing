@@ -276,6 +276,7 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
+  $node->language = 'is';
 
   node_save($node);
 
