@@ -26,7 +26,7 @@ require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map
         document.getElementById("ycoords").value = evt.mapPoint.y;
     });
 
-    baseLayer = new esri.layers.ArcGISTiledMapServiceLayer("https://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja/MapServer");
+    baseLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja/MapServer");
     graphicLayer = new esri.layers.GraphicsLayer();
     graphicLayer.on("click", function (evt) {
         alert("Xhnit:" + evt.graphic.attributes.pX + "\nYhnit:" + evt.graphic.attributes.pY);
