@@ -95,50 +95,19 @@ function rvk_ticketing_block_view($delta = '') {
 function rvk_ticketing_create_ticket_form($form, &$form_state) {
   //Step two
   if(isset($form_state['storage']) && $form_state['storage']['page_two']) {
-    $form['content'] = [
-      '#type' => 'textarea',
-      '#title' => 'Efni ábendingar',
-    ];
-
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => 'Halda áfram',
-    );
-  }
-  //Step three
-  elseif(isset($form_state['storage']) && $form_state['storage']['page_three']) {
-    $form['name'] = [
-      '#type' => 'textfield',
-      '#title' => 'Nafn',
-      '#required' => TRUE,
-    ];
-    $form['ssn'] = [
-      '#type' => 'textfield',
-      '#title' => 'Kennitala',
-      '#required' => TRUE,
-    ];
-    $form['email'] = [
-      '#type' => 'textfield',
-      '#title' => 'Netfang',
-      '#required' => TRUE,
-    ];
-    $form['tel'] = [
-      '#type' => 'textfield',
-      '#title' => 'Sími',
-    ];
-
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => 'Halda áfram',
-    );
-  }
-  //Original state (step 1) of the form
-  else {
     $form['#attached']['css'] = [
       'https://js.arcgis.com/3.13/esri/css/esri.css' => [
         'type' => 'external',
       ],
       drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
+    ];
+
+    $form['markup'] = [
+      '#type' => 'markup',
+      '#markup' => '<h2>Staðsetning á korti</h2> 
+                    <p>Þú getur slegið inn heimilisfang og/eða sett punkt á kortið með því að smella 
+                    á þann stað á kortinu sem tengist ábendingunni. Ef ábendingin krefst 
+                    ekki staðsetningar smelltu þá á áfram.</p>',
     ];
 
     $form['address_fieldset'] = [
@@ -191,13 +160,75 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js',
     );
   }
+  //Step three
+  elseif(isset($form_state['storage']) && $form_state['storage']['page_three']) {
+    $form['markup'] = [
+      '#type' => 'markup',
+      '#markup' => '<h2>Upplýsingar um þig</h2>',
+    ];
+    $form['name'] = [
+      '#type' => 'textfield',
+      '#title' => 'Nafn',
+      '#required' => TRUE,
+    ];
+    $form['ssn'] = [
+      '#type' => 'textfield',
+      '#title' => 'Kennitala',
+      '#required' => TRUE,
+    ];
+    $form['email'] = [
+      '#type' => 'textfield',
+      '#title' => 'Netfang',
+      '#required' => TRUE,
+    ];
+    $form['tel'] = [
+      '#type' => 'textfield',
+      '#title' => 'Sími',
+    ];
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Halda áfram',
+    );
+  }
+  //Original state (step 1) of the form
+  else {
+    $form['markup'] = [
+      '#type' => 'markup',
+      '#markup' => '<h2>Sendu okkur ábendingu</h2>',
+    ];
+
+    $form['title'] = [
+      '#type' => 'textfield',
+      '#title' => 'Titill',
+      '#required' => TRUE,
+    ];
+
+    $form['content'] = [
+      '#type' => 'textarea',
+      '#title' => 'Efni ábendingar',
+      '#required' => TRUE,
+    ];
+
+    $form['use_map'] = [
+      '#type' => 'radios',
+      '#title' => 'Nota kort eða staðsetningu með ábendingunni',
+      '#options' => ['yes' => 'Já', 'no' => 'Nei'],
+      '#default_value' => 'no',
+   ];
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Halda áfram',
+    );
+  }
 
   return $form;
 }
 
 function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   //If storage is not set, we're at step one
-  if(!isset($form_state['storage'])) {
+  if(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
     $values = $form_state['values'];
     if(strlen($values['xcoords']) == 0 && strlen($values['address']) == 0) {
       form_set_error('address', 'Velja þarf annað hvort stað á korti eða slá inn heimilisfang');
@@ -227,9 +258,24 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   //If storage is not set, we're at step one
   if(!isset($form_state['storage'])) {
-    $form_state['storage']['page_two'] = TRUE;
-    $form_state['storage']['page_three'] = FALSE;
-    $form_state['storage']['page_one_values'] = $values;
+    if($values['use_map'] == 'yes') {
+      $form_state['storage']['page_two'] = TRUE;
+      $form_state['storage']['page_three'] = FALSE;
+      $form_state['storage']['page_one_values'] = $values;
+      $form_state['rebuild'] = TRUE;
+    }
+    else {
+      $form_state['storage']['page_two'] = FALSE;
+      $form_state['storage']['page_three'] = TRUE;
+      $form_state['storage']['page_one_values'] = $values;
+      $form_state['storage']['page_two_values'] = null;
+      $form_state['rebuild'] = TRUE;
+    }
+  }
+  elseif(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
+    $form_state['storage']['page_two'] = FALSE;
+    $form_state['storage']['page_three'] = TRUE;
+    $form_state['storage']['page_two_values'] = $values;
     $form_state['rebuild'] = TRUE;
 
     if(strlen($values['xcoords']) > 0 && strlen($values['ycoords']) > 0) {
@@ -246,32 +292,36 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
       $form_state['storage']['page_one_values']['ycoord'] = $street[0]['y'];
     }
   }
-  elseif(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
-    $form_state['storage']['page_two'] = FALSE;
-    $form_state['storage']['page_three'] = TRUE;
-    $form_state['storage']['page_two_values'] = $values;
-    $form_state['rebuild'] = TRUE;
-  }
   elseif(isset($form_state['storage']) && $form_state['storage']['page_three'] == TRUE ) {
     $form_state['storage']['page_three_values'] = $values;
     rvk_ticketing_create_indication_node($form_state['storage']);
+    drupal_set_message('<p>Takk fyrir að senda ábendingu til okkar.</p>
+<p>Þjónustuver borgarinnar vinnur úr ábendingum alla virka daga og kemur þeim á réttan stað.</p> 
+<p><strong>Ef um um er að ræða neyðartilfelli hafðu þá samband við 112.</strong></p>');
   }
 }
 
 function rvk_ticketing_create_indication_node($data) {
   $node = new stdClass();
-  $node->title = "Ábending " . rand(1000, 9999);
+  $node->title = $data['page_one_values']['title'];
   $node->type = 'indications';
   node_object_prepare($node);
 
-  $node->field_indication_location[LANGUAGE_NONE][0]['value'] =
-    $data['page_one_values']['address'];
-  $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] =
-    $data['page_one_values']['xcoord'];
-  $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] =
-    $data['page_one_values']['ycoord'];
   $node->field_indication_text[LANGUAGE_NONE][0]['value'] =
-    $data['page_two_values']['content'];
+    $data['page_one_values']['content'];
+  if(isset($data['page_two_values'])) {
+    if(isset($data['page_two_values']['address'])) {
+      $node->field_indication_location[LANGUAGE_NONE][0]['value'] =
+        $data['page_two_values']['address'];
+    }
+    elseif(isset($data['page_two_values']['xcoord'])) {
+      $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] =
+        $data['page_two_values']['xcoord'];
+      $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] =
+        $data['page_two_values']['ycoord'];
+    }
+  }
+
   $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] =
     $data['page_three_values']['name'];
   $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] =
