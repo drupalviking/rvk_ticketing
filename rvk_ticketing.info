@@ -5,3 +5,5 @@ package = 1xInternet
 
 dependencies[] = entityreference
 dependencies[] = views
+dependencies[] = borgarvefsja
+dependencies[] = mainmanager

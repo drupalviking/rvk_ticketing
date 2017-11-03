@@ -1,9 +1,11 @@
 <?php
-define('RVK_TICKETING_STREET_LOOKUP_API', variable_get('rvk_ticketing_street_lookup_api'));
-define('RVK_TICKETING_STREET_LOOKUP_MAX_HITS', variable_get('rvk_ticketing_street_lookup_max_hits'));
 
 /**
  * MODULE FILE
+ */
+
+/**
+ * Implements hook_menu().
  */
 function rvk_ticketing_menu() {
   $items['senda-inn-abendingu'] = [
@@ -12,26 +14,15 @@ function rvk_ticketing_menu() {
     'access arguments' => ['access content'],
   ];
 
-  $items['gata/fletta_upp_gotu_autocomplete_callback'] = array(
-    'page callback' => 'rvik_ticketing_street_lookup_autocomplete_callback',
-    'type' => MENU_CALLBACK,
-    'access arguments' => array('access content'),
-  );
-
-  $items['test'] = [
-    'title' => 'Hundur',
-    'access arguments' => ['access content'],
-  ];
-
-  $items['admin/config/services/rvk_ticketing'] = array(
-    'title' => t('Reykjavik Ticketing System'),
+  $items['admin/config/services/abendingar'] = array(
+    'title' => t('Ábendingar config'),
     'description' => 'Misc settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('rvk_ticketing_admin'),
-    'access arguments' => array('administer ticketing settings'),
-    'type' => MENU_NORMAL_ITEM,
     'file' => 'rvk_ticketing.admin.inc',
     'file path' => drupal_get_path('module', 'rvk_ticketing'),
+    'access arguments' => array('administer borgarvefsja settings'),
+    'type' => MENU_NORMAL_ITEM,
   );
 
   return $items;
@@ -51,6 +42,11 @@ function rvk_ticketing_permission() {
   );
 }
 
+/**
+ * Creates a page for the ticket to be displayed on
+ *
+ * @return array
+ */
 function rvk_ticketing_create_ticket_page() {
   $build = [
     'header_text' => [
@@ -63,19 +59,47 @@ function rvk_ticketing_create_ticket_page() {
   return $build;
 }
 
+/**
+ * Implements hook_block_info().
+ */
 function rvk_ticketing_block_info() {
   $blocks['indication_form'] = [
     'info' => 'Ábendingarform',
   ];
 
+  $blocks['test_block'] = [
+    'info' => 'Test block for Ticketing',
+  ];
+
   return $blocks;
 }
 
+/**
+ * Implements hook_block_view().
+ */
 function rvk_ticketing_block_view($delta = '') {
   $markup = '';
   if($delta == 'indication_form') {
     $form = drupal_get_form('rvk_ticketing_create_ticket_form');
     $markup .= drupal_render($form);
+  }
+
+  if($delta == 'test_block') {
+    $obj = new stdClass();
+    $obj->MainId = 0;
+    $obj->Name = "Veggjakrot í Eyjabakka";
+    $obj->Description = "Það er búið að krota á hús í Eyjabakka. Vinsamlegast lagið strax";
+    $obj->Contact = "Hilmar Kári Hallbjörnsson";
+    $obj->ContactNumber = "8477653";
+    $obj->ContactEmail = "zormoni@gmail.com";
+    $obj->CheckWordID = 6;
+    $obj->CheckWordItemID = 10067;
+    $obj->Latidue = "360080.1816103632";
+    $obj->Longitude = "406608.21893388574";
+    $json_obj = json_encode($obj);
+    $json_obj = str_replace('"', "'", $json_obj);
+    //$token = mainmanager_get_auth_token();
+    //$return = _mainmanager_curl_post('Incident/CreateIncident', $json_obj, $token);
   }
 
   $block['content'] = $markup;
@@ -226,6 +250,9 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Implements hook_form_validate().
+ */
 function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   //If storage is not set, we're at step one
   if(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
@@ -242,18 +269,23 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
 }
 
 /**
- * @param $values
+ * Checks to see if the address entered is valid, by looking up the address name
+ * at Borgarvefsja API
+ *
+ * @param string $address The Address to validate
  * @return bool
  */
 function rvk_ticket_check_street_address_valid($address) {
-  $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
-    RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
-    '&type=2&Addr=' . rawurlencode($address);
-  $street = _rvk_ticketing_get_query($uri);
-
+  $street = borgarvefsja_search_by_address($address);
   return($street[0]['text'] != $address) ? false : true;
 }
 
+/**
+ * Implements hook_form_submit().
+ *
+ * Since it's a multistep form, validations on where the user is in it, are in
+ * place.
+ */
 function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   //If storage is not set, we're at step one
@@ -279,17 +311,15 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
     $form_state['rebuild'] = TRUE;
 
     if(strlen($values['xcoords']) > 0 && strlen($values['ycoords']) > 0) {
-      $form_state['storage']['page_one_values']['xcoord'] = $values['xcoords'];
-      $form_state['storage']['page_one_values']['ycoord'] = $values['ycoords'];
+      $form_state['storage']['page_two_values']['xcoord'] = $values['xcoords'];
+      $form_state['storage']['page_two_values']['ycoord'] = $values['ycoords'];
+      unset($form_state['storage']['page_two_values']['address']);
     }
     elseif(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
       //Send another query to the Street lookup API, to get the X and Y coords
-      $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
-        RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
-        '&type=2&Addr=' . rawurlencode($values['address']);
-      $street = _rvk_ticketing_get_query($uri);
-      $form_state['storage']['page_one_values']['xcoord'] = $street[0]['x'];
-      $form_state['storage']['page_one_values']['ycoord'] = $street[0]['y'];
+      $street = borgarvefsja_search_by_address($values['address']);
+      $form_state['storage']['page_two_values']['xcoord'] = $street[0]['x'];
+      $form_state['storage']['page_two_values']['ycoord'] = $street[0]['y'];
     }
   }
   elseif(isset($form_state['storage']) && $form_state['storage']['page_three'] == TRUE ) {
@@ -301,6 +331,12 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   }
 }
 
+/**
+ * Creates one indication node, based on the values the user submits.
+ *
+ * @param array $data The data comes from a form
+ * @return \stdClass
+ */
 function rvk_ticketing_create_indication_node($data) {
   $node = new stdClass();
   $node->title = $data['page_one_values']['title'];
@@ -347,6 +383,9 @@ function rvk_ticketing_create_indication_node($data) {
   return $node;
 }
 
+/**
+ * Implements hook_views_api().
+ */
 function rvk_ticketing_views_api() {
   list($module, $api) = func_get_args();
   if ($module == "views" && $api == "views_default") {
@@ -354,17 +393,64 @@ function rvk_ticketing_views_api() {
   }
 }
 
-function rvik_ticketing_street_lookup_autocomplete_callback($string = "") {
-  $matches = [];
-  $uri = RVK_TICKETING_STREET_LOOKUP_API . '/?top=' .
-    RVK_TICKETING_STREET_LOOKUP_MAX_HITS .
-    '&type=2&Addr=' . rawurlencode($string);
-  $streets = _rvk_ticketing_get_query($uri);
-  foreach($streets as $street) {
-    $matches[$street['text']] = $street['text'];
-  }
+/**
+ * Gets one Incident by ID, by calling the MainManager API
+ *
+ * @param int $id
+ */
+function rvk_ticketing_get_incident_by_id($id) {
+  return mainmanager_get_incident_by_id($id);
+}
 
-  drupal_json_output($matches);
+/**
+ * Populates the Checkword Items Taxonomy Vocabulary with terms from the
+ * Main manager Rest API
+ */
+function rvk_ticketing_populate_checkword_items_taxonomy_vocabulary() {
+  //ID 6 is the Checkword id MainManager gave us to use. Other id's should
+  //not be of concern as of right now.
+  $results = mainmanager_get_checkword_items(6);
+
+  if(is_array($results)) {
+    $tree = [];
+
+    $vocabulary = taxonomy_vocabulary_machine_name_load('checkword_items');
+    $terms = taxonomy_get_tree($vocabulary->vid);
+
+    foreach($terms as $term) {
+      $tree[$term->name] = $term->name;
+    }
+
+    foreach($results as $result) {
+      if(!in_array($result['Name'], $tree)) {
+        $term = new stdClass();
+        $term->name = $result['Name'];
+        $term->vid = $vocabulary->vid;
+        taxonomy_term_save($term);
+
+        $term->field_cwi_record_id[LANGUAGE_NONE][0]['value'] = $result['RecordID'];
+        $term->field_cwi_record_id[LANGUAGE_NONE][0]['format'] = NULL;
+        $term->field_cwi_record_id[LANGUAGE_NONE][0]['safe_value'] = $result['RecordID'];
+
+        $term->field_cwi_number[LANGUAGE_NONE][0]['value'] = $result['Nr'];
+        $term->field_cwi_number[LANGUAGE_NONE][0]['format'] = NULL;
+        $term->field_cwi_number[LANGUAGE_NONE][0]['safe_value'] = $result['Nr'];
+
+        $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['value'] = $result['IncidentMode'][0];
+        $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['format'] = NULL;
+        $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['safe_value'] = $result['IncidentMode'][0];
+
+        if($result['Nr'] > 9) {
+          $term->weight = $result['Nr'] * 10;
+        }
+        else{
+          $term->weight = $result['Nr'];
+        }
+
+        taxonomy_term_save($term);
+      }
+    }
+  }
 }
 
 /**
@@ -563,44 +649,4 @@ function rvk_ticketing_views_default_views() {
   $export['test'] = $view;
 
   return $export;
-}
-
-/**
- * Sends a GET query to Spotify for specific URL
- *
- * @param $uri string
- *   The fully generated search string
- * @return object
- *   Returns a stdClass with the search results or an error message
- */
-function _rvk_ticketing_get_query($uri) {
-  $search_results = null;
-
-  if (!empty($cache)) {
-    $search_results = $cache;
-  }
-  else {
-    $options = array(
-      'method' => 'GET',
-      'timeout' => 3,
-      'headers' => array(
-        'Accept' => 'application/json',
-      ),
-    );
-
-    $search_results = drupal_http_request($uri, $options);
-
-    if (empty($search_results->error)) {
-      $search_results = drupal_json_decode($search_results->data);
-    }
-    else {
-      drupal_set_message(t('The search request resulted in the following error: @error.', array(
-        '@error' => $search_results->error,
-      )));
-
-      return $search_results->error;
-    }
-  }
-
-  return $search_results;
 }
