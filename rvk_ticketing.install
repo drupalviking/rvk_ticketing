@@ -142,6 +142,19 @@ function _rvk_ticketing_create_checkword_items_taxonomy_vocabulary() {
     'Number', 'Nr', 'textfield', 'taxonomy_term');
   _rvk_ticketing_add_fields_to_bundle('field_cwi_incident_mode', 'text', 'checkword_items',
     'Incident Mode', 'Incident Mode', 'textfield', 'taxonomy_term');
+
+  $terms = mainmanager_get_checkword_items(6);
+
+  foreach($terms as $term) {
+    $taxonomy_term = new stdClass();
+    $taxonomy_term->name = $term['Name'];
+    $taxonomy_term->field_cwi_record_id[LANGUAGE_NONE][0]['value'] = $term['RecordID'];
+    $taxonomy_term->field_cwi_number[LANGUAGE_NONE][0]['value'] = $term['Nr'];
+    $taxonomy_term->field_cwi_incident_mode[LANGUAGE_NONE][0]['value'] =
+      $term['IncidentMode'][0];
+    $taxonomy_term->vid = $vocabulary->vid;
+    taxonomy_term_save($taxonomy_term);
+  }
 }
 
 function _rvk_ticketing_create_department_taxonomy_vocabulary() {
@@ -259,14 +272,11 @@ function _rvk_ticketing_create_indication_content_type() {
   $type = node_type_set_defaults( $type );
   node_type_save( $type );
 
-  _rvk_ticketing_add_fields_to_bundle('field_indication_type_ref', 'taxonomy_term_reference',
-    $type_name, 'Ábendingategund', 'Ábendingategund', 'autocomplete', 'node',
-    ['allowed_values' => [0 => ['vocabulary' => 'indication_types', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
   _rvk_ticketing_add_fields_to_bundle('field_indication_text', 'text_long', $type_name,
     'Ábending frá íbúa', 'Ábending', 'text_textarea');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_location', 'text', $type_name,
-    'Staðsetning (götunafn í nefnifalli)', 'Staðsetning', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_interpered_indication_text', 'text_long', $type_name,
+    'Túlkuð ábending frá íbúa, eftir að þjónustufulltrúi hefur farið yfir hana',
+    'Túlkuð ábending', 'text_textarea');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_name', 'text',
     $type_name, 'Nafn sendanda', 'Nafn sendanda', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',
@@ -279,21 +289,14 @@ function _rvk_ticketing_create_indication_content_type() {
     $type_name, 'Staða ábendingar', 'Staða', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'indication_status', 'parent' => 0]],
       'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+  _rvk_ticketing_add_fields_to_bundle('field_indication_type_ref', 'taxonomy_term_reference',
+    $type_name, 'Ábendingategund', 'Ábendingategund', 'autocomplete', 'node',
+    ['allowed_values' => [0 => ['vocabulary' => 'indication_types', 'parent' => 0]],
+      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
   _rvk_ticketing_add_fields_to_bundle('field_department_ref', 'taxonomy_term_reference',
     $type_name, 'Svið ábyrgðaraðila', 'Svið', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'departments', 'parent' => 0]],
       'options_list_callback' => 'i18n_taxonomy_allowed_values']);
-  _rvk_ticketing_add_fields_to_bundle('field_indication_int_comm', 'text_long', $type_name,
-    'Innri málsmeðferð', 'Innri málsmeðferð', 'text_textarea', 'node');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_position_x', 'text', $type_name,
-    'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
-    'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_sent_to_mainmanager', 'list_boolean', $type_name,
-    'Merkir hvort ábendingin hafi verið send til Mainmanager til frekari úrvinnslu',
-    'Senda til MainManager', 'options_onoff', 'node', [0 => 'Já', 1 => 'Nei']);
-  _rvk_ticketing_add_fields_to_bundle('field_mainmanager_id', 'text', $type_name,
-    'ID hjá MainManager', 'ID MainManager', 'textfield');
 
   /**
    * Entity Reference field, with autocomplete widget, to reference Users.
@@ -320,6 +323,24 @@ function _rvk_ticketing_create_indication_content_type() {
   ];
 
   field_create_instance($instance);
+
+  _rvk_ticketing_add_fields_to_bundle('field_indication_int_comm', 'text_long', $type_name,
+    'Innri málsmeðferð', 'Innri málsmeðferð', 'text_textarea', 'node');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_location', 'text', $type_name,
+    'Staðsetning (götunafn í nefnifalli)', 'Staðsetning', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_position_x', 'text', $type_name,
+    'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
+    'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_sent_to_mainmanager', 'list_boolean', $type_name,
+    'Merkir hvort ábendingin hafi verið send til Mainmanager til frekari úrvinnslu',
+    'Senda til MainManager', 'options_onoff', 'node', [0 => 'Já', 1 => 'Nei']);
+  _rvk_ticketing_add_fields_to_bundle('field_mm_checkword_item', 'taxonomy_term_reference',
+    $type_name, 'Flokkun innan Mainmanager', 'Flokkun innan MM', 'autocomplete', 'node',
+    ['allowed_values' => [0 => ['vocabulary' => 'checkword_items', 'parent' => 0]],
+      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+  _rvk_ticketing_add_fields_to_bundle('field_mainmanager_id', 'text', $type_name,
+    'ID hjá MainManager', 'ID MainManager', 'textfield');
 
   //Set preview to none and disable the subject line for comments
   variable_set('comment_indication', '1');

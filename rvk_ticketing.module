@@ -28,6 +28,75 @@ function rvk_ticketing_menu() {
   return $items;
 }
 
+function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
+  if($form_id == 'indications_node_form') {
+    if(isset($form['#node'])) {
+      if(is_object($form['#node'])) {
+        if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
+          $form['field_sent_to_mainmanager']['#access'] = FALSE;
+          $form['field_mm_checkword_item']['#access'] = FALSE;
+          $form['field_mainmanager_id']['#access'] = FALSE;
+          $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
+          $form['field_fake']['#markup'] =
+            "<p><strong>Tilkynning hefur verið send til Mainmanager. Kenni tilkynningar er: {$mm_id}</strong></p>";
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function rvk_ticketing_node_presave($node) {
+  if($node->type == 'indications') {
+    if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0])) {
+      //If the checkbox "Send to Mainmanager" is checked, but the Mainmanager
+      //ID field is empty, create a node in Mainmanager
+      if($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]['value'] == 1) {
+        if(!isset($node->field_mainmanager_id[LANGUAGE_NONE][0])) {
+          //Default value of 'General'
+          $checkword_item_id = 15;
+          if (isset($node->field_mm_checkword_item[LANGUAGE_NONE][0])) {
+            $checkword_item = taxonomy_term_load(
+              $node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']
+            );
+
+            $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
+          }
+          $data_object = mainmanager_create_incident_data_object(
+            $node->title,
+            $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
+            $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
+            6,
+            $checkword_item_id,
+            $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
+            $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
+            $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
+            $node->field_indication_position_y[LANGUAGE_NONE][0]['value']
+          );
+
+          $mainmanager_response = mainmanager_create_incident($data_object);
+          if (is_object($mainmanager_response)) {
+            if ($mainmanager_response->Success == TRUE) {
+              $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
+                $mainmanager_response->ID;
+              node_save($node);
+            }
+            else {
+              drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
+            }
+          }
+          else {
+            //error occurred
+            drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
+          }
+        }
+      }
+    }
+  }
+}
+
 /**
  * Implements hook_permission().
  */
@@ -345,6 +414,8 @@ function rvk_ticketing_create_indication_node($data) {
 
   $node->field_indication_text[LANGUAGE_NONE][0]['value'] =
     $data['page_one_values']['content'];
+  $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'] =
+    $data['page_one_values']['content'];
   if(isset($data['page_two_values'])) {
     if(isset($data['page_two_values']['address'])) {
       $node->field_indication_location[LANGUAGE_NONE][0]['value'] =
@@ -377,6 +448,7 @@ function rvk_ticketing_create_indication_node($data) {
   }
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
   $node->language = 'is';
+  $node->is_new = true;
 
   node_save($node);
 
@@ -397,6 +469,7 @@ function rvk_ticketing_views_api() {
  * Gets one Incident by ID, by calling the MainManager API
  *
  * @param int $id
+ * @return \stdClass
  */
 function rvk_ticketing_get_incident_by_id($id) {
   return mainmanager_get_incident_by_id($id);
