@@ -31,5 +31,23 @@ function rvk_ticketing_admin() {
     '#description' => t('Email that is sent out when the issue has been closed'),
   ];
 
+  $form['rvk_ticketing_mainmanager'] = [
+    '#type' => 'fieldset',
+    '#weight' => 25,
+    '#title' => t('Reykjavik Ticketing Mainmanager Checkword configuration'),
+    '#description' => t('Application specific configuration for Mainmanager API'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  ];
+
+  $form['rvk_ticketing_mainmanager']['checkwords'] = [
+    '#type' => 'textfield',
+    '#weight' => 0,
+    '#title' => t('Mainmanager Checkword IDs'),
+    '#description' => t('Enter all Checkword IDs, that you want to fetch from Mainmanager,
+    seperated by a comma (,)'),
+    '#default_value' => variable_get('checkword_ids', ''),
+  ];
+
   return system_settings_form($form);
 }

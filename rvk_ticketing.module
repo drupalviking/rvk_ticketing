@@ -153,24 +153,6 @@ function rvk_ticketing_block_view($delta = '') {
     $markup .= drupal_render($form);
   }
 
-  if($delta == 'test_block') {
-    $obj = new stdClass();
-    $obj->MainId = 0;
-    $obj->Name = "Veggjakrot í Eyjabakka";
-    $obj->Description = "Það er búið að krota á hús í Eyjabakka. Vinsamlegast lagið strax";
-    $obj->Contact = "Hilmar Kári Hallbjörnsson";
-    $obj->ContactNumber = "8477653";
-    $obj->ContactEmail = "zormoni@gmail.com";
-    $obj->CheckWordID = 6;
-    $obj->CheckWordItemID = 10067;
-    $obj->Latidue = "360080.1816103632";
-    $obj->Longitude = "406608.21893388574";
-    $json_obj = json_encode($obj);
-    $json_obj = str_replace('"', "'", $json_obj);
-    //$token = mainmanager_get_auth_token();
-    //$return = _mainmanager_curl_post('Incident/CreateIncident', $json_obj, $token);
-  }
-
   $block['content'] = $markup;
 
   return $block;
