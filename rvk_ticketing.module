@@ -52,51 +52,104 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
  * Implements hook_node_presave().
  */
 function rvk_ticketing_node_presave($node) {
+  $a = 10;
   if($node->type == 'indications') {
-    if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0])) {
-      //If the checkbox "Send to Mainmanager" is checked, but the Mainmanager
-      //ID field is empty, create a node in Mainmanager
-      if($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]['value'] == 1) {
-        if(!isset($node->field_mainmanager_id[LANGUAGE_NONE][0])) {
-          //Default value of 'General'
-          $checkword_item_id = 15;
-          if (isset($node->field_mm_checkword_item[LANGUAGE_NONE][0])) {
-            $checkword_item = taxonomy_term_load(
-              $node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']
+    //If the node is cloned, the node is marked as new. And we do NOT want to
+    //clone the Mainmanager settings from the old node to the new!
+    if($node->is_new) {
+      unset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]);
+      unset($node->field_mm_checkword_item[LANGUAGE_NONE][0]);
+      unset($node->field_mainmanager_id[LANGUAGE_NONE][0]);
+    }
+    else {
+      if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0])) {
+        //If the checkbox "Send to Mainmanager" is checked, but the Mainmanager
+        //ID field is empty, create a node in Mainmanager
+        if($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]['value'] == 1) {
+          if(!isset($node->field_mainmanager_id[LANGUAGE_NONE][0])) {
+            //Default value of 'General'
+            $checkword_item_id = 15;
+            if (isset($node->field_mm_checkword_item[LANGUAGE_NONE][0])) {
+              $checkword_item = taxonomy_term_load(
+                $node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']
+              );
+
+              $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
+            }
+            $data_object = mainmanager_create_incident_data_object(
+              $node->title,
+              $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
+              $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
+              6,
+              $checkword_item_id,
+              $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
+              $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
+              $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
+              $node->field_indication_position_y[LANGUAGE_NONE][0]['value']
             );
 
-            $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
-          }
-          $data_object = mainmanager_create_incident_data_object(
-            $node->title,
-            $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
-            $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
-            6,
-            $checkword_item_id,
-            $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
-            $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
-            $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
-            $node->field_indication_position_y[LANGUAGE_NONE][0]['value']
-          );
-
-          $mainmanager_response = mainmanager_create_incident($data_object);
-          if (is_object($mainmanager_response)) {
-            if ($mainmanager_response->Success == TRUE) {
-              $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
-                $mainmanager_response->ID;
-              node_save($node);
+            $mainmanager_response = mainmanager_create_incident($data_object);
+            if (is_object($mainmanager_response)) {
+              if ($mainmanager_response->Success == TRUE) {
+                $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
+                  $mainmanager_response->ID;
+                node_save($node);
+              }
+              else {
+                drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
+              }
             }
             else {
+              //error occurred
               drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
             }
-          }
-          else {
-            //error occurred
-            drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
           }
         }
       }
     }
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function rvk_ticketing_node_update($node) {
+  if ($node->type == 'indications') {
+    register_shutdown_function('_rvk_ticketing_send_report_email', $node);
+  }
+}
+
+function _rvk_ticketing_send_report_email($node) {
+  $node_indication_status = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
+  $link_to_node = url(drupal_get_path_alias('node/' . $node->nid), array('absolute' => TRUE));
+  $email = $node->field_incication_reporter_email[LANGUAGE_NONE][0]['value'];
+  $key = null;
+  $subject = null;
+  $message = null;
+
+  if(strcmp('Ný ábending', $node_indication_status->name) == 0) {
+    $key = 'new_indication';
+    $subject = 'Takk fyrir ábendinguna';
+    $message = variable_get('first_email');
+    $message .= "\n\n" . 'Hér getur þú fylgst með gangi mála: <a href="' . $link_to_node . '">Ábendingin þín</a>';
+    $message .= "\n\n" . 'Með bestu kveðju, Þjónustumiðstöð Reykjavíkurborgar.';
+  }
+  if(strcmp('Lokið', $node_indication_status->name) == 0) {
+    $key = 'closed_indication';
+    $subject = 'Ábendingu lokað';
+    $message = variable_get('closing_email');
+    $message .= "\n\n" . 'Hér getur þú fylgst með gangi mála: <a href="' . $link_to_node . '">Ábendingin þín</a>';
+    $message .= "\n\n" . 'Með bestu kveðju, Þjónustumiðstöð Reykjavíkurborgar.';
+  }
+
+  if($key && $subject && $message) {
+    $params = [
+      'subject' => $subject,
+      'body' => check_markup(
+        $message, 'plain_text'
+      ),
+    ];
+    drupal_mail('rvk_ticketing', $key, $email, language_default(), $params);
   }
 }
 
@@ -334,6 +387,12 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
       if(!rvk_ticket_check_street_address_valid($values['address'])) {
         form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
       }
+    }
+  }
+  if(isset($form_state['storage']) &&$form_state['storage']['page_three'] == TRUE ) {
+    $values = $form_state['values'];
+    if(!_rvk_ticketing_ssn_validation($values['ssn'])) {
+      form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
     }
   }
 }
@@ -806,4 +865,43 @@ function rvk_ticketing_views_default_views() {
   $export['test'] = $view;
 
   return $export;
+}
+
+function _rvk_ticketing_ssn_validation($ssn) {
+  $sanitised = (string) preg_replace('/[^0-9]/','', $ssn);
+  $checksum = substr($sanitised,0,1)*3;
+  $checksum += substr($sanitised,1,1)*2;
+  $checksum += substr($sanitised,2,1)*7;
+  $checksum += substr($sanitised,3,1)*6;
+  $checksum += substr($sanitised,4,1)*5;
+  $checksum += substr($sanitised,5,1)*4;
+  $checksum += substr($sanitised,6,1)*3;
+  $checksum += substr($sanitised,7,1)*2;
+
+  $moduloRem = 11-fmod($checksum,11);
+  if (($moduloRem == '11') && (substr($sanitised,8,1) === '0')) {
+    return true;
+  }
+  elseif ($moduloRem == 10) {
+    return false;
+  }
+  elseif ($moduloRem == substr($sanitised,8,1)) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function rvk_ticketing_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'new_incident':
+    case 'closed_incident':
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['body'];
+      break;
+  }
 }

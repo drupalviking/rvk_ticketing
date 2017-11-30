@@ -7,3 +7,7 @@ dependencies[] = entityreference
 dependencies[] = views
 dependencies[] = borgarvefsja
 dependencies[] = mainmanager
+dependencies[] = node_clone
+dependencies[] = node_clone_tab
+dependencies[] = field_group
+dependencies[] = ds
