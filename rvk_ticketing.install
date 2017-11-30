@@ -29,6 +29,7 @@ function rvk_ticketing_enable() {
   _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
   _rvk_ticketing_create_checkword_items_taxonomy_vocabulary();
   _rvk_ticketing_create_department_taxonomy_vocabulary();
+  _rvk_ticketing_create_external_department_taxonomy_vocabulary();
   _rvk_ticketing_create_indication_content_type();
 }
 
@@ -43,10 +44,12 @@ function rvk_ticketing_disable() {
   $status = taxonomy_vocabulary_machine_name_load('indication_status');
   $checkwords = taxonomy_vocabulary_machine_name_load('checkword_items');
   $departments = taxonomy_vocabulary_machine_name_load('departments');
+  $external_departments = taxonomy_vocabulary_machine_name_load('external_departments');
   taxonomy_vocabulary_delete($types->vid);
   taxonomy_vocabulary_delete($status->vid);
   taxonomy_vocabulary_delete($checkwords->vid);
   taxonomy_vocabulary_delete($departments->vid);
+  taxonomy_vocabulary_delete($external_departments->vid);
 
   _rvk_ticketing_remove_content_type(['indications']);
 
@@ -178,6 +181,36 @@ function _rvk_ticketing_create_department_taxonomy_vocabulary() {
   }
 }
 
+function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
+  if($tax = taxonomy_vocabulary_machine_name_load('external_departments')) {
+    return;
+  }
+
+  $vocabulary = new stdClass();
+  $vocabulary->name = "External Departments";
+  $vocabulary->machine_name = "external_departments";
+  $vocabulary->description = "Utanaðkomandi deildir og svið";
+  $vocabulary->module = "taxonomy";
+
+  taxonomy_vocabulary_save($vocabulary);
+
+  _rvk_ticketing_add_fields_to_bundle('field_ed_email', 'text', 'external_departments',
+    'Email', 'Tölvupóstfang sem áframsenda skal mál á.', 'textfield', 'taxonomy_term');
+
+  $departments = [
+    'Faxaflóahafnir',
+    'Strætó',
+    'Orka Náttúrunnar',
+  ];
+
+  foreach($departments as $department) {
+    $term = new stdClass();
+    $term->name = $department;
+    $term->vid = $vocabulary->vid;
+    taxonomy_term_save($term);
+  }
+}
+
 /**
  * Created a function for this code, since I have to use it multiple times.
  *
@@ -286,6 +319,10 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_department_ref', 'taxonomy_term_reference',
     $type_name, 'Svið ábyrgðaraðila', 'Svið', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'departments', 'parent' => 0]],
+      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+  _rvk_ticketing_add_fields_to_bundle('field_forward_to_external_dp', 'taxonomy_term_reference',
+    $type_name, 'Áframsenda á utanaðkomandi', 'Áframsenda á utanaðkomandi', 'autocomplete', 'node',
+    ['allowed_values' => [0 => ['vocabulary' => 'external_departments', 'parent' => 0]],
       'options_list_callback' => 'i18n_taxonomy_allowed_values']);
 
   /**
