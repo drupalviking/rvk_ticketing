@@ -143,18 +143,8 @@ function _rvk_ticketing_create_checkword_items_taxonomy_vocabulary() {
   _rvk_ticketing_add_fields_to_bundle('field_cwi_incident_mode', 'text', 'checkword_items',
     'Incident Mode', 'Incident Mode', 'textfield', 'taxonomy_term');
 
-  $terms = mainmanager_get_checkword_items(6);
-
-  foreach($terms as $term) {
-    $taxonomy_term = new stdClass();
-    $taxonomy_term->name = $term['Name'];
-    $taxonomy_term->field_cwi_record_id[LANGUAGE_NONE][0]['value'] = $term['RecordID'];
-    $taxonomy_term->field_cwi_number[LANGUAGE_NONE][0]['value'] = $term['Nr'];
-    $taxonomy_term->field_cwi_incident_mode[LANGUAGE_NONE][0]['value'] =
-      $term['IncidentMode'][0];
-    $taxonomy_term->vid = $vocabulary->vid;
-    taxonomy_term_save($taxonomy_term);
-  }
+  rvk_ticketing_populate_checkword_items_parents_taxonomy_vocabulary();
+  rvk_ticketing_populate_checkword_items_taxonomy_vocabulary();
 }
 
 function _rvk_ticketing_create_department_taxonomy_vocabulary() {
