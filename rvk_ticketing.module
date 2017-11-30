@@ -61,6 +61,13 @@ function rvk_ticketing_node_presave($node) {
       unset($node->field_mm_checkword_item[LANGUAGE_NONE][0]);
       unset($node->field_mainmanager_id[LANGUAGE_NONE][0]);
     }
+    else if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
+      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
+        $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
+        $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
+        $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
+      }
+    }
     else {
       if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0])) {
         //If the checkbox "Send to Mainmanager" is checked, but the Mainmanager
@@ -629,6 +636,23 @@ function _rvk_ticketing_find_checkword_parent_term($vid, $checkword_id) {
   return $results;
 }
 
+function _rvk_ticketing_find_indication_status_by_name($vid, $status_name) {
+  $results = null;
+  $query = new EntityFieldQuery;
+  $result = $query
+    ->entityCondition('entity_type', 'taxonomy_term')
+    ->propertyCondition('vid', $vid)
+    ->propertyCondition('name', $status_name, '=')
+    ->execute();
+
+  if (!empty($result['taxonomy_term'])) {
+    $results = entity_load('taxonomy_term', array_keys($result['taxonomy_term']));
+    $results = array_values($results);
+    $results = $results[0];
+  }
+
+  return $results;
+}
 
 /**
  * Creates a checkword taxonomy term
