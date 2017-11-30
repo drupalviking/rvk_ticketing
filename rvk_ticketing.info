@@ -11,3 +11,5 @@ dependencies[] = clone
 dependencies[] = node_clone_tab
 dependencies[] = field_group
 dependencies[] = ds
+dependencies[] = rules
+dependencies[] = rules_admin

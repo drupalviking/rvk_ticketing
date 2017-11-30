@@ -629,6 +629,7 @@ function _rvk_ticketing_find_checkword_parent_term($vid, $checkword_id) {
   return $results;
 }
 
+
 /**
  * Creates a checkword taxonomy term
  *
@@ -668,7 +669,6 @@ function _rvk_ticketing_create_checkword_tax_term($result, $vocabulary, $parent_
   taxonomy_term_save($term);
   return $term;
 }
-
 /**
  * Implements hook_views_default_views().
  */

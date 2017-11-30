@@ -1,0 +1,21 @@
+{ "rules_send_thank_you_email_after_the_indication_is_closed" : {
+    "LABEL" : "Send thank you email after the indication is closed",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "REQUIRES" : [ "rules" ],
+    "ON" : { "node_update--indications" : { "bundle" : "indications" } },
+    "IF" : [
+      { "data_is" : { "data" : [ "node:field-indication-status-ref" ], "value" : "75" } }
+    ],
+    "DO" : [
+      { "mail" : {
+          "to" : "[node:field-indication-reporter-email]",
+          "subject" : "\u00c1bendingu loki\u00f0",
+          "message" : "Loksins erum vi\u00f0 b\u00fain a\u00f0 fara yfir og laga \u00fea\u00f0 sem \u00fe\u00fa kvarta\u00f0ir yfir. Eru ekki \u00e1n\u00e6g\u00f0ur loksins?\r\n\r\n\u00de\u00fa getur enn\u00fea\u00b4sko\u00f0a\u00f0 allt var\u00f0andi \u00e1bendinguna h\u00e9r: [node:url]",
+          "from" : "reykjavik@reykjavik.is",
+          "language" : [ "" ]
+        }
+      }
+    ]
+  }
+}
