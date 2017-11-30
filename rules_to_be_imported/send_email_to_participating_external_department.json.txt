@@ -1,0 +1,25 @@
+{ "rules_send_email_to_participating_external_department" : {
+    "LABEL" : "Send email to participating external department",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "REQUIRES" : [ "rules" ],
+    "ON" : { "node_update--indications" : { "bundle" : "indications" } },
+    "IF" : [
+      { "data_is" : {
+          "data" : [ "node:field-forward-to-external-dp" ],
+          "op" : "IN",
+          "value" : { "value" : { "204" : "204", "206" : "206", "205" : "205" } }
+        }
+      }
+    ],
+    "DO" : [
+      { "mail" : {
+          "to" : [ "node:field-forward-to-external-dp:field-ed-email" ],
+          "subject" : "\u00c1bendingin [node:title] \u00e1framsend til ykkar",
+          "message" : "\u00deessi \u00e1bending kom \u00ed gegnum \u00e1bendingakerfi Reykjav\u00edkurborgar. \u00dea\u00f0 \u00e1framsendist til ykkar h\u00e9r me\u00f0 (sj\u00e1lfvirkt)\r\n\r\n[node:field-interpered-indication-text]\r\n\r\nH\u00e6gt er a\u00f0 sko\u00f0a \u00e1bendinguna h\u00e9r: [node:url]",
+          "language" : [ "" ]
+        }
+      }
+    ]
+  }
+}
