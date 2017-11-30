@@ -1,5 +1,5 @@
 <?php
-
+define('RVK_TICKETING_MM_CHECKWORD_IDS', variable_get('mm_checkword_ids'));
 /**
  * MODULE FILE
  */
@@ -28,6 +28,9 @@ function rvk_ticketing_menu() {
   return $items;
 }
 
+/**
+ * Implements form_alter().
+ */
 function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
     if(isset($form['#node'])) {
@@ -97,6 +100,18 @@ function rvk_ticketing_node_presave($node) {
   }
 }
 
+function rvk_ticketing_node_validate($node) {
+  if($node->type == 'indications') {
+    if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE])) {
+      if($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]['value']) {
+        $parents = taxonomy_get_parents($node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']);
+        if(sizeof($parents) == 0) {
+          form_set_error('wrong_category', 'Velja þarf undirflokk fyrir Mainmanager flokkakerfið');
+        }
+      }
+    }
+  }
+}
 /**
  * Implements hook_permission().
  */
@@ -151,6 +166,10 @@ function rvk_ticketing_block_view($delta = '') {
   if($delta == 'indication_form') {
     $form = drupal_get_form('rvk_ticketing_create_ticket_form');
     $markup .= drupal_render($form);
+  }
+
+  if($delta == 'test_block') {
+    //rvk_ticketing_populate_checkword_items_taxonomy_vocabulary();
   }
 
   $block['content'] = $markup;
@@ -458,54 +477,137 @@ function rvk_ticketing_get_incident_by_id($id) {
 }
 
 /**
- * Populates the Checkword Items Taxonomy Vocabulary with terms from the
- * Main manager Rest API
+ * Populates the Parents part of the Checkword Vocabulary.
+ *
+ * Checkwords @Mainmanager consists of two things, Parents (Checkwords) and
+ * children (Checkword Items).
+ *
+ * In order to reduce the complexity of the function, I spilt them up in two,
+ * populate parents and populate checkword items.
  */
-function rvk_ticketing_populate_checkword_items_taxonomy_vocabulary() {
-  //ID 6 is the Checkword id MainManager gave us to use. Other id's should
-  //not be of concern as of right now.
-  $results = mainmanager_get_checkword_items(6);
+function rvk_ticketing_populate_checkword_items_parents_taxonomy_vocabulary() {
+  $vocabulary = taxonomy_vocabulary_machine_name_load('checkword_items');
+  $terms = taxonomy_get_tree($vocabulary->vid);
 
-  if(is_array($results)) {
-    $tree = [];
+  $checkwords_to_fetch = explode(',', RVK_TICKETING_MM_CHECKWORD_IDS);
+  $checkwords = mainmanager_get_checkwords();
 
-    $vocabulary = taxonomy_vocabulary_machine_name_load('checkword_items');
-    $terms = taxonomy_get_tree($vocabulary->vid);
-
+  $tree = [];
+  if(is_array($terms)) {
     foreach($terms as $term) {
-      $tree[$term->name] = $term->name;
+      $t_item = taxonomy_term_load($term->tid);
+      $tree[$term->name] = $t_item;
     }
+  }
 
-    foreach($results as $result) {
-      if(!in_array($result['Name'], $tree)) {
-        $term = new stdClass();
-        $term->name = $result['Name'];
-        $term->vid = $vocabulary->vid;
-        taxonomy_term_save($term);
-
-        $term->field_cwi_record_id[LANGUAGE_NONE][0]['value'] = $result['RecordID'];
-        $term->field_cwi_record_id[LANGUAGE_NONE][0]['format'] = NULL;
-        $term->field_cwi_record_id[LANGUAGE_NONE][0]['safe_value'] = $result['RecordID'];
-
-        $term->field_cwi_number[LANGUAGE_NONE][0]['value'] = $result['Nr'];
-        $term->field_cwi_number[LANGUAGE_NONE][0]['format'] = NULL;
-        $term->field_cwi_number[LANGUAGE_NONE][0]['safe_value'] = $result['Nr'];
-
-        $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['value'] = $result['IncidentMode'][0];
-        $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['format'] = NULL;
-        $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['safe_value'] = $result['IncidentMode'][0];
-
-        if($result['Nr'] > 9) {
-          $term->weight = $result['Nr'] * 10;
+  foreach($checkwords as $checkword) {
+    foreach($checkwords_to_fetch as $checkword_fetched) {
+      if($checkword['RecordID'] == $checkword_fetched) {
+        if(!array_key_exists($checkword['Name'], $tree)) {
+          _rvk_ticketing_create_checkword_tax_term($checkword, $vocabulary, false);
         }
-        else{
-          $term->weight = $result['Nr'];
-        }
-
-        taxonomy_term_save($term);
       }
     }
   }
+}
+
+/**
+ * Populates the Checkword Items Taxonomy Vocabulary with terms from the
+ * Main manager Rest API. The Checkwords are set by admin settings
+ * (/admin/config/services/abendingar)
+ */
+function rvk_ticketing_populate_checkword_items_taxonomy_vocabulary() {
+  $vocabulary = taxonomy_vocabulary_machine_name_load('checkword_items');
+  $terms = taxonomy_get_tree($vocabulary->vid);
+
+  $checkwords_to_fetch = explode(',', RVK_TICKETING_MM_CHECKWORD_IDS);
+
+  $tree = [];
+  if(is_array($terms)) {
+    foreach($terms as $term) {
+      $t_item = taxonomy_term_load($term->tid);
+      $tree[$term->name] = $t_item;
+    }
+  }
+
+  foreach($checkwords_to_fetch as $checkword_fetched) {
+    $results = mainmanager_get_checkword_items((int)$checkword_fetched);
+
+    if(is_array($results)) {
+      foreach($results as $result) {
+        if(!array_key_exists($result['Name'], $tree)) {
+          $parent_term = _rvk_ticketing_find_checkword_parent_term($vocabulary->vid, (int)$checkword_fetched);
+          _rvk_ticketing_create_checkword_tax_term($result, $vocabulary, $parent_term);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to search for a particular taxonomy term, by the checkword
+ * Record ID.
+ *
+ * @param $vid
+ * @param $checkword_id
+ * @return array|null
+ */
+function _rvk_ticketing_find_checkword_parent_term($vid, $checkword_id) {
+  $results = null;
+  $query = new EntityFieldQuery;
+  $result = $query
+    ->entityCondition('entity_type', 'taxonomy_term')
+    ->propertyCondition('vid', $vid)
+    ->fieldCondition('field_cwi_record_id', 'value', $checkword_id, '=')
+    ->execute();
+
+  if (!empty($result['taxonomy_term'])) {
+    $results = entity_load('taxonomy_term', array_keys($result['taxonomy_term']));
+    $results = array_values($results);
+    $results = $results[0];
+  }
+
+  return $results;
+}
+
+/**
+ * Creates a checkword taxonomy term
+ *
+ * @param $result
+ * @param $vocabulary
+ * @return \stdClass
+ */
+function _rvk_ticketing_create_checkword_tax_term($result, $vocabulary, $parent_term = false) {
+  $term = new stdClass();
+  $term->name = $result['Name'];
+  $term->vid = $vocabulary->vid;
+  taxonomy_term_save($term);
+
+  $term->field_cwi_record_id[LANGUAGE_NONE][0]['value'] = $result['RecordID'];
+  $term->field_cwi_record_id[LANGUAGE_NONE][0]['format'] = NULL;
+  $term->field_cwi_record_id[LANGUAGE_NONE][0]['safe_value'] = $result['RecordID'];
+
+  $term->field_cwi_number[LANGUAGE_NONE][0]['value'] = $result['Nr'];
+  $term->field_cwi_number[LANGUAGE_NONE][0]['format'] = NULL;
+  $term->field_cwi_number[LANGUAGE_NONE][0]['safe_value'] = $result['Nr'];
+
+  $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['value'] = $result['IncidentMode'][0];
+  $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['format'] = NULL;
+  $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['safe_value'] = $result['IncidentMode'][0];
+
+  if($parent_term) {
+    $term->parent = $parent_term->tid;
+  }
+
+  if ($result['Nr'] > 9) {
+    $term->weight = $result['Nr'] * 10;
+  }
+  else {
+    $term->weight = $result['Nr'];
+  }
+
+  taxonomy_term_save($term);
+  return $term;
 }
 
 /**

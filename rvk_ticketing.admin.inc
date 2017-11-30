@@ -40,13 +40,12 @@ function rvk_ticketing_admin() {
     '#collapsed' => FALSE,
   ];
 
-  $form['rvk_ticketing_mainmanager']['checkwords'] = [
+  $form['rvk_ticketing_mainmanager']['mm_checkword_ids'] = [
     '#type' => 'textfield',
-    '#weight' => 0,
+    '#weight' => 30,
     '#title' => t('Mainmanager Checkword IDs'),
-    '#description' => t('Enter all Checkword IDs, that you want to fetch from Mainmanager,
-    seperated by a comma (,)'),
-    '#default_value' => variable_get('checkword_ids', ''),
+    '#description' => t('Enter all Checkword IDs, that you want to fetch from Mainmanager, seperated by a comma (,)'),
+    '#default_value' => variable_get('mm_checkword_ids', ''),
   ];
 
   return system_settings_form($form);
