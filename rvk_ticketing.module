@@ -929,3 +929,29 @@ function rvk_ticketing_mail($key, &$message, $params) {
       break;
   }
 }
+
+/**
+ * Implements hook_theme().
+ */
+function rvk_ticketing_theme($existing, $type, $theme, $path) {
+  $theme = array();
+  $theme['node__indications'] = array(
+    'render element' => 'content',
+    'base hook' => 'node',
+    'template' => 'node--indications',
+    'path' => drupal_get_path('module', 'rvk_ticketing') . '/templates',
+  );
+  return $theme;
+}
+
+function rvk_ticketing_preprocess_page(&$vars, $hook) {
+  //NOT WORKING :-(
+  if ($vars['node']->type == 'indications') {
+    $css = drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css';
+    $js = drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js';
+    drupal_add_css('https://js.arcgis.com/3.13/esri/css/esri.css', 'external');
+    drupal_add_css($css);
+    drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/init.js');
+    drupal_add_js($js);
+  }
+}

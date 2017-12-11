@@ -132,7 +132,7 @@ function _rvk_ticketing_create_checkword_items_taxonomy_vocabulary() {
   }
 
   $vocabulary = new stdClass();
-  $vocabulary->name = "Checkword Items";
+  $vocabulary->name = "Flokkunarkerfi Mainmanager";
   $vocabulary->machine_name = "checkword_items";
   $vocabulary->description = "Flokkunarkerfi frá Main Manager, notað þegar ábending er send áfram til Main Manager";
   $vocabulary->module = "taxonomy";
@@ -187,7 +187,7 @@ function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
   }
 
   $vocabulary = new stdClass();
-  $vocabulary->name = "External Departments";
+  $vocabulary->name = "Utanaðkomandi deildir og svið";
   $vocabulary->machine_name = "external_departments";
   $vocabulary->description = "Utanaðkomandi deildir og svið";
   $vocabulary->module = "taxonomy";
