@@ -364,6 +364,12 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       '#required' => TRUE,
     ];
 
+    $form['image'] = [
+      '#type' => 'file',
+      '#title' => 'Mynd',
+      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni'
+    ];
+
     $form['use_map'] = [
       '#type' => 'radios',
       '#title' => 'Nota kort eða staðsetningu með ábendingunni',
