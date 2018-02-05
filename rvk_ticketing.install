@@ -300,6 +300,8 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_interpered_indication_text', 'text_long', $type_name,
     'Túlkuð ábending frá íbúa, eftir að þjónustufulltrúi hefur farið yfir hana',
     'Túlkuð ábending', 'text_textarea');
+  _rvk_ticketing_add_fields_to_bundle('field_image', 'image', $type_name, 'Mynd með tilkynningu',
+    'Mynd með tilkynningu', 'image_image');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_name', 'text',
     $type_name, 'Nafn sendanda', 'Nafn sendanda', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',
