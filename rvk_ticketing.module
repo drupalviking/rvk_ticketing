@@ -393,28 +393,6 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   if(!_rvk_ticketing_ssn_validation($values['ssn'])) {
     form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
   }
-
-
-  /**
-  $file = file_save_upload('image', array(
-    'file_validate_is_image' => array(),
-    'file_validate_extensions' => array('png gif jpg jpeg'),
-  ));
-  echo "<h1>File before</h1>";
-  echo "<pre>"; print_r($file); echo "</pre>";
-  if ($file) {
-    echo "<h2>If file ...</h2>";
-    if ($file = file_move($file, 'public://')) {
-      $form_state['values']['image'] = $file;
-    }
-    else {
-      form_set_error('image', t('Failed to write the uploaded file the site\'s file folder.'));
-    }
-  }
-  else {
-    form_set_error('image', t('No file was uploaded.'));
-  }
-   */
 }
 
 /**
@@ -502,7 +480,7 @@ function rvk_ticketing_create_indication_node($data) {
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
   $node->language = 'is';
   $node->is_new = true;
-  
+
   node_save($node);
 
   return $node;
