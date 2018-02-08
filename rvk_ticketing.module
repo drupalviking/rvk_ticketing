@@ -246,45 +246,75 @@ function rvk_ticketing_block_view($delta = '') {
  * @return mixed
  */
 function rvk_ticketing_create_ticket_form($form, &$form_state) {
-  $form['markup'] = [
-    '#type' => 'markup',
-    '#markup' => '<h2>Sendu okkur ábendingu</h2>',
+  $form['#attached']['css'] = [
+    'https://js.arcgis.com/3.13/esri/css/esri.css' => [
+      'type' => 'external',
+    ],
+    drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
+    drupal_get_path('module', 'rvk_ticketing') . '/css/styles.css',
   ];
 
-  $form['title'] = [
+  $form['indication_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  ];
+
+  $form['indication_fieldset']['indication_text_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  ];
+
+  $form['indication_fieldset']['image_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 20,
+  ];
+
+  $form['indication_fieldset']['map_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 30,
+  ];
+
+  $form['indication_fieldset']['map_fieldset']['map'] = [
+    '#type' => 'fieldset',
+    '#weight' => 20,
+  ];
+
+  $form['indication_fieldset']['map_fieldset']['address'] = [
+    '#type' => 'fieldset',
+    '#weight' => 30,
+  ];
+
+  $form['personal_info_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  ];
+
+  $form['indication_fieldset']['markup'] = [
+    '#type' => 'markup',
+    '#markup' => '<h2>Senda ábendingu</h2><p>Hér geturðu sent inn ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem
+svarar strax eða kemur á réttan stað þar sem leyst er úr ábendingunni.</p>',
+  ];
+
+  $form['indication_fieldset']['indication_text_fieldset']['title'] = [
     '#type' => 'textfield',
     '#title' => 'Titill',
     '#required' => TRUE,
   ];
 
-  $form['content'] = [
+  $form['indication_fieldset']['indication_text_fieldset']['content'] = [
     '#type' => 'textarea',
     '#title' => 'Efni ábendingar',
     '#required' => TRUE,
   ];
 
-  $form['image'] = [
+  $form['indication_fieldset']['image_fieldset']['image'] = [
     '#type' => 'managed_file',
     '#title' => 'Mynd',
     '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
     '#upload_location' => 'public://',
   ];
 
-  $form['use_map'] = [
-    '#type' => 'radios',
-    '#title' => 'Nota kort eða staðsetningu með ábendingunni',
-    '#options' => ['yes' => 'Já', 'no' => 'Nei'],
-    '#default_value' => 'no',
-  ];
-
-  $form['#attached']['css'] = [
-    'https://js.arcgis.com/3.13/esri/css/esri.css' => [
-      'type' => 'external',
-    ],
-    drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
-  ];
-
-  $form['markup'] = [
+  $form['indication_fieldset']['map_fieldset']['markup_location'] = [
     '#type' => 'markup',
     '#markup' => '<h2>Staðsetning á korti</h2> 
                     <p>Þú getur slegið inn heimilisfang og/eða sett punkt á kortið með því að smella 
@@ -292,31 +322,24 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
                     ekki staðsetningar smelltu þá á áfram.</p>',
   ];
 
-  $form['address_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 20,
-    '#title' => t('Address'),
-  ];
-
-  $form['map_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 10,
-  ];
-
-  $form['address_fieldset']['address'] = [
-    '#type' => 'textfield',
-    '#title' => 'Staðsetning (Götuheiti í nefnifalli)',
-    '#autocomplete_path' => 'gata/fletta_upp_gotu_autocomplete_callback',
-  ];
-
-  $form['map_fieldset']['map_markup'] = [
+  $form['indication_fieldset']['map_fieldset']['map']['map_markup'] = [
     '#type' => 'markup',
     '#prefix' => '<div id="mapDiv">',
     '#postfix' => '</div>',
     '#markup' => '<div id="LocateButton"></div>',
+    '#weight' => 20,
   ];
 
-  $form['xcoords'] = [
+  $form['indication_fieldset']['map_fieldset']['address']['address'] = [
+    '#type' => 'textfield',
+    '#title' => 'Staðsetning (Götuheiti í nefnifalli)',
+    '#autocomplete_path' => 'gata/fletta_upp_gotu_autocomplete_callback',
+    '#weight' => 10,
+  ];
+
+
+
+  $form['indication_fieldset']['map_fieldset']['xcoords'] = [
     '#type' => 'hidden',
     '#title' => 'xcoords',
     '#attributes' => [
@@ -324,7 +347,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ],
   ];
 
-  $form['ycoords'] = [
+  $form['indication_fieldset']['map_fieldset']['ycoords'] = [
     '#type' => 'hidden',
     '#title' => 'ycoords',
     '#attributes' => [
@@ -332,30 +355,30 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ],
   ];
 
-  $form['markup'] = [
+
+
+  $form['personal_info_fieldset']['markup'] = [
     '#type' => 'markup',
-    '#markup' => '<h2>Upplýsingar um þig</h2>',
+    '#markup' => '<h2>Hver ert þú?</h2><p>Ef þú vilt vita hvað verður gert við ábendinguna þína er nauðsynlegt að fylla út 
+reitina hér. Ef ekki geturðu smellt á Senda hnappinn hér fyrir neðan.</p>',
   ];
 
-  $form['name'] = [
+  $form['personal_info_fieldset']['name'] = [
     '#type' => 'textfield',
     '#title' => 'Nafn',
-    '#required' => TRUE,
   ];
 
-  $form['ssn'] = [
+  $form['personal_info_fieldset']['ssn'] = [
     '#type' => 'textfield',
     '#title' => 'Kennitala',
-    '#required' => TRUE,
   ];
 
-  $form['email'] = [
+  $form['personal_info_fieldset']['email'] = [
     '#type' => 'textfield',
     '#title' => 'Netfang',
-    '#required' => TRUE,
   ];
 
-  $form['tel'] = [
+  $form['personal_info_fieldset']['tel'] = [
     '#type' => 'textfield',
     '#title' => 'Sími',
   ];
@@ -363,6 +386,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Halda áfram',
+    '#weight' => 200,
   );
 
   $form['#attached']['js'] = array(
@@ -370,6 +394,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       'type' => 'external',
     ),
     drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js',
+    drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js',
   );
 
   return $form;
@@ -390,8 +415,10 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
     }
   }
 
-  if(!_rvk_ticketing_ssn_validation($values['ssn'])) {
-    form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
+  if(strlen($values['ssn']) > 0) {
+    if(!_rvk_ticketing_ssn_validation($values['ssn'])) {
+      form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
+    }
   }
 }
 
