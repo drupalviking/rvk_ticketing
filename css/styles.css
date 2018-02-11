@@ -1,3 +1,89 @@
+.page-node-19123 .page-header {
+	display: none;
+}
+
 #mapDiv {
     position: relative;
 }
+
+#rvk-ticketing-create-ticket-form {
+	text-align: center;
+}
+
+#edit-personal-info-fieldset {
+	border-bottom: none;
+	padding: 23px 23px 0;
+}
+
+#edit-indication-fieldset {
+	border-top: none;
+	padding: 23px;
+	margin-bottom: 46px;
+}
+
+#edit-personal-info-fieldset,
+#edit-indication-fieldset {
+	background-color: #f1f1f1;
+	max-width: 987px;
+	margin: 0 auto;
+	border-color: #bfbfbf;
+	text-align: left;
+}
+
+#edit-indication-text-fieldset,
+#edit-image-fieldset,
+#edit-map-fieldset,
+#edit-address {
+   background: transparent;
+   border: none;
+}
+
+#edit-personal-info-fieldset .form-control,
+#edit-indication-fieldset .form-control {
+	height: 46px;
+	border-radius: 8px;
+	box-shadow: unset;
+}
+
+#edit-personal-info-fieldset .form-control label,
+#edit-indication-fieldset .form-control label {
+	margin-bottom: 1px;
+	font-weight: 600;
+	padding-left: 5px;
+}
+
+#edit-personal-info-fieldset .panel-body, 
+#edit-indication-fieldset .panel-body {
+	padding: 0;
+}
+
+#edit-personal-info-fieldset h2, 
+#edit-indication-fieldset h2 {
+	font-size: 38px;
+	font-weight: 700;
+	margin-top: 0;
+}
+
+#edit-indication-fieldset .grippie {
+	display: none;
+}
+
+#rvk-ticketing-create-ticket-form .btn-default {
+	border-color: #2e6da4;
+	background-color: #337ab7;
+	border-radius: 100px;
+	width: 175px;
+	font-size: 14px;
+	padding: 12px;
+	text-transform: uppercase;
+	color: #ffffff;
+}
+
+#rvk-ticketing-create-ticket-form .btn-default:hover {
+	color: #ffffff;
+	background-color: #7ab733;
+	border-color: #61902a;
+}
+
+
+
