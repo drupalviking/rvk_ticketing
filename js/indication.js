@@ -1,14 +1,19 @@
-(function ($, Drupal) {
-
-   console.log('virkar');
-
+(function ($) {
   
-$( '.toggle-icon' ).click(function() {
-    console.log('item clicked');
-});
 
+  Drupal.behaviors.accordion = {
+    attach: function (context, settings) {
+     
+      $( '.toggle-icon' ).click(function() {
+        $(this).parent().next('.collapse').toggleClass('show');
+      });
+
+    }
+  };
+
+
+}(jQuery));
   
-})(jQuery, window.Drupal)
 
        
 

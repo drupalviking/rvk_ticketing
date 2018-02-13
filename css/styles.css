@@ -9,11 +9,27 @@
 #rvk-ticketing-create-ticket-form {
 	text-align: center;
 	font-family: 'Open Sans', sans-serif;
+	margin-top: 30px;
+}
+
+#rvk-ticketing-create-ticket-form label {
+	margin-bottom: 4px;
+	/*padding-left: 6px;*/
+	font-weight: 600;
+}
+
+#rvk-ticketing-create-ticket-form .form-group {
+	margin-bottom: 17px;
 }
 
 #rvk-ticketing-create-ticket-form  p {
 	color: rgba(64,64,64,0.78);
-	line-height: 2.1;
+	line-height: 1.8;
+	margin-bottom: 24px;
+}
+
+#rvk-ticketing-create-ticket-form textarea {
+	min-height: 300px;
 }
 
 #rvk-ticketing-create-ticket-form .toggle-icon {
@@ -24,17 +40,21 @@
 	display: inline-block;
 	cursor: pointer;
 	position: relative;
+	vertical-align: middle;
+	margin-right: 12px;
+	margin-top: -2px;
 }
 
-#edit-personal-info-fieldset {
-	border-bottom: none;
-	padding: 23px 23px 0;
+#rvk-ticketing-create-ticket-form fieldset {
+	box-shadow: unset;
 }
 
-#edit-indication-fieldset {
-	border-top: none;
-	padding: 23px;
-	margin-bottom: 46px;
+#rvk-ticketing-create-ticket-form #edit-map-body {
+	margin-top: 6px;
+}
+
+#rvk-ticketing-create-ticket-form .collapse {
+	margin-top: 18px;
 }
 
 #edit-personal-info-fieldset,
@@ -44,6 +64,19 @@
 	margin: 0 auto;
 	border-color: #bfbfbf;
 	text-align: left;
+}
+
+#edit-personal-info-fieldset {
+	border-top: none;
+	padding: 23px;
+	border-radius: unset;
+	margin-bottom: 23px;
+}
+
+#edit-indication-fieldset {
+	border-bottom: none;
+	padding: 23px;
+	border-radius: unset;
 }
 
 #edit-indication-text-fieldset,
@@ -75,9 +108,18 @@
 
 #edit-personal-info-fieldset h2, 
 #edit-indication-fieldset h2 {
-	font-size: 38px;
+	font-size: 26px;
 	font-weight: 700;
 	margin-top: 0;
+	margin-bottom: 7px;
+}
+
+#edit-personal-info-fieldset h3, 
+#edit-indication-fieldset h3 {
+	font-size: 16px;
+	font-weight: 600;
+	margin-top: 0;
+	padding-top: 2px;
 }
 
 #edit-indication-fieldset .grippie {
@@ -93,12 +135,50 @@
 	padding: 12px;
 	text-transform: uppercase;
 	color: #ffffff;
+	margin-bottom: 23px;
 }
 
 #rvk-ticketing-create-ticket-form .btn-default:hover {
 	color: #ffffff;
 	background-color: #7ab733;
 	border-color: #61902a;
+}
+
+@media screen and (min-width: 600px) {
+
+	#edit-personal-info-fieldset {
+		padding: 46px;
+	}
+
+	#edit-indication-fieldset {
+		padding: 46px;
+	}
+
+	#edit-personal-info-fieldset h2, 
+	#edit-indication-fieldset h2 {
+		font-size: 38px;
+	}
+
+	#edit-personal-info-fieldset h3, 
+	#edit-indication-fieldset h3 {
+		font-size: 20px;
+	}
+
+	#edit-personal-info-fieldset {
+		margin-bottom: 46px;
+	}
+
+	#rvk-ticketing-create-ticket-form .btn-default {
+		margin-bottom: 46px;
+	}
+
+	#rvk-ticketing-create-ticket-form {
+		margin-top: 60px;
+	}
+
+	#rvk-ticketing-create-ticket-form  p {
+		line-height: 2.1;
+	}
 }
 
 

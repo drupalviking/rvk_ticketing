@@ -344,6 +344,7 @@ svarar strax eða kemur á réttan stað þar sem leyst er úr ábendingunni.</p
     '#markup' => '<p>Þú getur slegið inn heimilisfang og/eða sett punkt á kortið með því að smella 
                     á þann stað á kortinu sem tengist ábendingunni. Ef ábendingin krefst 
                     ekki staðsetningar smelltu þá á áfram.</p>',
+    '#weight' => 21,
   ];
 
   $form['indication_fieldset']['map_fieldset']['map']['map_markup'] = [
