@@ -266,16 +266,36 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['image_fieldset'] = [
     '#type' => 'fieldset',
-    '#prefix' => '<h3>Senda mynd</h3><div class="placeholder">',
-    '#postfix' => '</div>',
     '#weight' => 32,
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
+    '#type' => 'markup',
+    '#weight' => 1,
+    '#markup' => '<h3>Senda mynd</h3><div class="placeholder">'
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['post_markup'] = [
+    '#type' => 'markup',
+    '#weight' => 100,
+    '#markup' => '</div>',
   ];
 
   $form['indication_fieldset']['map_fieldset'] = [
     '#type' => 'fieldset',
-    '#prefix' => '<h3>Staðsetning á korti</h3><div class="placeholder">',
-    '#postfix' => '</div>',
     '#weight' => 30,
+  ];
+
+  $form['indication_fieldset']['map_fieldset']['pre_markup'] = [
+    '#type' => 'markup',
+    '#weight' => 1,
+    '#markup' => '<h3>Veldu staðsetningu á korti</h3><div class="placeholder">'
+  ];
+
+  $form['indication_fieldset']['map_fieldset']['post_markup'] = [
+    '#type' => 'markup',
+    '#weight' => 100,
+    '#markup' => '</div>',
   ];
 
   $form['indication_fieldset']['map_fieldset']['map'] = [
@@ -316,6 +336,7 @@ svarar strax eða kemur á réttan stað þar sem leyst er úr ábendingunni.</p
     '#title' => 'Mynd',
     '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
     '#upload_location' => 'public://',
+    '#weight' => 50,
   ];
 
   $form['indication_fieldset']['map_fieldset']['markup_location'] = [
