@@ -272,7 +272,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3>Senda mynd</h3><div class="placeholder">'
+    '#markup' => '<h3><span class="toggle-icon"></span>Senda mynd</h3><div class="collapse">'
   ];
 
   $form['indication_fieldset']['image_fieldset']['post_markup'] = [
@@ -289,7 +289,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = [
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3>Veldu staðsetningu á korti</h3><div class="placeholder">'
+    '#markup' => '<h3><span class="toggle-icon"></span>Veldu staðsetningu á korti</h3><div class="collapse">'
   ];
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = [

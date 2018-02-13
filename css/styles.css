@@ -16,6 +16,16 @@
 	line-height: 2.1;
 }
 
+#rvk-ticketing-create-ticket-form .toggle-icon {
+	width: 22px;
+	height: 22px;
+	background: #ffffff url('images/svg/arrow-down.svg') no-repeat center center;
+	border: 1px solid #404040;
+	display: inline-block;
+	cursor: pointer;
+	position: relative;
+}
+
 #edit-personal-info-fieldset {
 	border-bottom: none;
 	padding: 23px 23px 0;
