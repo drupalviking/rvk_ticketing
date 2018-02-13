@@ -13,3 +13,4 @@ dependencies[] = field_group
 dependencies[] = ds
 dependencies[] = rules
 dependencies[] = rules_admin
+dependencies[] = jquery_update
