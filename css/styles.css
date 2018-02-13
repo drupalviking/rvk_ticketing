@@ -45,6 +45,14 @@
 	margin-top: -2px;
 }
 
+#rvk-ticketing-create-ticket-form .toggle-icon.flip {
+	-webkit-transform:rotate(180deg);
+    -moz-transform:rotate(180deg);
+    -o-transform:rotate(180deg);
+    -ms-transform:rotate(180deg);
+    transform:rotate(180deg);
+}
+
 #rvk-ticketing-create-ticket-form fieldset {
 	box-shadow: unset;
 }
@@ -142,6 +150,17 @@
 	color: #ffffff;
 	background-color: #7ab733;
 	border-color: #61902a;
+}
+
+#rvk-ticketing-create-ticket-form .collapse {
+    max-height: 0;            
+    overflow-y: hidden;
+    display: block;
+    transition: max-height 0.75s ease-in-out;
+  }
+
+#rvk-ticketing-create-ticket-form .collapse.show {
+   max-height: 1000px;
 }
 
 @media screen and (min-width: 600px) {

@@ -6,6 +6,7 @@
      
       $( '.toggle-icon' ).click(function() {
         $(this).parent().next('.collapse').toggleClass('show');
+        $(this).toggleClass('flip');
       });
 
     }
