@@ -8,6 +8,12 @@
 
 #rvk-ticketing-create-ticket-form {
 	text-align: center;
+	font-family: 'Open Sans', sans-serif;
+}
+
+#rvk-ticketing-create-ticket-form  p {
+	color: rgba(64,64,64,0.78);
+	line-height: 2.1;
 }
 
 #edit-personal-info-fieldset {
