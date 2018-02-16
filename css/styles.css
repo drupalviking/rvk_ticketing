@@ -152,14 +152,14 @@
 }
 
 #rvk-ticketing-create-ticket-form .collapse {
-    max-height: 0;            
+	max-height: 0;            
     overflow-y: hidden;
     display: block;
-    transition: max-height 0.75s ease-in-out;
-  }
+    transition: max-height 0.5s ease-in-out;
+}
 
 #rvk-ticketing-create-ticket-form .collapse.show {
-   max-height: 1000px;
+	max-height: 1000px;
 }
 
 #rvk-ticketing-create-ticket-form #LocateButton {
@@ -282,11 +282,25 @@
 		padding-left: 30px;
 	}
 
+	#rvk-ticketing-create-ticket-form .collapse {
+		transition-delay: 0.225s;
+  	}
+
 	#rvk-ticketing-create-ticket-form #edit-map-fieldset {
 		transform: translate(0px,-115px);
+		transition: all 0.175s ease-in-out;
+	}
+
+	#rvk-ticketing-create-ticket-form .move #edit-map-fieldset {
+		transform: translate(0px,-62px);
+	}
+
+	#rvk-ticketing-create-ticket-form .move #edit-image-fieldset {
+		transform: translate(0px,-70px);
 	}
 
 	#rvk-ticketing-create-ticket-form #edit-image-fieldset {
+		transition: all 0.175s ease-in-out;
 		transform: translate(0px,-126px);
 	}
 
@@ -310,6 +324,12 @@
 	#rvk-ticketing-create-ticket-form #edit-personal-info-fieldset,
 	#rvk-ticketing-create-ticket-form .btn-default  {
 		transform: translate(0px,-105px);
+	}
+
+	#rvk-ticketing-create-ticket-form .move #edit-personal-info-fieldset,
+	#rvk-ticketing-create-ticket-form .move .btn-default  {
+		transform: translate(0px,-49px);
+		transition: all 0.175s ease-in-out;
 	}
 }
 
