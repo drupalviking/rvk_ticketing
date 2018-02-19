@@ -381,7 +381,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['personal_info_fieldset']['markup'] = [
     '#type' => 'markup',
-    '#markup' => '<h2>Viltu fylgjast ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
+    '#markup' => '<h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
   ];
 
   $form['personal_info_fieldset']['name'] = [
