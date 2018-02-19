@@ -208,6 +208,27 @@
 	height: 45px;
 }
 
+.locate-icon {
+	padding: 2px;
+	width: 26px;
+	height: 26px;
+	background-color: rgba(102,102,102,0.80);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	cursor: pointer;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	-o-border-radius: 5px;
+	border-radius: 5px;
+	background-image: url("images/locate.png");
+	background-position: center center;
+	background-repeat: no-repeat;
+	display: inline-block;
+	vertical-align: middle;
+}
+
 @media screen and (min-width: 600px) {
 
 	#edit-personal-info-fieldset {

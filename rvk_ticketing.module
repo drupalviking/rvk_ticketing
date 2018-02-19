@@ -315,8 +315,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['markup'] = [
     '#type' => 'markup',
-    '#markup' => '<h2>Senda ábendingu</h2><p>Hér geturðu sent inn ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem
-svarar strax eða kemur á réttan stað þar sem leyst er úr ábendingunni.</p>',
+    '#markup' => '<h2>Senda ábendingu</h2><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p>',
   ];
 
   $form['indication_fieldset']['indication_text_fieldset']['title'] = [
@@ -341,9 +340,7 @@ svarar strax eða kemur á réttan stað þar sem leyst er úr ábendingunni.</p
 
   $form['indication_fieldset']['map_fieldset']['markup_location'] = [
     '#type' => 'markup',
-    '#markup' => '<p>Þú getur slegið inn heimilisfang og/eða sett punkt á kortið með því að smella 
-                    á þann stað á kortinu sem tengist ábendingunni. Ef ábendingin krefst 
-                    ekki staðsetningar smelltu þá á áfram.</p>',
+    '#markup' => '<p>Þú getur slegið inn heimilisfang eða sett punkt á kortið með því að smella á þann stað á kortinu sem tengist ábendingunni. Ef þú ert í snjallsíma geturðu virkjað staðsetninguna þína með því að ýta á <span class="locate-icon"></span> hnappinn á kortinu.</p>',
     '#weight' => 21,
   ];
 
@@ -384,8 +381,7 @@ svarar strax eða kemur á réttan stað þar sem leyst er úr ábendingunni.</p
 
   $form['personal_info_fieldset']['markup'] = [
     '#type' => 'markup',
-    '#markup' => '<h2>Hver ert þú?</h2><p>Ef þú vilt vita hvað verður gert við ábendinguna þína er nauðsynlegt að fylla út 
-reitina hér. Ef ekki geturðu smellt á Senda hnappinn hér fyrir neðan.</p>',
+    '#markup' => '<h2>Viltu fylgjast ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
   ];
 
   $form['personal_info_fieldset']['name'] = [
@@ -410,7 +406,7 @@ reitina hér. Ef ekki geturðu smellt á Senda hnappinn hér fyrir neðan.</p>',
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => 'Halda áfram',
+    '#value' => 'Senda',
     '#weight' => 200,
   );
 
