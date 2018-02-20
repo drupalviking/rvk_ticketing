@@ -333,7 +333,8 @@
 		line-height: 1.4;
 	}
 
-	#rvk-ticketing-create-ticket-form #edit-map-fieldset-body p {
+	#rvk-ticketing-create-ticket-form #edit-map-fieldset-body p,
+	#rvk-ticketing-create-ticket-form #edit-map-fieldset p {
 		float: none;
 		width: 100%;
 		text-align: left;
