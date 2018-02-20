@@ -164,6 +164,10 @@
     transition: max-height 0.5s ease-in-out;
 }
 
+#rvk-ticketing-create-ticket-form .move #edit-map-fieldset .collapse {
+	overflow-y: unset;
+}
+
 #rvk-ticketing-create-ticket-form .collapse.show {
 	max-height: 1000px;
 }
@@ -324,6 +328,8 @@
 	#rvk-ticketing-create-ticket-form #edit-map-fieldset {
 		transform: translate(0px,-115px);
 		transition: all 0.175s ease-in-out;
+		position: relative;
+		z-index: 2;
 	}
 
 	#rvk-ticketing-create-ticket-form .move #edit-map-fieldset {
