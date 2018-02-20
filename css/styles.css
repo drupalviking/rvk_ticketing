@@ -21,6 +21,10 @@
 	margin-bottom: 17px;
 }
 
+.form-item-address .dropdown {
+	display: block;
+}
+
 #rvk-ticketing-create-ticket-form  p {
 	color: rgba(64,64,64,0.78);
 	line-height: 1.8;
@@ -208,6 +212,13 @@
 	right: 0;
 	margin: 0;
 	height: 45px;
+	top: 0;
+    transform: translate(0px,0px);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    width: 150px;
 }
 
 .locate-icon {
