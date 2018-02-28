@@ -385,15 +385,3 @@
 }
 
 
-/* Edit indication Form */
-
-form {
-	display: none;
-}
-
-.node-indications-form fieldset {
-	border: none;
-}
-
-
-
