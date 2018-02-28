@@ -39,7 +39,23 @@
     font-size: 16px;
     padding: 21px 23px 23px;
     border: 1px solid #bfbfbf;
-    border-radius: 8px;
+    border-radius: 8px !important;
+    box-shadow: none;
+}
+
+.node-indications-form .input-group-addon {
+    position: absolute;
+    z-index: 100;
+    width: 40px;
+    height: 32px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    top: 8px;
+}
+
+.node-indications-form .input-group {
+    display: block;
 }
 
 .node-indications-form  textarea {
@@ -48,20 +64,128 @@
     padding: 21px 23px 23px;
     border: 1px solid #bfbfbf;
     border-radius: 8px;
+    box-shadow: none;
 }
 
 .node-indications-form  select {
     padding: 21px 23px 23px;
     border: 1px solid #bfbfbf;
     border-radius: 8px;
+    -moz-appearance:none;
+    -webkit-appearance:none;
+    appearance:none;
+    box-shadow: none;
+}
+
+.node-indications-form .form-type-select {
+    position: relative;
+}
+
+.node-indications-form .form-type-select:before {
+    content: '';
+    background-image: url("images/svg/select-arrow.svg");
+    width: 23px;
+    height: 14px;
+    position: absolute;
+    right: 25px;
+    top: 42px;
+    pointer-events: none;
 }
 
 .node-indications-form .form-actions {
     text-align: center;
 }
 
-.node-indications-form .form-actions .btn {
+.node-indications-form .form-actions .btn,
+.node-indications-form .btn-danger {
     width: 196px;
+    border-radius: 100px;
+    font-size: 18px;
+}
+
+.node-indications-form #edit-field-indication-controller-new .form-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.node-indications-form #edit-field-mm-checkword-item {
+    text-align: center;
+}
+
+.node-indications-form #edit-field-mm-checkword-item  label {
+    font-size: 20px;
+    color: white;
+    margin-bottom: 12px;
+}
+
+.node-indications-form #edit-field-mm-checkword-item  {
+    background-color: #4881bf;
+    border-radius: 8px;
+    border: 1px solid #3b6a9d;
+    padding: 30px 20px 36px;
+}
+
+#edit-field-mm-checkword-item .form-type-select:before {
+    top: 55px;
+}
+
+.node-indications-form #edit-field-mm-checkword-item  .form-item {
+    display: inline-block;
+    width: 100%;
+    max-width: 608px;
+}
+
+.node-indications-form #edit-field-mm-checkword-item select {
+    border-color: white;
+}
+
+.node-indications-form .form-actions #edit-submit {
+    background-color: #018e42;
+    border: 1px solid #017537;
+    color: white;
+    margin-bottom: 20px;
+    padding: 8px 0 11px;
+}
+
+.node-indications-form .form-actions #edit-preview {
+    background-color: #f7d002;
+    border: 1px solid #cbab02;
+    color: #404040;
+    margin-bottom: 20px;
+    padding: 8px 0 11px;
+}
+
+.node-indications-form .form-actions #edit-delete,
+.node-indications-form .btn-danger {
+    background-color: #ff0000;
+    border: 1px solid #d10000;
+    color: white;
+    margin-bottom: 20px;
+    padding: 8px 0 11px;
+}
+
+.node-indications-form .btn-danger {
+    margin: 0;
+}
+
+@media screen and (min-width: 768px) {
+
+    .node-indications-form .form-actions #edit-submit {
+        margin-right: 18px;
+    }
+
+    .node-indications-form .form-actions #edit-preview {
+        margin-left: 18px;
+        margin-right: 18px;
+    }
+
+    .node-indications-form .form-actions #edit-delete {
+       margin-left: 18px;
+    }
+
+    .node-indications-form .btn-danger {
+        margin: 0;
+    }
 }
 
 
@@ -69,6 +193,45 @@
 
     .node-indications-form {
         padding: 46px 36px;
+    }
+
+    .node-indications-form #edit-field-indication-status-ref,
+    .node-indications-form #edit-field-department-ref,
+    .node-indications-form #edit-field-indication-type-ref,
+    .node-indications-form #edit-field-indication-controller-new,
+    .node-indications-form #edit-field-indication-position-x,
+    .node-indications-form #edit-field-indication-position-y,
+    .node-indications-form #edit-field-indication-reporter-name,
+    .node-indications-form #edit-field-indication-reporter-ssn,
+    .node-indications-form #edit-field-indication-reporter-email,
+    .node-indications-form #edit-field-indication-reporter-phone,
+    .node-indications-form #edit-field-mainmanager-id,
+    .node-indications-form #edit-field-sent-to-mainmanager {
+        float: left;
+        width: 50%;
+    }
+
+    .node-indications-form #edit-field-indication-status-ref,
+    .node-indications-form #edit-field-indication-type-ref,
+    .node-indications-form #edit-field-mainmanager-id,
+    .node-indications-form #edit-field-indication-position-x,
+    .node-indications-form #edit-field-indication-reporter-name,
+    .node-indications-form #edit-field-indication-reporter-email {
+        border-right: 18px solid transparent;
+    }
+
+    .node-indications-form #edit-field-department-ref,
+    .node-indications-form #edit-field-indication-controller-new,
+    .node-indications-form #edit-field-sent-to-mainmanager,
+    .node-indications-form #edit-field-indication-position-y,
+    .node-indications-form #edit-field-indication-reporter-ssn,
+    .node-indications-form #edit-field-indication-reporter-phone {
+        border-left: 18px solid transparent;
+    }
+
+    .node-indications-form #edit-field-sent-to-mainmanager {
+        text-align: center;
+        padding-top: 38px;
     }
 }
 
