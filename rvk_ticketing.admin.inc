@@ -8,27 +8,11 @@
 function rvk_ticketing_admin() {
   $form['rvk_ticketing_config'] = [
     '#type' => 'fieldset',
-    '#weight' => 25,
+    '#weight' => 20,
     '#title' => t('Reykjavik Ticketing API configuration'),
     '#description' => t('Application specific configuration for Reykjavik Ticketing Module'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
-  ];
-
-  $form['rvk_ticketing_config']['first_email'] = [
-    '#type' => 'textarea',
-    '#weight' => 10,
-    '#title' => 'Fyrsti tölvupóstur',
-    '#default_value' => variable_get('first_email', ''),
-    '#description' => t('Email that is sent out when a user submits the initial ticket'),
-  ];
-
-  $form['rvk_ticketing_config']['closing_email'] = [
-    '#type' => 'textarea',
-    '#weight' => 20,
-    '#title' => 'Loka tölvupóstur',
-    '#default_value' => variable_get('closing_email', ''),
-    '#description' => t('Email that is sent out when the issue has been closed'),
   ];
 
   $form['rvk_ticketing_mainmanager'] = [
@@ -40,12 +24,28 @@ function rvk_ticketing_admin() {
     '#collapsed' => FALSE,
   ];
 
+  $form['rvk_ticketing_config']['rvk_ticketing_thank_you_page'] = [
+    '#type' => 'textfield',
+    '#weight' => 10,
+    '#title' => t('URL to thank you page'),
+    '#description' => t('Enter the URL you want users to be redirected to, after the submit their indication'),
+    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/takk-fyrir-abendinguna'),
+  ];
+
+  $form['rvk_ticketing_config']['rvk_ticketing_thank_you_page'] = [
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('URL to thank you page'),
+    '#description' => t('Enter the URL you want users to be redirected to, after the submit their indication'),
+    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/takk-fyrir-abendinguna'),
+  ];
+
   $form['rvk_ticketing_mainmanager']['mm_checkword_ids'] = [
     '#type' => 'textfield',
     '#weight' => 30,
     '#title' => t('Mainmanager Checkword IDs'),
     '#description' => t('Enter all Checkword IDs, that you want to fetch from Mainmanager, seperated by a comma (,)'),
-    '#default_value' => variable_get('mm_checkword_ids', ''),
+    '#default_value' => variable_get('mm_checkword_ids', '6,132,135,134,133'),
   ];
 
   return system_settings_form($form);

@@ -139,6 +139,8 @@ function _rvk_ticketing_create_checkword_items_taxonomy_vocabulary() {
 
   taxonomy_vocabulary_save($vocabulary);
 
+  _rvk_ticketing_add_fields_to_bundle('field_cw_id', 'text', 'checkword_items',
+    'CheckwordID', 'CheckwordID', 'textfield', 'taxonomy_term');
   _rvk_ticketing_add_fields_to_bundle('field_cwi_record_id', 'text', 'checkword_items',
     'RecordID', 'RecordID', 'textfield', 'taxonomy_term');
   _rvk_ticketing_add_fields_to_bundle('field_cwi_number', 'text', 'checkword_items',
@@ -361,9 +363,10 @@ function _rvk_ticketing_create_indication_content_type() {
     'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
     'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_sent_to_mainmanager', 'list_boolean', $type_name,
+  // TODO: Remove this field
+  /*_rvk_ticketing_add_fields_to_bundle('field_sent_to_mainmanager', 'list_boolean', $type_name,
     'Merkir hvort ábendingin hafi verið send til Mainmanager til frekari úrvinnslu',
-    'Senda til MainManager', 'options_onoff', 'node', [0 => 'Já', 1 => 'Nei']);
+    'Senda til MainManager', 'options_onoff', 'node', [0 => 'Já', 1 => 'Nei']);*/
   _rvk_ticketing_add_fields_to_bundle('field_mm_checkword_item', 'taxonomy_term_reference',
     $type_name, 'Flokkun innan Mainmanager', 'Flokkun innan MM', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'checkword_items', 'parent' => 0]],

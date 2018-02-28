@@ -8,10 +8,19 @@ define('RVK_TICKETING_MM_CHECKWORD_IDS', variable_get('mm_checkword_ids'));
  * Implements hook_menu().
  */
 function rvk_ticketing_menu() {
-  $items['senda-inn-abendingu'] = [
+  $items['abendingar/senda-inn-abendingu'] = [
     'title' => 'Senda inn ábendingu',
-    'page_callback' => 'rvk_ticketing_create_ticket_page',
-    'access arguments' => ['access content'],
+    'page callback' => 'rvk_ticketing_create_indication_page',
+    'access arguments' => ['view ticketing content'],
+  ];
+
+  $items['abendingar/breyta-abendingu/%'] = [
+    'title' => 'Breyta ábendingu',
+    'page callback' => 'rvk_ticketing_edit_indication_page',
+    'access arguments' => ['edit ticketing content'],
+    'page arguments' => array(2),
+    'file' => 'includes/indication_edit.inc',
+    'file path' => drupal_get_path('module', 'rvk_ticketing'),
   ];
 
   $items['admin/config/services/abendingar'] = array(
@@ -21,18 +30,9 @@ function rvk_ticketing_menu() {
     'page arguments' => array('rvk_ticketing_admin'),
     'file' => 'rvk_ticketing.admin.inc',
     'file path' => drupal_get_path('module', 'rvk_ticketing'),
-    'access arguments' => array('administer borgarvefsja settings'),
+    'access arguments' => array('administer ticketing settings'),
     'type' => MENU_NORMAL_ITEM,
   );
-
-    $items['abendingar/breyta-abendingu/%'] = [
-        'title' => 'Breyta ábendingu',
-        'page callback' => 'rvk_ticketing_edit_indication_page',
-        'access arguments' => ['access administration pages'],
-        'page arguments' => array(2),
-        'file' => 'includes/indication_edit.inc',
-        'file path' => drupal_get_path('module', 'rvk_ticketing'),
-    ];
 
   return $items;
 }
@@ -42,6 +42,11 @@ function rvk_ticketing_menu() {
  */
 function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
+
+    $form['#attached']['css'] = [
+      drupal_get_path('module', 'rvk_ticketing') . '/css/styles.css',
+    ];
+
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
         if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
@@ -65,7 +70,6 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
  * Implements hook_node_presave().
  */
 function rvk_ticketing_node_presave($node) {
-  $a = 10;
   if($node->type == 'indications') {
     //If the node is cloned, the node is marked as new. And we do NOT want to
     //clone the Mainmanager settings from the old node to the new!
@@ -82,48 +86,43 @@ function rvk_ticketing_node_presave($node) {
       }
     }
     else {
-      if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0])) {
-        //If the checkbox "Send to Mainmanager" is checked, but the Mainmanager
-        //ID field is empty, create a node in Mainmanager
-        if($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]['value'] == 1) {
-          if(!isset($node->field_mainmanager_id[LANGUAGE_NONE][0])) {
-            //Default value of 'General'
-            $checkword_item_id = 15;
-            if (isset($node->field_mm_checkword_item[LANGUAGE_NONE][0])) {
-              $checkword_item = taxonomy_term_load(
-                $node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']
-              );
+      if(isset($node->field_mm_checkword_item[LANGUAGE_NONE][0])) {
+        $checkword_item = taxonomy_term_load(
+          $node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']
+        );
 
-              $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
-            }
-            $data_object = mainmanager_create_incident_data_object(
-              $node->title,
-              $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
-              $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
-              6,
-              $checkword_item_id,
-              $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
-              $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
-              $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
-              $node->field_indication_position_y[LANGUAGE_NONE][0]['value']
-            );
+        $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
+        $checkword_item = $checkword_item->field_cw_id[LANGUAGE_NONE][0]['value'];
 
-            $mainmanager_response = mainmanager_create_incident($data_object);
-            if (is_object($mainmanager_response)) {
-              if ($mainmanager_response->Success == TRUE) {
-                $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
-                  $mainmanager_response->ID;
-                node_save($node);
-              }
-              else {
-                drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
-              }
-            }
-            else {
-              //error occurred
-              drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
-            }
+        $data_object = mainmanager_create_incident_data_object(
+          $node->title,
+          $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
+          $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
+          $checkword_item,
+          $checkword_item_id,
+          $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
+          $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
+          $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
+          $node->field_indication_position_y[LANGUAGE_NONE][0]['value'],
+          isset($node->field_image[LANGUAGE_NONE][0])
+            ? $node->field_image[LANGUAGE_NONE][0]['fid']
+            : null
+        );
+
+        $mainmanager_response = mainmanager_create_incident($data_object);
+        if (is_object($mainmanager_response)) {
+          if ($mainmanager_response->Success == TRUE) {
+            $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
+              $mainmanager_response->ID;
+            node_save($node);
           }
+          else {
+            drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
+          }
+        }
+        else {
+          //error occurred
+          drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
         }
       }
     }
@@ -193,6 +192,9 @@ function rvk_ticketing_permission() {
     'view ticketing content' => array(
       'title' => t('View ticketing content'),
     ),
+    'edit ticketing content' => [
+      'title' => t('Edit ticketing content'),
+    ],
     'administer ticketing content' => array(
       'title' => t('Administer ticketing content'),
     ),
@@ -204,13 +206,9 @@ function rvk_ticketing_permission() {
  *
  * @return array
  */
-function rvk_ticketing_create_ticket_page() {
+function rvk_ticketing_create_indication_page() {
   $build = [
-    'header_text' => [
-      '#type' => 'markup',
-      '#markup' => '<h2>Senda inn ábendingu</h2>',
-    ],
-    //'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
+    'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
   ];
 
   return $build;
@@ -224,10 +222,6 @@ function rvk_ticketing_block_info() {
     'info' => 'Ábendingarform',
   ];
 
-  $blocks['test_block'] = [
-    'info' => 'Test block for Ticketing',
-  ];
-
   return $blocks;
 }
 
@@ -239,10 +233,6 @@ function rvk_ticketing_block_view($delta = '') {
   if($delta == 'indication_form') {
     $form = drupal_get_form('rvk_ticketing_create_ticket_form');
     $markup .= drupal_render($form);
-  }
-
-  if($delta == 'test_block') {
-    //rvk_ticketing_populate_checkword_items_taxonomy_vocabulary();
   }
 
   $block['content'] = $markup;
@@ -493,9 +483,8 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   }
 
   rvk_ticketing_create_indication_node($values);
-  drupal_set_message('<p>Takk fyrir að senda ábendingu til okkar.</p>
-<p>Þjónustuver borgarinnar vinnur úr ábendingum alla virka daga og kemur þeim á réttan stað.</p> 
-<p><strong>Ef um um er að ræða neyðartilfelli hafðu þá samband við 112.</strong></p>');
+
+  drupal_goto(variable_get('rvk_ticketing_thank_you_page'));
 }
 
 /**
@@ -968,258 +957,3 @@ function rvk_ticketing_theme($existing, $type, $theme, $path) {
   );
   return $theme;
 }
-
-function rvk_ticketing_preprocess_page(&$vars, $hook) {
-  //NOT WORKING :-(
-  /*if ($vars['node']->type == 'indications') {
-    $css = drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css';
-    $js = drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js';
-    drupal_add_css('https://js.arcgis.com/3.13/esri/css/esri.css', 'external');
-    drupal_add_css($css);
-    drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/init.js');
-    drupal_add_js($js);
-  }
-  */
-}
-
-/**
- * This is a multi step form.  Step one is at the bottom of the code, but other
- * steps are in logical order
- *
- * @author Drupalviking (drupalviking@1xinternet.de)
- * @param $form
- * @param $form_state
- * @return string
- */
-
-/**
-function rvk_ticketing_create_ticket_form($form, &$form_state) {
-//Step two
-if(isset($form_state['storage']) && $form_state['storage']['page_two']) {
-$form['#attached']['css'] = [
-'https://js.arcgis.com/3.13/esri/css/esri.css' => [
-'type' => 'external',
-],
-drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
-];
-
-$form['markup'] = [
-'#type' => 'markup',
-'#markup' => '<h2>Staðsetning á korti</h2>
-<p>Þú getur slegið inn heimilisfang og/eða sett punkt á kortið með því að smella
-á þann stað á kortinu sem tengist ábendingunni. Ef ábendingin krefst
-ekki staðsetningar smelltu þá á áfram.</p>',
-];
-
-$form['address_fieldset'] = [
-'#type' => 'fieldset',
-'#weight' => 20,
-'#collapsible' => TRUE,
-'#collapsed' => TRUE,
-'#title' => t('Address'),
-];
-$form['map_fieldset'] = [
-'#type' => 'fieldset',
-'#weight' => 10,
-'#collapsible' => FALSE,
-];
-$form['address_fieldset']['address'] = [
-'#type' => 'textfield',
-'#title' => 'Staðsetning (Götuheiti í nefnifalli)',
-'#autocomplete_path' => 'gata/fletta_upp_gotu_autocomplete_callback',
-];
-$form['map_fieldset']['map_markup'] = [
-'#type' => 'markup',
-'#prefix' => '<div id="mapDiv">',
-'#postfix' => '</div>',
-'#markup' => '<div id="LocateButton"></div>',
-];
-$form['xcoords'] = [
-'#type' => 'hidden',
-'#title' => 'xcoords',
-'#attributes' => [
-'id' => ['xcoords']
-],
-];
-$form['ycoords'] = [
-'#type' => 'hidden',
-'#title' => 'ycoords',
-'#attributes' => [
-'id' => ['ycoords']
-],
-];
-
-$form['submit'] = array(
-'#type' => 'submit',
-'#value' => 'Halda áfram',
-'#weight' => 1000
-);
-$form['#attached']['js'] = array(
-'https://js.arcgis.com/3.13/init.js' => array(
-'type' => 'external',
-),
-drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js',
-);
-}
-//Step three
-elseif(isset($form_state['storage']) && $form_state['storage']['page_three']) {
-$form['markup'] = [
-'#type' => 'markup',
-'#markup' => '<h2>Upplýsingar um þig</h2>',
-];
-$form['name'] = [
-'#type' => 'textfield',
-'#title' => 'Nafn',
-'#required' => TRUE,
-];
-$form['ssn'] = [
-'#type' => 'textfield',
-'#title' => 'Kennitala',
-'#required' => TRUE,
-];
-$form['email'] = [
-'#type' => 'textfield',
-'#title' => 'Netfang',
-'#required' => TRUE,
-];
-$form['tel'] = [
-'#type' => 'textfield',
-'#title' => 'Sími',
-];
-
-$form['submit'] = array(
-'#type' => 'submit',
-'#value' => 'Halda áfram',
-);
-}
-//Original state (step 1) of the form
-else {
-$form['markup'] = [
-'#type' => 'markup',
-'#markup' => '<h2>Sendu okkur ábendingu</h2>',
-];
-
-$form['title'] = [
-'#type' => 'textfield',
-'#title' => 'Titill',
-'#required' => TRUE,
-];
-
-$form['content'] = [
-'#type' => 'textarea',
-'#title' => 'Efni ábendingar',
-'#required' => TRUE,
-];
-
-$form['image'] = [
-'#type' => 'file',
-'#title' => 'Mynd',
-'#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni'
-];
-
-$form['use_map'] = [
-'#type' => 'radios',
-'#title' => 'Nota kort eða staðsetningu með ábendingunni',
-'#options' => ['yes' => 'Já', 'no' => 'Nei'],
-'#default_value' => 'no',
-];
-
-$form['submit'] = array(
-'#type' => 'submit',
-'#value' => 'Halda áfram',
-);
-}
-
-return $form;
-}
-
-function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
-//If storage is not set, we're at step one
-if(!isset($form_state['storage'])) {
-$file = file_save_upload('file', array(
-'file_validate_is_image' => array(),
-'file_validate_extensions' => array('png gif jpg jpeg'),
-));
-if ($file) {
-if ($file = file_move($file, 'public://')) {
-$form_state['values']['file'] = $file;
-}
-else {
-form_set_error('file', t('Failed to write the uploaded file the site\'s file folder.'));
-}
-}
-else {
-form_set_error('file', t('No file was uploaded.'));
-}
-}
-
-if(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
-$values = $form_state['values'];
-if(strlen($values['xcoords']) == 0 && strlen($values['address']) == 0) {
-form_set_error('address', 'Velja þarf annað hvort stað á korti eða slá inn heimilisfang');
-}
-elseif(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
-if(!rvk_ticket_check_street_address_valid($values['address'])) {
-form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
-}
-}
-}
-if(isset($form_state['storage']) &&$form_state['storage']['page_three'] == TRUE ) {
-$values = $form_state['values'];
-if(!_rvk_ticketing_ssn_validation($values['ssn'])) {
-form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
-}
-}
-}
-
-function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
-$values = $form_state['values'];
-//If storage is not set, we're at step one
-if(!isset($form_state['storage'])) {
-if($values['use_map'] == 'yes') {
-$form_state['storage']['page_two'] = TRUE;
-$form_state['storage']['page_three'] = FALSE;
-$form_state['storage']['page_one_values'] = $values;
-$form_state['rebuild'] = TRUE;
-}
-else {
-$form_state['storage']['page_two'] = FALSE;
-$form_state['storage']['page_three'] = TRUE;
-$form_state['storage']['page_one_values'] = $values;
-$form_state['storage']['page_two_values'] = null;
-$form_state['rebuild'] = TRUE;
-}
-
-$file = $form_state['values']['file'];
-unset($form_state['values']['file']);
-$file->status = FILE_STATUS_PERMANENT;
-file_save($file);
-}
-elseif(isset($form_state['storage']) && $form_state['storage']['page_two'] == TRUE ) {
-$form_state['storage']['page_two'] = FALSE;
-$form_state['storage']['page_three'] = TRUE;
-$form_state['storage']['page_two_values'] = $values;
-$form_state['rebuild'] = TRUE;
-
-if(strlen($values['xcoords']) > 0 && strlen($values['ycoords']) > 0) {
-$form_state['storage']['page_two_values']['xcoord'] = $values['xcoords'];
-$form_state['storage']['page_two_values']['ycoord'] = $values['ycoords'];
-unset($form_state['storage']['page_two_values']['address']);
-}
-elseif(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
-//Send another query to the Street lookup API, to get the X and Y coords
-$street = borgarvefsja_search_by_address($values['address']);
-$form_state['storage']['page_two_values']['xcoord'] = $street[0]['x'];
-$form_state['storage']['page_two_values']['ycoord'] = $street[0]['y'];
-}
-}
-elseif(isset($form_state['storage']) && $form_state['storage']['page_three'] == TRUE ) {
-$form_state['storage']['page_three_values'] = $values;
-rvk_ticketing_create_indication_node($form_state['storage']);
-drupal_set_message('<p>Takk fyrir að senda ábendingu til okkar.</p>
-<p>Þjónustuver borgarinnar vinnur úr ábendingum alla virka daga og kemur þeim á réttan stað.</p>
-<p><strong>Ef um um er að ræða neyðartilfelli hafðu þá samband við 112.</strong></p>');
-}
-}
- */
-
