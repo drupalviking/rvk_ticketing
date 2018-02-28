@@ -44,7 +44,6 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
 
     $form['#attached']['css'] = [
-      drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
       drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
     ];
 
@@ -256,7 +255,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ],
     drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
     drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
-    drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
   ];
 
   $form['indication_fieldset'] = [
