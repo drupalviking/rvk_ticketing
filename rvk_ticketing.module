@@ -51,7 +51,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       if(is_object($form['#node'])) {
         if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
           $form['field_sent_to_mainmanager']['#access'] = FALSE;
-          $form['field_mm_checkword_item']['#access'] = FALSE;
+          //$form['field_mm_checkword_item']['#access'] = FALSE;
           $form['field_mainmanager_id']['#access'] = FALSE;
           $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
           $form['field_fake']['#markup'] =
