@@ -95,20 +95,7 @@ function rvk_ticketing_node_presave($node) {
         $checkword_item = $checkword_item->field_cw_id[LANGUAGE_NONE][0]['value'];
 
         //@TODO Move these function calls into a shutdown function
-        $data_object = mainmanager_create_incident_data_object(
-          $node->title,
-          $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
-          $checkword_item,
-          $checkword_item_id,
-          $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_position_y[LANGUAGE_NONE][0]['value'],
-          isset($node->field_image[LANGUAGE_NONE][0])
-            ? $node->field_image[LANGUAGE_NONE][0]['fid']
-            : null
-        );
+        $data_object = mainmanager_create_incident_data_object($node, $checkword_item, $checkword_item_id);
 
         $mainmanager_response = mainmanager_create_incident($data_object);
         if (is_object($mainmanager_response)) {
@@ -478,8 +465,8 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   if(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
     //Send another query to the Street lookup API, to get the X and Y coords
     $street = borgarvefsja_search_by_address($values['address']);
-    $values['xcoord'] = $street[0]['x'];
-    $values['ycoord'] = $street[0]['y'];
+    $values['xcoords'] = $street[0]['x'];
+    $values['ycoords'] = $street[0]['y'];
   }
 
   rvk_ticketing_create_indication_node($values);
@@ -503,10 +490,14 @@ function rvk_ticketing_create_indication_node($data) {
   $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'] = $data['content'];
   if(isset($data['address'])) {
     $node->field_indication_location[LANGUAGE_NONE][0]['value'] = $data['address'];
+    if(isset($data['xcoords'])) {
+      $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
+      $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
+    }
   }
-  elseif(isset($data['xcoord'])) {
-    $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoord'];
-    $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoord'];
+  elseif(isset($data['xcoords'])) {
+    $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
+    $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
   }
 
   $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['name'];
