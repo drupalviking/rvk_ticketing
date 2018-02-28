@@ -44,19 +44,23 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
 
     $form['#attached']['css'] = [
-      drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
       drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
     ];
 
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
         if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
-          $form['field_sent_to_mainmanager']['#access'] = FALSE;
           $form['field_mm_checkword_item']['#access'] = FALSE;
           $form['field_mainmanager_id']['#access'] = FALSE;
           $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
-          $form['field_fake']['#markup'] =
+          $form['field_mainmanager_id_markup']['#weight'] = 3;
+          $form['field_mainmanager_id_markup']['#markup'] =
             "<p><strong>Tilkynning hefur verið send til Mainmanager. Kenni tilkynningar er: {$mm_id}</strong></p>";
+
+          $form['field_indication_text']['#access'] = FALSE;
+          $form['field_indication_text_markup']['#weight'] = 1;
+          $form['field_indication_text_markup']['#markup'] =
+            '<label class="control-label">Ábending</label><div class="indication-text-readonly"><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div>";
         }
       }
     }
@@ -95,27 +99,14 @@ function rvk_ticketing_node_presave($node) {
         $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
         $checkword_item = $checkword_item->field_cw_id[LANGUAGE_NONE][0]['value'];
 
-        $data_object = mainmanager_create_incident_data_object(
-          $node->title,
-          $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'],
-          $checkword_item,
-          $checkword_item_id,
-          $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_position_x[LANGUAGE_NONE][0]['value'],
-          $node->field_indication_position_y[LANGUAGE_NONE][0]['value'],
-          isset($node->field_image[LANGUAGE_NONE][0])
-            ? $node->field_image[LANGUAGE_NONE][0]['fid']
-            : null
-        );
-
+        //@TODO Move these function calls into a shutdown function
+        $data_object = mainmanager_create_incident_data_object($node, $checkword_item, $checkword_item_id);
         $mainmanager_response = mainmanager_create_incident($data_object);
+
         if (is_object($mainmanager_response)) {
           if ($mainmanager_response->Success == TRUE) {
             $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
               $mainmanager_response->ID;
-            node_save($node);
           }
           else {
             drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
@@ -256,7 +247,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ],
     drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
     drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
-    drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
   ];
 
   $form['indication_fieldset'] = [
@@ -480,8 +470,8 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   if(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
     //Send another query to the Street lookup API, to get the X and Y coords
     $street = borgarvefsja_search_by_address($values['address']);
-    $values['xcoord'] = $street[0]['x'];
-    $values['ycoord'] = $street[0]['y'];
+    $values['xcoords'] = $street[0]['x'];
+    $values['ycoords'] = $street[0]['y'];
   }
 
   rvk_ticketing_create_indication_node($values);
@@ -505,10 +495,14 @@ function rvk_ticketing_create_indication_node($data) {
   $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'] = $data['content'];
   if(isset($data['address'])) {
     $node->field_indication_location[LANGUAGE_NONE][0]['value'] = $data['address'];
+    if(isset($data['xcoords'])) {
+      $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
+      $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
+    }
   }
-  elseif(isset($data['xcoord'])) {
-    $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoord'];
-    $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoord'];
+  elseif(isset($data['xcoords'])) {
+    $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
+    $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
   }
 
   $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['name'];
