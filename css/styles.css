@@ -1,3 +1,5 @@
+/* Indication Form */
+
 .page-node-19123 .page-header {
 	display: none;
 }
@@ -380,6 +382,17 @@
 		transform: translate(0px,-49px);
 		transition: all 0.175s ease-in-out;
 	}
+}
+
+
+/* Edit indication Form */
+
+form {
+	display: none;
+}
+
+.node-indications-form fieldset {
+	border: none;
 }
 
 
