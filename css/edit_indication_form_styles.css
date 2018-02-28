@@ -1,0 +1,76 @@
+/* Edit indication Form */
+
+.node-indications-form {
+    background-color: #f1f1f1;
+    border: 1px solid #bfbfbf;
+    padding: 26px 20px;
+    max-width: 986px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.node-indications-form .collapse {
+    padding: 0;
+}
+
+.node-indications-form fieldset {
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: unset;
+    padding-bottom: 45px;
+    margin-bottom: 41px;
+    border-bottom: 1px solid #bfbfbf;
+}
+
+.node-indications-form legend,
+.node-indications-form .vertical-tabs,
+.node-indications-form .grippie {
+    display: none;
+}
+
+.node-indications-form label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    padding-left: 6px;
+}
+
+.node-indications-form  input {
+    font-size: 16px;
+    padding: 21px 23px 23px;
+    border: 1px solid #bfbfbf;
+    border-radius: 8px;
+}
+
+.node-indications-form  textarea {
+    font-size: 16px;
+    line-height: 1.65;
+    padding: 21px 23px 23px;
+    border: 1px solid #bfbfbf;
+    border-radius: 8px;
+}
+
+.node-indications-form  select {
+    padding: 21px 23px 23px;
+    border: 1px solid #bfbfbf;
+    border-radius: 8px;
+}
+
+.node-indications-form .form-actions {
+    text-align: center;
+}
+
+.node-indications-form .form-actions .btn {
+    width: 196px;
+}
+
+
+@media screen and (min-width: 1016px) {
+
+    .node-indications-form {
+        padding: 46px 36px;
+    }
+}
+
+
+
