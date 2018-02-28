@@ -55,6 +55,10 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       }
     }
   }
+
+    if(($form_id == 'indications_node_form') && (arg(2) == 'edit')){
+      drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
+    }
 }
 
 /**
