@@ -25,6 +25,15 @@ function rvk_ticketing_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+    $items['abendingar/breyta-abendingu/%'] = [
+        'title' => 'Breyta ábendingu',
+        'page callback' => 'rvk_ticketing_edit_indication_page',
+        'access arguments' => ['access administration pages'],
+        'page arguments' => array(2),
+        'file' => 'includes/indication_edit.inc',
+        'file path' => drupal_get_path('module', 'rvk_ticketing'),
+    ];
+
   return $items;
 }
 
