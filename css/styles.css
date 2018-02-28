@@ -21,6 +21,10 @@
 	margin-bottom: 17px;
 }
 
+.form-item-address .dropdown {
+	display: block;
+}
+
 #rvk-ticketing-create-ticket-form  p {
 	color: rgba(64,64,64,0.78);
 	line-height: 1.8;
@@ -133,7 +137,8 @@
 	display: none;
 }
 
-#rvk-ticketing-create-ticket-form .btn-default {
+#rvk-ticketing-create-ticket-form .btn-default,
+#rvk-ticketing-create-ticket-form .form-submit {
 	border-color: #2e6da4;
 	background-color: #337ab7;
 	border-radius: 100px;
@@ -145,7 +150,8 @@
 	margin-bottom: 23px;
 }
 
-#rvk-ticketing-create-ticket-form .btn-default:hover {
+#rvk-ticketing-create-ticket-form .btn-default:hover,
+#rvk-ticketing-create-ticket-form .form-submit:hover {
 	color: #ffffff;
 	background-color: #7ab733;
 	border-color: #61902a;
@@ -156,6 +162,10 @@
     overflow-y: hidden;
     display: block;
     transition: max-height 0.5s ease-in-out;
+}
+
+#rvk-ticketing-create-ticket-form .move #edit-map-fieldset .collapse {
+	overflow-y: unset;
 }
 
 #rvk-ticketing-create-ticket-form .collapse.show {
@@ -206,6 +216,13 @@
 	right: 0;
 	margin: 0;
 	height: 45px;
+	top: 0;
+    transform: translate(0px,0px);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    width: 150px;
 }
 
 .locate-icon {
@@ -253,7 +270,8 @@
 		margin-bottom: 46px;
 	}
 
-	#rvk-ticketing-create-ticket-form .btn-default {
+	#rvk-ticketing-create-ticket-form .btn-default,
+	#rvk-ticketing-create-ticket-form .form-submit {
 		margin-bottom: 46px;
 	}
 
@@ -310,6 +328,8 @@
 	#rvk-ticketing-create-ticket-form #edit-map-fieldset {
 		transform: translate(0px,-115px);
 		transition: all 0.175s ease-in-out;
+		position: relative;
+		z-index: 2;
 	}
 
 	#rvk-ticketing-create-ticket-form .move #edit-map-fieldset {
@@ -330,7 +350,8 @@
 		line-height: 1.4;
 	}
 
-	#rvk-ticketing-create-ticket-form #edit-map-fieldset-body p {
+	#rvk-ticketing-create-ticket-form #edit-map-fieldset-body p,
+	#rvk-ticketing-create-ticket-form #edit-map-fieldset p {
 		float: none;
 		width: 100%;
 		text-align: left;
@@ -348,12 +369,14 @@
 	}
 
 	#rvk-ticketing-create-ticket-form #edit-personal-info-fieldset,
-	#rvk-ticketing-create-ticket-form .btn-default  {
+	#rvk-ticketing-create-ticket-form .btn-default,
+	#rvk-ticketing-create-ticket-form .form-submit  {
 		transform: translate(0px,-105px);
 	}
 
 	#rvk-ticketing-create-ticket-form .move #edit-personal-info-fieldset,
-	#rvk-ticketing-create-ticket-form .move .btn-default  {
+	#rvk-ticketing-create-ticket-form .move .btn-default,
+	#rvk-ticketing-create-ticket-form .move .form-submit {
 		transform: translate(0px,-49px);
 		transition: all 0.175s ease-in-out;
 	}
