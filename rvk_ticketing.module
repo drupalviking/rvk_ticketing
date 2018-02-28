@@ -50,12 +50,17 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
         if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
-          $form['field_sent_to_mainmanager']['#access'] = FALSE;
-          //$form['field_mm_checkword_item']['#access'] = FALSE;
-          //$form['field_mainmanager_id']['#access'] = FALSE;
+          $form['field_mm_checkword_item']['#access'] = FALSE;
+          $form['field_mainmanager_id']['#access'] = FALSE;
           $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
-          $form['field_fake']['#markup'] =
+          $form['field_mainmanager_id_markup']['#weight'] = 3;
+          $form['field_mainmanager_id_markup']['#markup'] =
             "<p><strong>Tilkynning hefur verið send til Mainmanager. Kenni tilkynningar er: {$mm_id}</strong></p>";
+
+          $form['field_indication_text']['#access'] = FALSE;
+          $form['field_indication_text_markup']['#weight'] = 1;
+          $form['field_indication_text_markup']['#markup'] =
+            '<label class="control-label">Ábending</label><div class="indication-text-readonly"><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div>";
         }
       }
     }
@@ -96,8 +101,8 @@ function rvk_ticketing_node_presave($node) {
 
         //@TODO Move these function calls into a shutdown function
         $data_object = mainmanager_create_incident_data_object($node, $checkword_item, $checkword_item_id);
-
         $mainmanager_response = mainmanager_create_incident($data_object);
+
         if (is_object($mainmanager_response)) {
           if ($mainmanager_response->Success == TRUE) {
             $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
