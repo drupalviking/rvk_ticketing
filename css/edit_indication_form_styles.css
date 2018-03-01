@@ -83,13 +83,15 @@
 }
 
 .node-indications-form  select {
-    padding: 21px 23px 23px;
+    padding: 10px 23px 12px;
     border: 1px solid #bfbfbf;
     border-radius: 8px;
     -moz-appearance:none;
     -webkit-appearance:none;
     appearance:none;
     box-shadow: none;
+    height: auto;
+    font-size: 16px
 }
 
 .node-indications-form .form-type-select {
