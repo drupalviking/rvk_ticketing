@@ -167,6 +167,26 @@
     margin: 0;
 }
 
+.node-indications-form .btn-danger,
+.node-indications-form .form-actions #edit-delete,
+.node-indications-form #edit-preview,
+.node-indications-form #edit-submit {
+    transition: background-color 325ms cubic-bezier(0.420, 0.000, 0.580, 1.000);
+}
+
+.node-indications-form .btn-danger:hover,
+.node-indications-form .form-actions #edit-delete:hover {
+    background-color: #d10000;
+}
+
+.node-indications-form #edit-preview:hover {
+    background-color: #e1be02;
+}
+
+.node-indications-form #edit-submit:hover {
+    background-color: #017537;
+}
+
 .node-indications-form #edit-field-sent-to-mainmanager label,
 .node-indications-form #edit-field-mainmanager-id label {
     color: white;
