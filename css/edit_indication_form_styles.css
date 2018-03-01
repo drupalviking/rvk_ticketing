@@ -214,7 +214,7 @@
     padding: 0 0 20px 0;
 }
 
-@media screen and (min-width: 574px) {
+@media screen and (min-width: 610px) {
     
     .node-indications-form .image-preview,
     .node-indications-form .image-widget-data {
@@ -226,6 +226,11 @@
 
     .node-indications-form .image-preview {
         padding-bottom: 0;
+        border-right: 18px solid transparent;
+    }
+
+    .node-indications-form .image-widget-data {
+        border-left: 18px solid transparent;
     }
 }
 
