@@ -1,9 +1,17 @@
 /* Edit indication Form */
 
 .page-abendingar-breyta-abendingu .page-header,
-.page-abendingar-breyta-abendingu .page-header h2 {
+.page-abendingar-breyta-abendingu #block-system-main > h2 {
     max-width: 986px;
     margin: 0 auto;
+}
+
+.page-abendingar-breyta-abendingu .page-header {
+    margin-bottom: 20px;
+}
+
+.page-abendingar-breyta-abendingu #block-system-main > h2 {
+    margin-bottom: 12px;
 }
 
 .node-indications-form {
