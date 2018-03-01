@@ -196,6 +196,39 @@
     height: 68px;
 }
 
+.node-indications-form .field-widget-image-image {
+    width: 100%;
+    overflow: hidden;
+    padding-top: 41px;
+    border-top: 1px solid #bfbfbf;
+    margin-top: 30px;
+    float: left;
+}
+
+.node-indications-form .image-widget-data {
+    width: 100%;
+    text-align: center;
+}
+
+.node-indications-form .image-preview {
+    padding: 0 0 20px 0;
+}
+
+@media screen and (min-width: 574px) {
+    
+    .node-indications-form .image-preview,
+    .node-indications-form .image-widget-data {
+        width: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        float: none;
+    }
+
+    .node-indications-form .image-preview {
+        padding-bottom: 0;
+    }
+}
+
 @media screen and (min-width: 768px) {
 
     .node-indications-form .form-actions #edit-submit {
