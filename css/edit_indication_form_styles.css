@@ -118,11 +118,11 @@
     margin-bottom: 12px;
 }
 
-.node-indications-form #edit-field-mm-checkword-item  {
+.node-indications-form .group-indication-main-manager > div {
     background-color: #4881bf;
     border-radius: 8px;
     border: 1px solid #3b6a9d;
-    padding: 30px 20px 36px;
+    padding: 30px 26px 36px;
 }
 
 #edit-field-mm-checkword-item .form-type-select:before {
@@ -132,7 +132,6 @@
 .node-indications-form #edit-field-mm-checkword-item  .form-item {
     display: inline-block;
     width: 100%;
-    max-width: 608px;
 }
 
 .node-indications-form #edit-field-mm-checkword-item select {
@@ -166,6 +165,35 @@
 
 .node-indications-form .btn-danger {
     margin: 0;
+}
+
+.node-indications-form #edit-field-sent-to-mainmanager label,
+.node-indications-form #edit-field-mainmanager-id label {
+    color: white;
+}
+
+.node-indications-form #edit-field-mainmanager-id input {
+    border-color: white;
+}
+
+.node-indications-form #edit-field-sent-to-mainmanager input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    top: -3px;
+    margin-left: -24px;
+}
+
+.node-indications-form #edit-field-sent-to-mainmanager label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 22px;
+    position: relative;
+}
+
+.node-indications-form #edit-field-sent-to-mainmanager .form-item {
+    border: 1px solid rgba(255,255,255,0.8);
+    text-align: center;
+    height: 68px;
 }
 
 @media screen and (min-width: 768px) {
@@ -213,25 +241,24 @@
 
     .node-indications-form #edit-field-indication-status-ref,
     .node-indications-form #edit-field-indication-type-ref,
-    .node-indications-form #edit-field-mainmanager-id,
     .node-indications-form #edit-field-indication-position-x,
     .node-indications-form #edit-field-indication-reporter-name,
-    .node-indications-form #edit-field-indication-reporter-email {
+    .node-indications-form #edit-field-indication-reporter-email,
+    .node-indications-form #edit-field-sent-to-mainmanager {
         border-right: 18px solid transparent;
     }
 
     .node-indications-form #edit-field-department-ref,
     .node-indications-form #edit-field-indication-controller-new,
-    .node-indications-form #edit-field-sent-to-mainmanager,
     .node-indications-form #edit-field-indication-position-y,
     .node-indications-form #edit-field-indication-reporter-ssn,
-    .node-indications-form #edit-field-indication-reporter-phone {
+    .node-indications-form #edit-field-indication-reporter-phone,
+    .node-indications-form #edit-field-mainmanager-id {
         border-left: 18px solid transparent;
     }
 
     .node-indications-form #edit-field-sent-to-mainmanager {
-        text-align: center;
-        padding-top: 38px;
+        padding-top: 4px;
     }
 }
 
