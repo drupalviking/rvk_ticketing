@@ -216,8 +216,7 @@
 	overflow: hidden;
 }
 
-#rvk-ticketing-create-ticket-form #edit-image-upload-button--2,
-#rvk-ticketing-create-ticket-form #edit-image-upload-button {
+#rvk-ticketing-create-ticket-form #edit-image-fieldset .btn {
 	position: absolute;
 	right: 0;
 	margin: 0;
@@ -229,6 +228,10 @@
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
     width: 150px;
+}
+
+#rvk-ticketing-create-ticket-form #edit-image-fieldset .input-group {
+	width: 100%;
 }
 
 .locate-icon {
