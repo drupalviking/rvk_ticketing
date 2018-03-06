@@ -52,10 +52,11 @@
 
 .node-indications-form  input {
     font-size: 16px;
-    padding: 21px 23px 23px;
+    padding: 11px 23px 13px;
     border: 1px solid #bfbfbf;
     border-radius: 8px !important;
     box-shadow: none;
+    height: 100%;
 }
 
 .node-indications-form .input-group-addon {
