@@ -51,7 +51,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       if(is_object($form['#node'])) {
         if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
           $form['field_mm_checkword_item']['#access'] = FALSE;
-          $form['field_mainmanager_id']['#access'] = FALSE;
+          //$form['field_mainmanager_id']['#access'] = FALSE;
           $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
           $form['field_mainmanager_id_markup']['#weight'] = 3;
           $form['field_mainmanager_id_markup']['#markup'] =
@@ -64,11 +64,13 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         }
       }
     }
-  }
 
-    if(($form_id == 'indications_node_form') && (arg(2) == 'edit')){
+    $arg = arg(2);
+    $arg = substr($arg, 0, 4);
+    if(($form_id == 'indications_node_form') && ($arg == 'edit')){
       drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
     }
+  }
 }
 
 /**
@@ -79,7 +81,6 @@ function rvk_ticketing_node_presave($node) {
     //If the node is cloned, the node is marked as new. And we do NOT want to
     //clone the Mainmanager settings from the old node to the new!
     if($node->is_new) {
-      unset($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]);
       unset($node->field_mm_checkword_item[LANGUAGE_NONE][0]);
       unset($node->field_mainmanager_id[LANGUAGE_NONE][0]);
     }
@@ -325,11 +326,35 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#required' => TRUE,
   ];
 
-  $form['indication_fieldset']['image_fieldset']['image'] = [
+  $form['indication_fieldset']['image_fieldset']['image_1'] = [
     '#type' => 'managed_file',
     '#title' => 'Mynd',
     '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-    '#upload_location' => 'public://',
+    '#upload_location' => 'public://indication_images/',
+    '#weight' => 50,
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['image_2'] = [
+    '#type' => 'managed_file',
+    '#title' => 'Mynd',
+    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+    '#upload_location' => 'public://indication_images/',
+    '#weight' => 50,
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['image_3'] = [
+    '#type' => 'managed_file',
+    '#title' => 'Mynd',
+    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+    '#upload_location' => 'public://indication_images/',
+    '#weight' => 50,
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['image_4'] = [
+    '#type' => 'managed_file',
+    '#title' => 'Mynd',
+    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+    '#upload_location' => 'public://indication_images/',
     '#weight' => 50,
   ];
 
@@ -460,11 +485,32 @@ function rvk_ticket_check_street_address_valid($address) {
 function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $values = $form_state['values'];
 
-  if($values['image']) {
-    $file = file_load((int)$values['image']);
+  if($values['image_1']) {
+    $file = file_load((int)$values['image_1']);
     $file->status = FILE_STATUS_PERMANENT;
     file_save($file);
-    $values['image'] = $file;
+    $values['image_1'] = $file;
+  }
+
+  if($values['image_2']) {
+    $file = file_load((int)$values['image_2']);
+    $file->status = FILE_STATUS_PERMANENT;
+    file_save($file);
+    $values['image_2'] = $file;
+  }
+
+  if($values['image_3']) {
+    $file = file_load((int)$values['image_3']);
+    $file->status = FILE_STATUS_PERMANENT;
+    file_save($file);
+    $values['image_3'] = $file;
+  }
+
+  if($values['image_4']) {
+    $file = file_load((int)$values['image_4']);
+    $file->status = FILE_STATUS_PERMANENT;
+    file_save($file);
+    $values['image_4'] = $file;
   }
 
   if(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
@@ -519,8 +565,20 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
 
-  if(is_object($data['image'])) {
-    $node->field_image[LANGUAGE_NONE][0]['fid'] = $data['image']->fid;
+  if(is_object($data['image_1'])) {
+    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_1']->fid;
+  }
+
+  if(is_object($data['image_2'])) {
+    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_2']->fid;
+  }
+
+  if(is_object($data['image_3'])) {
+    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_3']->fid;
+  }
+
+  if(is_object($data['image_4'])) {
+    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_4']->fid;
   }
 
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
