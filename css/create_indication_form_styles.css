@@ -1,7 +1,11 @@
 /* Indication Form */
 
-.page-node-19123 .page-header {
-	display: none;
+.node-type-page .page-header,
+.node-type-page .field-name-body,
+.node-type-page .tabs--primary {
+	max-width: 987px;
+	margin: 0 auto;
+	margin-bottom: 12px;
 }
 
 #mapDiv {
