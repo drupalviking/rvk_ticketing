@@ -44,6 +44,10 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
 
     $form['#attached']['css'] = [
+      'https://js.arcgis.com/3.13/esri/css/esri.css' => [
+        'type' => 'external',
+      ],
+      drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
       drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
     ];
 
@@ -53,7 +57,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['field_mm_checkword_item']['#access'] = FALSE;
           //$form['field_mainmanager_id']['#access'] = FALSE;
           $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
-          $form['field_mainmanager_id_markup']['#weight'] = 3;
+          $form['field_mainmanager_id_markup']['#weight'] = 4;
           $form['field_mainmanager_id_markup']['#markup'] =
             "<p><strong>Tilkynning hefur verið send til Mainmanager. Kenni tilkynningar er: {$mm_id}</strong></p>";
 
@@ -61,9 +65,24 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['field_indication_text_markup']['#weight'] = 1;
           $form['field_indication_text_markup']['#markup'] =
             '<label class="control-label">Ábending</label><div class="indication-text-readonly"><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div>";
+
+
+
+          $xcoord = $form['#node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
+          $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
+          $form['map_markup']['#weight'] = 16;
+          $form['map_markup']['#markup'] = '<div id="mapDiv" style="width: 400px"></div>';
         }
       }
     }
+
+    $form['#attached']['js'] = array(
+      'https://js.arcgis.com/3.13/init.js' => array(
+        'type' => 'external',
+      ),
+      drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js',
+      drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js',
+    );
 
     $arg = arg(2);
     $arg = substr($arg, 0, 4);
