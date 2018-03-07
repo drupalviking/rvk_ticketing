@@ -34,6 +34,7 @@
     border: 1px solid #bfbfbf;
     background-color: #dcdcdc;
     margin-bottom: 15px;
+    border-radius: 8px;
 }
 
 .node-indications-form .collapse {
