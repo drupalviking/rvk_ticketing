@@ -53,25 +53,53 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
+        //Disables the fields that should not be shown (eg. editable)
+        $form['field_indication_text']['#access'] = FALSE;
+        $form['field_mainmanager_id']['#access'] = FALSE;
+        $form['field_sent_to_mainmanager']['#access'] = FALSE;
+        $form['field_indication_position_x']['#access'] = FALSE;
+        $form['field_indication_position_y']['#access'] = FALSE;
+        $form['field_indication_location']['#access'] = FALSE;
+
+        //Create the indication text markup, to display what the original indication said and change the sort order
+        //of the fields
+        $form['title']['#weight'] = -20;
+        $form['field_interpered_indication_text']['#weight'] = 100;
+        $form['field_indication_text_markup']['#weight'] = 20;
+        $form['field_indication_text_markup']['#markup'] =
+          '<div class="indication-text-readonly"><label class="control-label">Ábending</label><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div>";
+
+        //Moves the markup into the fieldset group_indication_content
+        $form['#group_children']['field_indication_text_markup'] = "group_indication_content";
+
+        //The map and location
+        if($coords_set = isset($form['#node']->field_indication_position_x[LANGUAGE_NONE][0])) {
+          $xcoord = $form['#node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
+          $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
+          $form['coords_markup']['#markup'] = '<div class="location-text-readonly"><label class="control-label">X og Y hnit</label><p>X: ' . $xcoord . ' Y: ' . $ycoord . '</p></div>';
+          $form['#group_children']['coords_markup'] = "group_indication_media_items";
+        }
+        if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
+          $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
+          $form['#group_children']['location_markup'] = "group_indication_media_items";
+        }
+
+        $form['map_markup']['#weight'] = 16;
+        $form['map_markup']['#markup'] = '<div id="mapDiv" style="width: 400px"></div>';
+
+        //Moves the markup into the fieldset group_indication_content
+        $form['#group_children']['map_markup'] = "group_indication_media_items";
+
+        //If the indication has been sent to Mainmanager
         if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
           $form['field_mm_checkword_item']['#access'] = FALSE;
-          $form['field_mainmanager_id']['#access'] = FALSE;
           $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
           $form['field_mainmanager_id_markup']['#weight'] = 4;
           $form['field_mainmanager_id_markup']['#markup'] =
             "<p><strong>Tilkynning hefur verið send til Mainmanager. Kenni tilkynningar er: {$mm_id}</strong></p>";
 
-          $form['field_indication_text']['#access'] = FALSE;
-          $form['field_indication_text_markup']['#weight'] = 1;
-          $form['field_indication_text_markup']['#markup'] =
-            '<label class="control-label">Ábending</label><div class="indication-text-readonly"><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div>";
-
-
-
-          $xcoord = $form['#node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
-          $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
-          $form['map_markup']['#weight'] = 16;
-          $form['map_markup']['#markup'] = '<div id="mapDiv" style="width: 400px"></div>';
+          //Moves the markup into the fieldset group_indication_main_manager
+          $form['#group_children']['field_mainmanager_id_markup'] = "group_indication_main_manager";
         }
       }
     }
