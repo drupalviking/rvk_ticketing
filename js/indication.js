@@ -30,7 +30,7 @@
           // If matches found...
           if (key != '0') {
             console.log(key);
-            $.get('/index.php?q=gata/fa_x_y_hnit_gotu_callback/' + key, {data: 'here'}, function(data){
+            $.get('/index.php?q=gata/fa_x_y_hnit_gotu_callback/' + key, function(data){
               var xcoord = data[0].x;
               var ycoord = data[0].y;
               addPointToMap(xcoord, ycoord);

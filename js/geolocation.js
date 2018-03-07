@@ -1,12 +1,13 @@
 var map, baseLayer, graphicLayer;
 
 require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map, LocateButton) {
+  esriConfig.defaults.geometryService = new esri.tasks.GeometryService("https://borgarvefsja.reykjavik.is/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+
     var initialExtent = new esri.geometry.Extent({ "xmin": 352100, "ymin": 401000, "xmax": 367700, "ymax": 412000, "spatialReference": { "wkid": 3057 } });
     map = new Map("mapDiv", {
         extent: initialExtent,
         logo: false,
         zoom: 3,
-        center: [-21.898063,62.132953],
     });
 
     geoLocatebutton = new LocateButton({
