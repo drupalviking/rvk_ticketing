@@ -6,7 +6,7 @@ require(["esri/map", "esri/geometry/Point","dojo/domReady!"], function (Map) {
     map = new Map("mapDiv", {
         extent: initialExtent,
         logo: false,
-        zoom: 3,
+        zoom: 6,
         center: [-21.898063,62.132953],
     });
 
