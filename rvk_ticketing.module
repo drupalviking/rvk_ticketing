@@ -86,7 +86,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         }
 
         $form['map_markup']['#weight'] = 16;
-        $form['map_markup']['#markup'] = '<div id="mapDiv" style="width: 400px"></div>';
+        $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="width: 400px"></div></div>';
 
         //Moves the markup into the fieldset group_indication_content
         $form['#group_children']['map_markup'] = "group_indication_media_items";
