@@ -27,6 +27,15 @@
     padding: 0;
 }
 
+.node-indications-form .indication-text-readonly div {
+    font-size: 16px;
+    line-height: 1.65;
+    padding: 21px 23px 23px;
+    border: 1px solid #bfbfbf;
+    background-color: #dcdcdc;
+    margin-bottom: 15px;
+}
+
 .node-indications-form .collapse {
     padding: 0;
 }
