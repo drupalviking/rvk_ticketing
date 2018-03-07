@@ -68,7 +68,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_response']['#weight'] = 200;
         $form['field_indication_text_markup']['#weight'] = 20;
         $form['field_indication_text_markup']['#markup'] =
-          '<div class="indication-text-readonly"><label class="control-label">Ábending</label><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div>";
+          '<div class="indication-text-readonly"><label class="control-label">Ábending</label><div><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div></div>";
 
         //Moves the markup into the fieldset group_indication_content
         $form['#group_children']['field_indication_text_markup'] = "group_indication_content";
