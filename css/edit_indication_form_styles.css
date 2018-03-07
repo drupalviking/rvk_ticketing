@@ -23,6 +23,10 @@
     margin: 0 auto;
 }
 
+.node-indications-form .panel-body {
+    padding: 0;
+}
+
 .node-indications-form .collapse {
     padding: 0;
 }
