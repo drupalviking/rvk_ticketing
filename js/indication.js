@@ -17,6 +17,23 @@
     }
   };
 
+    Drupal.behaviors.streetNameSearch = {
+      attach: function (context) {
+
+        $('#edit-autocomplete-field').focus(
+            function(){
+                $(this).val('');
+            });
+
+        $("#edit-address--2", context).bind('autocompleteSelect', function(event, node) {
+          var key = $(node).data('autocompleteValue');
+          // If matches found...
+          if (key != '0') {
+
+          }
+        });
+      }
+    };
 
 }(jQuery));
   
