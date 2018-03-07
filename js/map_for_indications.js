@@ -1,7 +1,8 @@
 var map, baseLayer, graphicLayer;
 
-require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map, LocateButton) {
+require(["esri/map", "esri/geometry/Point","dojo/domReady!"], function (Map) {
     var initialExtent = new esri.geometry.Extent({ "xmin": 352100, "ymin": 401000, "xmax": 367700, "ymax": 412000, "spatialReference": { "wkid": 3057 } });
+
     map = new Map("mapDiv", {
         extent: initialExtent,
         logo: false,
@@ -9,32 +10,17 @@ require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map
         center: [-21.898063,62.132953],
     });
 
-    geoLocatebutton = new LocateButton({
-        map: map,
-        highlightLocation: true,
-        useTracking: true,
-        enableHighAccuracy: true,
-        scale: 1000,
-    }, "LocateButton");
-    geoLocatebutton.startup();
-
     //þegar kortið er tilbúið er punkti bætt á kortið
     map.on("load", function () {
-        var ISN93coords = getLambert(64.132953, -21.898063);
-        addPointToMap(ISN93coords[0], ISN93coords[1]);
-    });
-    //smellt á kortið til að bæta við punkti
-    map.on("click", function(evt) {
-        addPointToMap(evt.mapPoint.x, evt.mapPoint.y);
-        document.getElementById("xcoords").value = evt.mapPoint.x;
-        document.getElementById("ycoords").value = evt.mapPoint.y;
+        if(Drupal.settings.xcoord) {
+            addPointToMap(Drupal.settings.xcoord,Drupal.settings.ycoord);
+            var zoomPoint = new esri.geometry.Point(Drupal.settings.xcoord,Drupal.settings.ycoord, new esri.SpatialReference({ wkid: 3057 }));
+            map.centerAt(zoomPoint);
+        }
     });
 
     baseLayer = new esri.layers.ArcGISTiledMapServiceLayer("https://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja/MapServer");
     graphicLayer = new esri.layers.GraphicsLayer();
-    graphicLayer.on("click", function (evt) {
-        alert("Xhnit:" + evt.graphic.attributes.pX + "\nYhnit:" + evt.graphic.attributes.pY);
-    });
     map.addLayers([baseLayer, graphicLayer]);
 });
 

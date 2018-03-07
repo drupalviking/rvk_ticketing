@@ -79,6 +79,13 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
           $form['coords_markup']['#markup'] = '<div class="location-text-readonly"><label class="control-label">X og Y hnit</label><p>X: ' . $xcoord . ' Y: ' . $ycoord . '</p></div>';
           $form['#group_children']['coords_markup'] = "group_indication_media_items";
+
+          $coords = [
+            'xcoord' => $xcoord,
+            'ycoord' => $ycoord,
+          ];
+
+          drupal_add_js($coords, 'setting');
         }
         if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
           $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
@@ -109,7 +116,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       'https://js.arcgis.com/3.13/init.js' => array(
         'type' => 'external',
       ),
-      drupal_get_path('module', 'rvk_ticketing') . '/js/geolocation.js',
+      drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js',
       drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js',
     );
 
