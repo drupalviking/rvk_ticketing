@@ -6,7 +6,6 @@ package = 1xInternet
 dependencies[] = entityreference
 dependencies[] = views
 dependencies[] = borgarvefsja
-dependencies[] = mainmanager
 dependencies[] = clone
 dependencies[] = node_clone_tab
 dependencies[] = field_group
