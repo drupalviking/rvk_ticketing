@@ -27,7 +27,6 @@ function rvk_ticketing_install() {
 function rvk_ticketing_enable() {
   _rvk_ticketing_create_indication_type_taxonomy_vocabulary();
   _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
-  _rvk_ticketing_create_checkword_items_taxonomy_vocabulary();
   _rvk_ticketing_create_department_taxonomy_vocabulary();
   _rvk_ticketing_create_external_department_taxonomy_vocabulary();
   _rvk_ticketing_create_indication_content_type();
@@ -42,12 +41,10 @@ function rvk_ticketing_disable() {
 
   $types = taxonomy_vocabulary_machine_name_load('indication_types');
   $status = taxonomy_vocabulary_machine_name_load('indication_status');
-  $checkwords = taxonomy_vocabulary_machine_name_load('checkword_items');
   $departments = taxonomy_vocabulary_machine_name_load('departments');
   $external_departments = taxonomy_vocabulary_machine_name_load('external_departments');
   taxonomy_vocabulary_delete($types->vid);
   taxonomy_vocabulary_delete($status->vid);
-  taxonomy_vocabulary_delete($checkwords->vid);
   taxonomy_vocabulary_delete($departments->vid);
   taxonomy_vocabulary_delete($external_departments->vid);
 
@@ -124,32 +121,6 @@ function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
     $term->vid = $vocabulary->vid;
     taxonomy_term_save($term);
   }
-}
-
-function _rvk_ticketing_create_checkword_items_taxonomy_vocabulary() {
-  if($tax = taxonomy_vocabulary_machine_name_load('checkword_items')) {
-    return;
-  }
-
-  $vocabulary = new stdClass();
-  $vocabulary->name = "Flokkunarkerfi Mainmanager";
-  $vocabulary->machine_name = "checkword_items";
-  $vocabulary->description = "Flokkunarkerfi frá Main Manager, notað þegar ábending er send áfram til Main Manager";
-  $vocabulary->module = "taxonomy";
-
-  taxonomy_vocabulary_save($vocabulary);
-
-  _rvk_ticketing_add_fields_to_bundle('field_cw_id', 'text', 'checkword_items',
-    'CheckwordID', 'CheckwordID', 'textfield', 'taxonomy_term');
-  _rvk_ticketing_add_fields_to_bundle('field_cwi_record_id', 'text', 'checkword_items',
-    'RecordID', 'RecordID', 'textfield', 'taxonomy_term');
-  _rvk_ticketing_add_fields_to_bundle('field_cwi_number', 'text', 'checkword_items',
-    'Number', 'Nr', 'textfield', 'taxonomy_term');
-  _rvk_ticketing_add_fields_to_bundle('field_cwi_incident_mode', 'text', 'checkword_items',
-    'Incident Mode', 'Incident Mode', 'textfield', 'taxonomy_term');
-
-  rvk_ticketing_populate_checkword_items_parents_taxonomy_vocabulary();
-  rvk_ticketing_populate_checkword_items_taxonomy_vocabulary();
 }
 
 function _rvk_ticketing_create_department_taxonomy_vocabulary() {
@@ -328,33 +299,6 @@ function _rvk_ticketing_create_indication_content_type() {
     $type_name, 'Áframsenda á utanaðkomandi', 'Áframsenda á utanaðkomandi', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'external_departments', 'parent' => 0]],
       'options_list_callback' => 'i18n_taxonomy_allowed_values']);
-
-  /**
-   * Entity Reference field, with autocomplete widget, to reference Users.
-   */
-  $field = [
-    'field_name' => 'field_indication_controller_new',
-    'type' => 'entityreference',
-    'cardinailty' => FIELD_CARDINALITY_UNLIMITED,
-    'settings' => [
-      'target_type' => 'user',
-      'target_bundles' => 'indications'
-    ],
-  ];
-  field_create_field($field);
-
-  $instance = [
-    'field_name' => 'field_indication_controller_new',
-    'entity_type' => 'node',
-    'bundle' => 'indications',
-    'label' => 'Ábyrgðaraðili',
-    'widget' => [
-      'type' => 'entityreference_autocomplete',
-    ]
-  ];
-
-  field_create_instance($instance);
-
   _rvk_ticketing_add_fields_to_bundle('field_indication_int_comm', 'text_long', $type_name,
     'Innri málsmeðferð', 'Innri málsmeðferð', 'text_textarea', 'node');
   _rvk_ticketing_add_fields_to_bundle('field_indication_response', 'text_long', $type_name,
@@ -365,16 +309,6 @@ function _rvk_ticketing_create_indication_content_type() {
     'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
     'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
-  // TODO: Remove this field
-  /*_rvk_ticketing_add_fields_to_bundle('field_sent_to_mainmanager', 'list_boolean', $type_name,
-    'Merkir hvort ábendingin hafi verið send til Mainmanager til frekari úrvinnslu',
-    'Senda til MainManager', 'options_onoff', 'node', [0 => 'Já', 1 => 'Nei']);*/
-  _rvk_ticketing_add_fields_to_bundle('field_mm_checkword_item', 'taxonomy_term_reference',
-    $type_name, 'Flokkun innan Mainmanager', 'Flokkun innan MM', 'autocomplete', 'node',
-    ['allowed_values' => [0 => ['vocabulary' => 'checkword_items', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
-  _rvk_ticketing_add_fields_to_bundle('field_mainmanager_id', 'text', $type_name,
-    'ID hjá MainManager', 'ID MainManager', 'textfield');
 
   //Set preview to none and disable the subject line for comments
   variable_set('comment_indication', '1');

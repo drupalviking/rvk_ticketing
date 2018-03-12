@@ -15,11 +15,11 @@ function rvk_ticketing_admin() {
     '#collapsed' => FALSE,
   ];
 
-  $form['rvk_ticketing_mainmanager'] = [
+  $form['rvk_service_desk_config'] = [
     '#type' => 'fieldset',
-    '#weight' => 25,
-    '#title' => t('Reykjavik Ticketing Mainmanager Checkword configuration'),
-    '#description' => t('Application specific configuration for Mainmanager API'),
+    '#weight' => 20,
+    '#title' => t('Reykjavik Ticketing Service desk configuration'),
+    '#description' => t('Application specific configuration for the service desk'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   ];
@@ -37,15 +37,47 @@ function rvk_ticketing_admin() {
     '#weight' => 10,
     '#title' => t('URL to thank you page'),
     '#description' => t('Enter the URL you want users to be redirected to, after the submit their indication'),
-    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/takk-fyrir-abendinguna'),
+    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/abendingar/takk-fyrir-abendinguna'),
   ];
 
-  $form['rvk_ticketing_mainmanager']['mm_checkword_ids'] = [
+  $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_hours'] = [
     '#type' => 'textfield',
-    '#weight' => 30,
-    '#title' => t('Mainmanager Checkword IDs'),
-    '#description' => t('Enter all Checkword IDs, that you want to fetch from Mainmanager, seperated by a comma (,)'),
-    '#default_value' => variable_get('mm_checkword_ids', '6,132,135,134,133'),
+    '#weight' => 20,
+    '#title' => t('Service desk opening hours.'),
+    '#description' => t('Enter the Service desk opening hours, in the format hh:mm (Like 08:20).'),
+    '#default_value' => variable_get('rvk_ticketing_service_desk_opening_hours', '08:20'),
+  ];
+
+  $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_hour'] = [
+    '#type' => 'textfield',
+    '#weight' => 20,
+    '#title' => t('Service desk opening hour.'),
+    '#description' => t('Enter the Service desk opening hour, as in what hour excactly (e.g. 8).'),
+    '#default_value' => variable_get('rvk_ticketing_service_desk_opening_hour', 8),
+  ];
+
+  $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_minute'] = [
+    '#type' => 'textfield',
+    '#weight' => 20,
+    '#title' => t('Service desk opening minute.'),
+    '#description' => t('Enter the Service desk opening minute, as in what hour excactly (e.g. 20).'),
+    '#default_value' => variable_get('rvk_ticketing_service_desk_opening_minute', 20),
+  ];
+
+  $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_duration'] = [
+    '#type' => 'textfield',
+    '#weight' => 20,
+    '#title' => t('Service desk opening duration (in hours).'),
+    '#description' => t('Enter the Service desk opening duration, as in how many hours (e.g. 8).'),
+    '#default_value' => variable_get('rvk_ticketing_service_desk_duration', 8),
+  ];
+
+  $form['rvk_service_desk_config']['rvk_ticketing_service_desk_days_to_respond'] = [
+    '#type' => 'textfield',
+    '#weight' => 20,
+    '#title' => t('Number of days to respond.'),
+    '#description' => t('How many days does the service desk have to respond to the ticket.'),
+    '#default_value' => variable_get('rvk_ticketing_service_desk_days_to_respond', 2),
   ];
 
   return system_settings_form($form);

@@ -1,5 +1,10 @@
 <?php
-define('RVK_TICKETING_MM_CHECKWORD_IDS', variable_get('mm_checkword_ids'));
+define('RVK_TICKETING_SERVICE_DESK_OPENING_HOURS', variable_get('rvk_ticketing_service_desk_opening_hours'));
+define('RVK_TICKETING_SERVICE_DESK_OPENING_HOUR', variable_get('rvk_ticketing_service_desk_opening_hours'));
+define('RVK_TICKETING_SERVICE_DESK_OPENING_MINUTE', variable_get('rvk_ticketing_service_desk_opening_minute'));
+define('RVK_TICKETING_SERVICE_DESK_DURATION', variable_get('rvk_ticketing_service_desk_duration'));
+define('RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND', variable_get('rvk_ticketing_service_desk_days_to_respond'));
+
 /**
  * MODULE FILE
  */
@@ -108,18 +113,6 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
         //Moves the markup into the fieldset group_indication_content
         $form['#group_children']['map_markup'] = "group_indication_media_items";
-
-        //If the indication has been sent to Mainmanager
-        if(isset($form['#node']->field_mainmanager_id[LANGUAGE_NONE][0])) {
-          $form['field_mm_checkword_item']['#access'] = FALSE;
-          $mm_id = $form['#node']->field_mainmanager_id[LANGUAGE_NONE][0]['value'];
-          $form['field_mainmanager_id_markup']['#weight'] = 4;
-          $form['field_mainmanager_id_markup']['#markup'] =
-            "<p><strong>Tilkynning hefur verið send til Mainmanager. Kenni tilkynningar er: {$mm_id}</strong></p>";
-
-          //Moves the markup into the fieldset group_indication_main_manager
-          $form['#group_children']['field_mainmanager_id_markup'] = "group_indication_main_manager";
-        }
       }
     }
 
@@ -144,104 +137,22 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
  */
 function rvk_ticketing_node_presave($node) {
   if($node->type == 'indications') {
-    //If the node is cloned, the node is marked as new. And we do NOT want to
-    //clone the Mainmanager settings from the old node to the new!
-    if($node->is_new) {
-      unset($node->field_mm_checkword_item[LANGUAGE_NONE][0]);
-      unset($node->field_mainmanager_id[LANGUAGE_NONE][0]);
-    }
-    else if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
+    if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
       if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
         $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
         $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
         $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
       }
     }
-    else {
-      if(isset($node->field_mm_checkword_item[LANGUAGE_NONE][0])) {
-        $checkword_item = taxonomy_term_load(
-          $node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']
-        );
-
-        $checkword_item_id = $checkword_item->field_cwi_record_id[LANGUAGE_NONE][0]['value'];
-        $checkword_item = $checkword_item->field_cw_id[LANGUAGE_NONE][0]['value'];
-
-        //@TODO Move these function calls into a shutdown function
-        $data_object = mainmanager_create_incident_data_object($node, $checkword_item, $checkword_item_id);
-        $mainmanager_response = mainmanager_create_incident($data_object);
-
-        if (is_object($mainmanager_response)) {
-          if ($mainmanager_response->Success == TRUE) {
-            $node->field_mainmanager_id[LANGUAGE_NONE][0]['value'] =
-              $mainmanager_response->ID;
-          }
-          else {
-            drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
-          }
-        }
-        else {
-          //error occurred
-          drupal_set_message('Villa kom upp við skráningu á tilkynningu í Mainmanager');
-        }
-      }
-    }
   }
 }
 
 /**
- * Implements hook_node_update().
+ * Was implemented, but all code removed since we stopped supporting Mainmanager API
+ * @param $node
  */
-function rvk_ticketing_node_update($node) {
-  if ($node->type == 'indications') {
-    register_shutdown_function('_rvk_ticketing_send_report_email', $node);
-  }
-}
-
-function _rvk_ticketing_send_report_email($node) {
-  $node_indication_status = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
-  $link_to_node = url(drupal_get_path_alias('node/' . $node->nid), array('absolute' => TRUE));
-  $email = $node->field_incication_reporter_email[LANGUAGE_NONE][0]['value'];
-  $key = null;
-  $subject = null;
-  $message = null;
-
-  if(strcmp('Ný ábending', $node_indication_status->name) == 0) {
-    $key = 'new_indication';
-    $subject = 'Takk fyrir ábendinguna';
-    $message = variable_get('first_email');
-    $message .= "\n\n" . 'Hér getur þú fylgst með gangi mála: <a href="' . $link_to_node . '">Ábendingin þín</a>';
-    $message .= "\n\n" . 'Með bestu kveðju, Þjónustumiðstöð Reykjavíkurborgar.';
-  }
-  if(strcmp('Lokið', $node_indication_status->name) == 0) {
-    $key = 'closed_indication';
-    $subject = 'Ábendingu lokað';
-    $message = variable_get('closing_email');
-    $message .= "\n\n" . 'Hér getur þú fylgst með gangi mála: <a href="' . $link_to_node . '">Ábendingin þín</a>';
-    $message .= "\n\n" . 'Með bestu kveðju, Þjónustumiðstöð Reykjavíkurborgar.';
-  }
-
-  if($key && $subject && $message) {
-    $params = [
-      'subject' => $subject,
-      'body' => check_markup(
-        $message, 'plain_text'
-      ),
-    ];
-    drupal_mail('rvk_ticketing', $key, $email, language_default(), $params);
-  }
-}
-
 function rvk_ticketing_node_validate($node) {
-  if($node->type == 'indications') {
-    if(isset($node->field_sent_to_mainmanager[LANGUAGE_NONE])) {
-      if($node->field_sent_to_mainmanager[LANGUAGE_NONE][0]['value']) {
-        $parents = taxonomy_get_parents($node->field_mm_checkword_item[LANGUAGE_NONE][0]['tid']);
-        if(sizeof($parents) == 0) {
-          form_set_error('wrong_category', 'Velja þarf undirflokk fyrir Mainmanager flokkakerfið');
-        }
-      }
-    }
-  }
+
 }
 /**
  * Implements hook_permission().
@@ -651,7 +562,14 @@ function rvk_ticketing_create_indication_node($data) {
   $node->language = 'is';
   $node->is_new = true;
 
-  node_save($node);
+  try{
+    node_save($node);
+  }
+
+  catch(exception $e) {
+
+  }
+
 
   return $node;
 }
@@ -666,109 +584,6 @@ function rvk_ticketing_views_api() {
   }
 }
 
-/**
- * Gets one Incident by ID, by calling the MainManager API
- *
- * @param int $id
- * @return \stdClass
- */
-function rvk_ticketing_get_incident_by_id($id) {
-  return mainmanager_get_incident_by_id($id);
-}
-
-/**
- * Populates the Parents part of the Checkword Vocabulary.
- *
- * Checkwords @Mainmanager consists of two things, Parents (Checkwords) and
- * children (Checkword Items).
- *
- * In order to reduce the complexity of the function, I spilt them up in two,
- * populate parents and populate checkword items.
- */
-function rvk_ticketing_populate_checkword_items_parents_taxonomy_vocabulary() {
-  $vocabulary = taxonomy_vocabulary_machine_name_load('checkword_items');
-  $terms = taxonomy_get_tree($vocabulary->vid);
-
-  $checkwords_to_fetch = explode(',', RVK_TICKETING_MM_CHECKWORD_IDS);
-  $checkwords = mainmanager_get_checkwords();
-
-  $tree = [];
-  if(is_array($terms)) {
-    foreach($terms as $term) {
-      $t_item = taxonomy_term_load($term->tid);
-      $tree[$term->name] = $t_item;
-    }
-  }
-
-  foreach($checkwords as $checkword) {
-    foreach($checkwords_to_fetch as $checkword_fetched) {
-      if($checkword['RecordID'] == $checkword_fetched) {
-        if(!array_key_exists($checkword['Name'], $tree)) {
-          _rvk_ticketing_create_checkword_tax_term($checkword, $vocabulary, false);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Populates the Checkword Items Taxonomy Vocabulary with terms from the
- * Main manager Rest API. The Checkwords are set by admin settings
- * (/admin/config/services/abendingar)
- */
-function rvk_ticketing_populate_checkword_items_taxonomy_vocabulary() {
-  $vocabulary = taxonomy_vocabulary_machine_name_load('checkword_items');
-  $terms = taxonomy_get_tree($vocabulary->vid);
-
-  $checkwords_to_fetch = explode(',', RVK_TICKETING_MM_CHECKWORD_IDS);
-
-  $tree = [];
-  if(is_array($terms)) {
-    foreach($terms as $term) {
-      $t_item = taxonomy_term_load($term->tid);
-      $tree[$term->name] = $t_item;
-    }
-  }
-
-  foreach($checkwords_to_fetch as $checkword_fetched) {
-    $results = mainmanager_get_checkword_items((int)$checkword_fetched);
-
-    if(is_array($results)) {
-      foreach($results as $result) {
-        if(!array_key_exists($result['Name'], $tree)) {
-          $parent_term = _rvk_ticketing_find_checkword_parent_term($vocabulary->vid, (int)$checkword_fetched);
-          _rvk_ticketing_create_checkword_tax_term($result, $vocabulary, $parent_term);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Helper function to search for a particular taxonomy term, by the checkword
- * Record ID.
- *
- * @param $vid
- * @param $checkword_id
- * @return array|null
- */
-function _rvk_ticketing_find_checkword_parent_term($vid, $checkword_id) {
-  $results = null;
-  $query = new EntityFieldQuery;
-  $result = $query
-    ->entityCondition('entity_type', 'taxonomy_term')
-    ->propertyCondition('vid', $vid)
-    ->fieldCondition('field_cwi_record_id', 'value', $checkword_id, '=')
-    ->execute();
-
-  if (!empty($result['taxonomy_term'])) {
-    $results = entity_load('taxonomy_term', array_keys($result['taxonomy_term']));
-    $results = array_values($results);
-    $results = $results[0];
-  }
-
-  return $results;
-}
 
 function _rvk_ticketing_find_indication_status_by_name($vid, $status_name) {
   $results = null;
@@ -789,50 +604,9 @@ function _rvk_ticketing_find_indication_status_by_name($vid, $status_name) {
 }
 
 /**
- * Creates a checkword taxonomy term
- *
- * @param $result
- * @param $vocabulary
- * @return \stdClass
- */
-function _rvk_ticketing_create_checkword_tax_term($result, $vocabulary, $parent_term = false) {
-  $term = new stdClass();
-  $term->name = $result['Name'];
-  $term->vid = $vocabulary->vid;
-  taxonomy_term_save($term);
-
-  $term->field_cwi_record_id[LANGUAGE_NONE][0]['value'] = $result['RecordID'];
-  $term->field_cwi_record_id[LANGUAGE_NONE][0]['format'] = NULL;
-  $term->field_cwi_record_id[LANGUAGE_NONE][0]['safe_value'] = $result['RecordID'];
-
-  $term->field_cwi_number[LANGUAGE_NONE][0]['value'] = $result['Nr'];
-  $term->field_cwi_number[LANGUAGE_NONE][0]['format'] = NULL;
-  $term->field_cwi_number[LANGUAGE_NONE][0]['safe_value'] = $result['Nr'];
-
-  $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['value'] = $result['IncidentMode'][0];
-  $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['format'] = NULL;
-  $term->field_cwi_incident_mode[LANGUAGE_NONE][0]['safe_value'] = $result['IncidentMode'][0];
-
-  if($parent_term) {
-    $term->parent = $parent_term->tid;
-  }
-
-  if ($result['Nr'] > 9) {
-    $term->weight = $result['Nr'] * 10;
-  }
-  else {
-    $term->weight = $result['Nr'];
-  }
-
-  taxonomy_term_save($term);
-  return $term;
-}
-/**
  * Implements hook_views_default_views().
  */
 function rvk_ticketing_views_default_views() {
-  $export = [];
-
   $view = new view();
   $view->name = 'indications';
   $view->description = '';
@@ -845,26 +619,39 @@ function rvk_ticketing_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Mínar ábendingar';
+  $handler->display->display_options['css_class'] = 'table-layout1';
   $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
+  $handler->display->display_options['pager']['type'] = 'show_more';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '125';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['quantity'] = '9';
+  $handler->display->display_options['pager']['options']['show_more_text'] = 'Sjá allar';
+  $handler->display->display_options['pager']['options']['initial'] = '3';
+  $handler->display->display_options['pager']['options']['effects']['type'] = 'scroll_fade';
+  $handler->display->display_options['pager']['options']['effects']['speed_type'] = 'slow';
+  $handler->display->display_options['pager']['options']['effects']['speed'] = 'slow';
   $handler->display->display_options['style_plugin'] = 'table';
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Óhreyfðar ábendingar <span class="total-rows"> (@total)</span></h2>';
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Field: Content: Staða */
-  $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
-  $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
-  $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
+  /* Field: Content: Nafn sendanda */
+  $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
   /* Field: Content: Post date */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'node';
@@ -872,27 +659,11 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
   $handler->display->display_options['fields']['created']['date_format'] = 'short';
   $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
-  /* Field: Content: Updated/commented date */
-  $handler->display->display_options['fields']['last_updated']['id'] = 'last_updated';
-  $handler->display->display_options['fields']['last_updated']['table'] = 'node_comment_statistics';
-  $handler->display->display_options['fields']['last_updated']['field'] = 'last_updated';
-  $handler->display->display_options['fields']['last_updated']['label'] = 'Síðast uppfærð';
-  $handler->display->display_options['fields']['last_updated']['date_format'] = 'short';
-  $handler->display->display_options['fields']['last_updated']['second_date_format'] = 'long';
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Contextual filter: Content: Ábyrgðaraðili (field_indication_controller_new) */
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['id'] = 'field_indication_controller_new_target_id';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['table'] = 'field_data_field_indication_controller_new';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['field'] = 'field_indication_controller_new_target_id';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['default_argument_type'] = 'current_user';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['field_indication_controller_new_target_id']['summary_options']['items_per_page'] = '25';
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
@@ -907,23 +678,25 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
-  /* Filter criterion: Content: Staða (field_indication_status_ref) */
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
-    0 => '269',
-  );
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
 
   /* Display: Nýjar ábendingar */
   $handler = $view->new_display('block', 'Nýjar ábendingar', 'block');
   $handler->display->display_options['defaults']['title'] = FALSE;
-  $handler->display->display_options['title'] = 'Nýjar ábendingar';
+  $handler->display->display_options['defaults']['header'] = FALSE;
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--new"></span><span>Nýjar og óflokkaðar ábendingar </span><span class="total-rows"> (@total)</span></h2>';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
 
-  /* Display: Mínar ábendingar */
-  $handler = $view->new_display('block', 'Mínar ábendingar', 'block_1');
+  /* Display: Í vinnslu */
+  $handler = $view->new_display('block', 'Í vinnslu', 'block_1');
+  $handler->display->display_options['defaults']['relationships'] = FALSE;
+  /* Relationship: Content: Author */
+  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['table'] = 'node';
+  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: Content: Published */
@@ -940,43 +713,16 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
-  /* Filter criterion: Content: Ábendingategund (field_indication_type_ref) */
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['id'] = 'field_indication_type_ref_tid';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['table'] = 'field_data_field_indication_type_ref';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['field'] = 'field_indication_type_ref_tid';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['expose']['operator_id'] = 'field_indication_type_ref_tid_op';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['expose']['label'] = 'Ábendingategund';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['expose']['operator'] = 'field_indication_type_ref_tid_op';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['expose']['identifier'] = 'field_indication_type_ref_tid';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-  );
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['type'] = 'select';
-  $handler->display->display_options['filters']['field_indication_type_ref_tid']['vocabulary'] = 'indication_types';
-  /* Filter criterion: Content: Staða (field_indication_status_ref) */
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['operator_id'] = 'field_indication_status_ref_tid_op';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['label'] = 'Staða';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['operator'] = 'field_indication_status_ref_tid_op';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['identifier'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-  );
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['type'] = 'select';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
 
   /* Display: Óhreyfðar ábendingar */
   $handler = $view->new_display('block', 'Óhreyfðar ábendingar', 'block_2');
   $handler->display->display_options['defaults']['title'] = FALSE;
-  $handler->display->display_options['title'] = 'Óhreyfðar ábendingar';
+  $handler->display->display_options['defaults']['header'] = FALSE;
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--alert"></span><span>Komnar framyfir svartíma </span><span class="total-rows"> (@total)</span></h2>';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
@@ -1003,22 +749,32 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['filters']['changed']['value']['type'] = 'offset';
   $translatables['indications'] = array(
     t('Master'),
-    t('Mínar ábendingar'),
     t('more'),
     t('Apply'),
     t('Reset'),
     t('Sort by'),
     t('Asc'),
     t('Desc'),
+    t('Items per page'),
+    t('- All -'),
+    t('Offset'),
+    t('« first'),
+    t('‹ previous'),
+    t('next ›'),
+    t('last »'),
+    t('Sjá allar'),
+    t('<h2><span class="icon-status"></span>Óhreyfðar ábendingar <span class="total-rows"> (@total)</span></h2>'),
     t('Title'),
-    t('Staða'),
+    t('Nafn sendanda'),
     t('Skráð þann'),
-    t('Síðast uppfærð'),
-    t('All'),
     t('Nýjar ábendingar'),
-    t('Ábendingategund'),
+    t('<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--new"></span><span>Nýjar og óflokkaðar ábendingar </span><span class="total-rows"> (@total)</span></h2>'),
+    t('Í vinnslu'),
+    t('author'),
     t('Óhreyfðar ábendingar'),
+    t('<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--alert"></span><span>Komnar framyfir svartíma </span><span class="total-rows"> (@total)</span></h2>'),
   );
+
 
   $export['test'] = $view;
 
@@ -1236,19 +992,6 @@ function _rvk_ticketing_get_merchant_holiday($year, $time) {
   }
 
   return $day;
-}
-
-/**
- * Implements hook_mail().
- */
-function rvk_ticketing_mail($key, &$message, $params) {
-  switch ($key) {
-    case 'new_incident':
-    case 'closed_incident':
-      $message['subject'] = $params['subject'];
-      $message['body'][] = $params['body'];
-      break;
-  }
 }
 
 /**
