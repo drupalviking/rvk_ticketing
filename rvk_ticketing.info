@@ -13,3 +13,4 @@ dependencies[] = ds
 dependencies[] = rules
 dependencies[] = rules_admin
 dependencies[] = jquery_update
+dependencies[] = date

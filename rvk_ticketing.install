@@ -77,14 +77,18 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
   taxonomy_vocabulary_save($vocabulary);
 
   $indications = [
-    'Götur og stígar',
-    'Götulýsing',
+    'Götur og gangstéttar',
+    'Gróður og götugögn',
+    'Lagnir og lýsing',
+    'Umferð',
+    'Vetrarþjónusta',
+    'Grassláttur',
+    'Hreinsun',
     'Hundahald',
     'Sorphirða',
     'Sjórinn',
     'Framkvæmdir',
     'Loftgæði',
-    'Trjágróður',
   ];
 
   foreach($indications as $indication) {
@@ -240,7 +244,12 @@ function _rvk_ticketing_add_fields_to_bundle(
   );
 
 //  Create an instance of the field and bind it to the bundle.
-  field_create_instance($instance);
+  try{
+    field_create_instance($instance);
+  }
+  catch(exception $e) {
+
+  }
 }
 
 function _rvk_ticketing_create_indication_content_type() {
@@ -308,7 +317,13 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_indication_position_x', 'text', $type_name,
     'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
-    'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
+    'YHnit frá Borgarvefsjá', 'YHnit', 'textfielddry');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_respond_by', 'text', $type_name,
+    'The date and time of when the indication should be answered', 'Svara ábendingu fyrir',
+    'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_responded_at', 'text', $type_name,
+    'The date and time of when the indication was answered', 'Ábendingunni svarað þann',
+    'textfield');
 
   //Set preview to none and disable the subject line for comments
   variable_set('comment_indication', '1');

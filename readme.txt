@@ -53,3 +53,34 @@ necessary.
 
 In step one, the user can choose if he/she want's to use location information for the indication.
 If selected, the user can use the map (default) to point to the location.
+
+Fieldgroups for the content type Indications:
+
+Efni (group_indication_content)
+	Title
+	Ábending
+	Túlkuð ábending
+	Svar
+
+Flokkun í þjónustuveri (group_indication_service_cat)
+	Staða
+	Svið
+	Ábendingategund
+
+Skilaboð starfsmanna (group_indication_messages)
+	Innri málsmeðferð
+
+Ítarefni (group_indication_media_items)
+	Staðsetning
+	XHnit
+	YHnit
+	Mynd með tilkynningu
+
+Sendandi (group_indication_sender)
+	Nafn sendanda
+	Kennitala
+	Netfang
+	Símanúmer
+
+Áframsenda (group_indication_forward)
+	Áframsenda á utanaðkomandi

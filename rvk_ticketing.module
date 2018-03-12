@@ -71,11 +71,10 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       if(is_object($form['#node'])) {
         //Disables the fields that should not be shown (eg. editable)
         $form['field_indication_text']['#access'] = FALSE;
-        $form['field_mainmanager_id']['#access'] = FALSE;
-        $form['field_sent_to_mainmanager']['#access'] = FALSE;
         $form['field_indication_position_x']['#access'] = FALSE;
         $form['field_indication_position_y']['#access'] = FALSE;
         $form['field_indication_location']['#access'] = FALSE;
+        $form['field_indication_respond_by']['#access'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
         //of the fields
@@ -109,10 +108,21 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         }
 
         $form['map_markup']['#weight'] = 16;
-        $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="width: 400px"></div></div>';
+        $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="max-width: 920px"></div></div>';
 
         //Moves the markup into the fieldset group_indication_content
         $form['#group_children']['map_markup'] = "group_indication_media_items";
+
+        $form['created_markup']['#weight'] = 39;
+        $form['created_markup']['#markup'] = "<div class=\"response-by-time-readonly\"><label class=\"control-label\">Ábending barst</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->created) . "</p> </p></div>";
+
+        $form['respond_by_markup']['#weight'] = 40;
+        $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+
+        if(isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0])) {
+          $form['responded_at_markup']['#weight'] = 41;
+          $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+        }
       }
     }
 
@@ -142,6 +152,12 @@ function rvk_ticketing_node_presave($node) {
         $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
         $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
         $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
+      }
+    }
+
+    if(isset($node->field_indication_response[LANGUAGE_NONE][0])) {
+      if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+        $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
       }
     }
   }
@@ -424,10 +440,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   $values = $form_state['values'];
 
-  if(strlen($values['xcoords']) == 0 && strlen($values['address']) == 0) {
-    form_set_error('address', 'Velja þarf annað hvort stað á korti eða slá inn heimilisfang');
-  }
-  elseif(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
+  if(strlen($values['address']) > 0) {
     if(!rvk_ticket_check_street_address_valid($values['address'])) {
       form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
     }
@@ -570,7 +583,15 @@ function rvk_ticketing_create_indication_node($data) {
 
   }
 
+  $respond_by = new DateTime(strftime('%Y-%m-%d %H:%M', $node->created));
+  $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = strtotime(rvk_ticketing_get_last_response_date($respond_by)->format('Y-m-d H:i'));
+  try{
+    node_save($node);
+  }
 
+  catch(exception $e) {
+
+  }
   return $node;
 }
 
