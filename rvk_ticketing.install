@@ -166,6 +166,7 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
     $term->name = $indication;
     $term->vid = $vocabulary->vid;
     $term->weight = $weight++;
+    $term->field_indication_response_time[LANGUAGE_NONE][0]['value'] = 2;
     taxonomy_term_save($term);
 
     $var_name = null;
@@ -209,6 +210,7 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
         $sub_term->vid = $vocabulary->vid;
         $sub_term->parent = $term->tid;
         $sub_term->weight = $sub_weight++;
+        $sub_term->field_indication_response_time[LANGUAGE_NONE][0]['value'] = 2;
         taxonomy_term_save($sub_term);
       }
     }
@@ -256,7 +258,7 @@ function _rvk_ticketing_create_department_taxonomy_vocabulary() {
 
   taxonomy_vocabulary_save($vocabulary);
 
-  _rvk_ticketing_add_fields_to_bundle('field_send_mail_for_new_indication', 'list_boolean', 'departments',
+  _rvk_ticketing_add_fields_to_bundle('field_send_mail_f_new_indication', 'list_boolean', 'departments',
     'Senda tölvupóst á alla á sviði í hvert skipti sem ábendingu er úthlutað á svið', 'Senda tölvupóst á svið.', 'options_onoff', 'taxonomy_term',
     [0 => 'Nei', 1 => 'Já']);
 
@@ -276,6 +278,7 @@ function _rvk_ticketing_create_department_taxonomy_vocabulary() {
     $term->name = $department;
     $term->vid = $vocabulary->vid;
     taxonomy_term_save($term);
+    $term->field_send_mail_f_new_indication[LANGUAGE_NONE][0]['value'] = 1;
   }
 }
 
