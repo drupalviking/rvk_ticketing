@@ -237,8 +237,8 @@ function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
     'Lokið',
   ];
 
+  $weight = 1;
   foreach($status as $s) {
-    $weight = 1;
     $term = new stdClass();
     $term->name = $s;
     $term->vid = $vocabulary->vid;
@@ -306,8 +306,8 @@ function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
     'Orka Náttúrunnar',
   ];
 
+  $weight = 1;
   foreach($departments as $department) {
-    $weight = 1;
     $term = new stdClass();
     $term->name = $department;
     $term->vid = $vocabulary->vid;
