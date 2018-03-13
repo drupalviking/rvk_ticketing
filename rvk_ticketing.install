@@ -69,7 +69,6 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
   }
 
   $weight = 1;
-  $sub_weight = 0;
   $vocabulary = new stdClass();
   $vocabulary->name = 'Ábendingategundir';
   $vocabulary->machine_name = 'indication_types';
@@ -77,6 +76,9 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
   $vocabulary->module = 'taxonomy';
 
   taxonomy_vocabulary_save($vocabulary);
+
+  _rvk_ticketing_add_fields_to_bundle('field_indication_response_time', 'text', 'indication_types',
+    'Tími frá fyrsta svari þangað til loka þarf ábendingu', 'Þarf að svara fyrir (dagar):', 'textfield', 'taxonomy_term');
 
   $indications = [
     'Götur og gangstéttar',
@@ -253,6 +255,10 @@ function _rvk_ticketing_create_department_taxonomy_vocabulary() {
   $vocabulary->module = "taxonomy";
 
   taxonomy_vocabulary_save($vocabulary);
+
+  _rvk_ticketing_add_fields_to_bundle('field_send_mail_for_new_indication', 'list_boolean', 'departments',
+    'Senda tölvupóst á alla á sviði í hvert skipti sem ábendingu er úthlutað á svið', 'Senda tölvupóst á svið.', 'options_onoff', 'taxonomy_term',
+    [0 => 'Nei', 1 => 'Já']);
 
   $departments = [
     'Umhverfis- og skipulagssvið',
@@ -432,7 +438,7 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_indication_position_x', 'text', $type_name,
     'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
-    'YHnit frá Borgarvefsjá', 'YHnit', 'textfielddry');
+    'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_respond_by', 'text', $type_name,
     'The date and time of when the indication should be answered', 'Svara ábendingu fyrir',
     'textfield');
