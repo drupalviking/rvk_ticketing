@@ -453,6 +453,9 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_indication_responded_at', 'text', $type_name,
     'The date and time of when the indication was answered', 'Ábendingunni svarað þann',
     'textfield');
+  _rvk_ticketing_add_fields_to_bundle('field_indication_close_by', 'text', $type_name,
+    'The date and time of when the indication should be closed', 'Ábendingunni þarf að loka fyrir',
+    'textfield');
     _rvk_ticketing_add_fields_to_bundle('field_indication_closed_at', 'text', $type_name,
         'The date and time of when the indication was closed', 'Ábendingunni lokað þann',
         'textfield');
