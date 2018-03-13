@@ -238,9 +238,11 @@ function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
   ];
 
   foreach($status as $s) {
+    $weight = 1;
     $term = new stdClass();
     $term->name = $s;
     $term->vid = $vocabulary->vid;
+    $term->weight = $weight++;
     taxonomy_term_save($term);
   }
 }
@@ -305,9 +307,11 @@ function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
   ];
 
   foreach($departments as $department) {
+    $weight = 1;
     $term = new stdClass();
     $term->name = $department;
     $term->vid = $vocabulary->vid;
+    $term->weight = $weight++;
     taxonomy_term_save($term);
   }
 }
@@ -332,7 +336,7 @@ function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
  */
 function _rvk_ticketing_add_fields_to_bundle(
   $field_machine_name, $field_type, $bundle, $field_description, $field_label,
-  $widget, $entity_type = 'node', $allowed_values = null
+  $widget, $entity_type = 'node', $allowed_values = null, $required = false
 ){
   //  The machine name of the field can contain only lowercase alphanumeric characters and underscores.
   $field_name = $field_machine_name;
@@ -365,6 +369,7 @@ function _rvk_ticketing_add_fields_to_bundle(
     'widget' => array(
       'type' => $widget,
     ),
+    'required' => $required,
   );
 
 //  Create an instance of the field and bind it to the bundle.
@@ -419,7 +424,7 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_indication_status_ref', 'taxonomy_term_reference',
     $type_name, 'Staða ábendingar', 'Staða', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'indication_status', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+      'options_list_callback' => 'i18n_taxonomy_allowed_values'], TRUE);
   _rvk_ticketing_add_fields_to_bundle('field_indication_type_ref', 'taxonomy_term_reference',
     $type_name, 'Ábendingategund', 'Ábendingategund', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'indication_types', 'parent' => 0]],
@@ -427,7 +432,7 @@ function _rvk_ticketing_create_indication_content_type() {
   _rvk_ticketing_add_fields_to_bundle('field_department_ref', 'taxonomy_term_reference',
     $type_name, 'Svið ábyrgðaraðila', 'Svið', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'departments', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
+      'options_list_callback' => 'i18n_taxonomy_allowed_values'], TRUE);
   _rvk_ticketing_add_fields_to_bundle('field_forward_to_external_dp', 'taxonomy_term_reference',
     $type_name, 'Áframsenda á utanaðkomandi', 'Áframsenda á utanaðkomandi', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'external_departments', 'parent' => 0]],
