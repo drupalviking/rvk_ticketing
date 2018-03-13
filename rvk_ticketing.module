@@ -76,6 +76,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_location']['#access'] = FALSE;
         $form['field_indication_respond_by']['#access'] = FALSE;
         $form['field_indication_responded_at']['#access'] = FALSE;
+        $form['field_indication_close_by']['#access'] = FALSE;
         $form['field_indication_closed_at']['#access'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
@@ -126,8 +127,13 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
         }
 
+        if(isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0])) {
+          $form['close_by_markup']['#weight'] = 42;
+          $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+        }
+
         if(isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0])) {
-          $form['closed_at_markup']['#weight'] = 41;
+          $form['closed_at_markup']['#weight'] = 43;
           $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
         }
       }
@@ -154,6 +160,8 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
  */
 function rvk_ticketing_node_presave($node) {
   if($node->type == 'indications') {
+    //If the indication is being sent to external department (as configured in a taxonomy), we'll just close the
+    //Indication
     if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
       if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
         $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
@@ -162,15 +170,41 @@ function rvk_ticketing_node_presave($node) {
       }
     }
 
+    //If there is text in the indication response, we'll create a new timestamp and log the time it was answered.
     if(isset($node->field_indication_response[LANGUAGE_NONE][0])) {
       if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
         $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
       }
     }
 
+    //If there is a timestamp for when the indication was answered for the first time, we need to calculate when the
+    //indication has to be closed completely
+    if(isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+      if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
+        $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
+
+        $second_response_time = strtotime(rvk_ticketing_get_last_response_date(
+          new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
+        )->format('Y-m-d H:i'));
+
+        $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
+      }
+    }
+
+    //If the indication is closed, we need to record that timestamp, and also fill inn all the other timestamps that
+    //are missing (e.g. if the indication is closed right away).
     if(isset($node->field_indication_status_ref[LANGUAGE_NONE][0])) {
       $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
       if($status_term->name == "Lokið") {
+        if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
+          $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = time();
+        }
+        if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
+        }
+        if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = time();
+        }
         if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
           $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = time();
         }
@@ -868,9 +902,8 @@ function _rvk_ticketing_ssn_validation($ssn) {
  * @param DateTime $day
  * @return DateTime
  */
-function rvk_ticketing_get_last_response_date(DateTime $day) {
+function rvk_ticketing_get_last_response_date(DateTime $day, $days_to_respond = 2) {
   $last_response_date = $day;
-  $days_to_respond = 2;
 
   //Check to see if the service desk is open (hour wise). If it isn't, then add one day
   //to the response time.
