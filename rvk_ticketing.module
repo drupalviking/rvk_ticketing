@@ -75,6 +75,8 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_position_y']['#access'] = FALSE;
         $form['field_indication_location']['#access'] = FALSE;
         $form['field_indication_respond_by']['#access'] = FALSE;
+        $form['field_indication_responded_at']['#access'] = FALSE;
+        $form['field_indication_closed_at']['#access'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
         //of the fields
@@ -123,6 +125,11 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['responded_at_markup']['#weight'] = 41;
           $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
         }
+
+        if(isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0])) {
+          $form['closed_at_markup']['#weight'] = 41;
+          $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+        }
       }
     }
 
@@ -158,6 +165,15 @@ function rvk_ticketing_node_presave($node) {
     if(isset($node->field_indication_response[LANGUAGE_NONE][0])) {
       if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
         $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
+      }
+    }
+
+    if(isset($node->field_indication_status_ref[LANGUAGE_NONE][0])) {
+      $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
+      if($status_term->name == "Lokið") {
+        if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
+          $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = time();
+        }
       }
     }
   }
