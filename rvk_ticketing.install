@@ -68,6 +68,8 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
     return;
   }
 
+  $weight = 1;
+  $sub_weight = 0;
   $vocabulary = new stdClass();
   $vocabulary->name = 'Ábendingategundir';
   $vocabulary->machine_name = 'indication_types';
@@ -91,11 +93,123 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
     'Loftgæði',
   ];
 
+  $streets_and_curbs = [
+    'Malbik',
+    'Hellur',
+    'Steypa',
+    'Kantsteinar',
+    'Hleðslur/veggir',
+    'Tröppur/rampar',
+    'Skilti',
+    'Pollar',
+    'Annað',
+  ];
+
+  $veggetation_and_streetdata = [
+    'Grassvæði',
+    'Trjábeð/blómabeð',
+    'Götutré',
+    'Gróðurker/körfur',
+    'Ruslafötur',
+    'Bekkir/borð',
+    'Styttur/listaverk',
+    'Leiktæki/æfingatæki',
+    'Annað',
+  ];
+
+  $cables_and_lighting = [
+    'Ljósastaurar',
+    'Lýsing',
+    'Rafmagnskassar',
+    'Niðurföll/ristar',
+    'Drykkjafontar',
+    'Annað',
+  ];
+
+  $traffic = [
+    'Umferðarljós',
+    'Umferðarskilti',
+    'Gatnamerkingar',
+    'Hlið',
+    'Girðingar/vegrið',
+    'Strætóskýli',
+    'Annað',
+  ];
+
+  $winter_service = [
+    'Götur',
+    'Göngu- og hjólaleiðir',
+    'Hitakerfi',
+    'Stofnanalóðir',
+    'Annað',
+  ];
+
+  $grasscutting = [
+    'Grunn- og leikskólar',
+    'Önnur svæði',
+  ];
+
+  $cleaning = [
+    'Götur',
+    'Göngu- og hjólaleiðir',
+    'Miðborgarhreinsun',
+    'Veggjakrot',
+    'Annað',
+  ];
+
   foreach($indications as $indication) {
+    $sub_weight = $weight * 10;
+
     $term = new stdClass();
     $term->name = $indication;
     $term->vid = $vocabulary->vid;
+    $term->weight = $weight++;
     taxonomy_term_save($term);
+
+    $var_name = null;
+    switch($indication) {
+      case 'Götur og gangstéttar' :
+        $var_name = 'streets_and_curbs';
+        break;
+
+      case 'Gróður og götugögn' :
+        $var_name = 'veggetation_and_streetdata';
+        break;
+
+      case 'Lagnir og lýsing' :
+        $var_name = 'cables_and_lighting';
+        break;
+
+      case 'Umferð' :
+        $var_name = 'traffic';
+        break;
+
+      case 'Vetrarþjónusta' :
+        $var_name = 'winter_service';
+        break;
+
+      case 'Grassláttur' :
+        $var_name = 'grasscutting';
+        break;
+
+      case 'Hreinsun' :
+        $var_name = 'cleaning';
+        break;
+
+      default:
+        $var_name = null;
+    }
+
+    if(isset($var_name)) {
+      foreach($$var_name as $cat) {
+        $sub_term = new stdClass();
+        $sub_term->name = $cat;
+        $sub_term->vid = $vocabulary->vid;
+        $sub_term->parent = $term->tid;
+        $sub_term->weight = $sub_weight++;
+        taxonomy_term_save($sub_term);
+      }
+    }
   }
 }
 
@@ -148,6 +262,7 @@ function _rvk_ticketing_create_department_taxonomy_vocabulary() {
     'Menningar- og ferðamálasvið',
     'Skrifstofur Ráðhúss',
     'Stofnanir og fyrirtæki',
+    'Þjónustuver',
   ];
 
   foreach($departments as $department) {
