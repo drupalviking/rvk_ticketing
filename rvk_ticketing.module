@@ -571,6 +571,15 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
 
+  $tax_vocabulary = taxonomy_vocabulary_machine_name_load('departments');
+  $taxonomy = taxonomy_get_tree($tax_vocabulary->vid);
+  $department_tid = null;
+  foreach($taxonomy as $tax) {
+    if($tax->name == 'Þjónustuver') {
+      $department_tid = $tax->tid;
+    }
+  }
+
   if(is_object($data['image_1'])) {
     $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_1']->fid;
   }
@@ -588,6 +597,7 @@ function rvk_ticketing_create_indication_node($data) {
   }
 
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
+  $node->field_department_ref[LANGUAGE_NONE][0]['tid'] = $department_tid;
   $node->language = 'is';
   $node->is_new = true;
 
