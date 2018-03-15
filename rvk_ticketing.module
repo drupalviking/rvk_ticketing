@@ -250,6 +250,9 @@ function rvk_ticketing_permission() {
     'administer ticketing content' => array(
       'title' => t('Administer ticketing content'),
     ),
+    'administer ticketing settings' => [
+      'title' => t('Administer ticketing settings'),
+    ]
   );
 }
 
