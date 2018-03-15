@@ -84,3 +84,5 @@ Sendandi (group_indication_sender)
 
 Áframsenda (group_indication_forward)
 	Áframsenda á utanaðkomandi
+
+More text to come

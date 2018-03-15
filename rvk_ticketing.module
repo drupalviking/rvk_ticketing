@@ -181,11 +181,18 @@ function rvk_ticketing_node_presave($node) {
     //indication has to be closed completely
     if(isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
       if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-        $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
+        if(isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
+          $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
 
-        $second_response_time = strtotime(rvk_ticketing_get_last_response_date(
-          new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
-        )->format('Y-m-d H:i'));
+          $second_response_time = strtotime(rvk_ticketing_get_last_response_date(
+            new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
+          )->format('Y-m-d H:i'));
+        }
+        else {
+          $second_response_time = strtotime(rvk_ticketing_get_last_response_date(
+            new DateTime('now'), 2
+          )->format('Y-m-d H:i'));
+        }
 
         $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
       }
@@ -197,13 +204,17 @@ function rvk_ticketing_node_presave($node) {
       $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
       if($status_term->name == "Lokið") {
         if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
-          $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = time();
+          $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = strtotime(rvk_ticketing_get_last_response_date(
+            new DateTime('now'), 2
+          )->format('Y-m-d H:i'));
         }
         if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
           $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
         }
         if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = time();
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = strtotime(rvk_ticketing_get_last_response_date(
+            new DateTime('now'), 2
+          )->format('Y-m-d H:i'));
         }
         if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
           $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = time();
