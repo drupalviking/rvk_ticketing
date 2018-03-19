@@ -14,3 +14,6 @@ dependencies[] = rules
 dependencies[] = rules_admin
 dependencies[] = jquery_update
 dependencies[] = date
+dependencies[] = views_show_more
+dependencies[] = hierarchical_select
+dependencies[] = hs_taxonomy

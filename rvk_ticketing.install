@@ -27,7 +27,6 @@ function rvk_ticketing_install() {
 function rvk_ticketing_enable() {
   _rvk_ticketing_create_indication_type_taxonomy_vocabulary();
   _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
-  _rvk_ticketing_create_department_taxonomy_vocabulary();
   _rvk_ticketing_create_external_department_taxonomy_vocabulary();
   _rvk_ticketing_create_indication_content_type();
 }
@@ -41,11 +40,9 @@ function rvk_ticketing_disable() {
 
   $types = taxonomy_vocabulary_machine_name_load('indication_types');
   $status = taxonomy_vocabulary_machine_name_load('indication_status');
-  $departments = taxonomy_vocabulary_machine_name_load('departments');
   $external_departments = taxonomy_vocabulary_machine_name_load('external_departments');
   taxonomy_vocabulary_delete($types->vid);
   taxonomy_vocabulary_delete($status->vid);
-  taxonomy_vocabulary_delete($departments->vid);
   taxonomy_vocabulary_delete($external_departments->vid);
 
   _rvk_ticketing_remove_content_type(['indications']);
@@ -80,138 +77,44 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
   _rvk_ticketing_add_fields_to_bundle('field_indication_response_time', 'text', 'indication_types',
     'Tími frá fyrsta svari þangað til loka þarf ábendingu', 'Þarf að svara fyrir (dagar):', 'textfield', 'taxonomy_term');
 
-  $indications = [
-    'Götur og gangstéttar',
-    'Gróður og götugögn',
-    'Lagnir og lýsing',
-    'Umferð',
-    'Vetrarþjónusta',
-    'Grassláttur',
-    'Hreinsun',
-    'Hundahald',
-    'Sorphirða',
-    'Sjórinn',
-    'Framkvæmdir',
-    'Loftgæði',
-  ];
+  _rvk_ticketing_add_fields_to_bundle('field_send_mail_f_new_indication', 'list_boolean', 'indication_types',
+    'Senda tölvupóst á alla á sviði í hvert skipti sem ábendingu er úthlutað á svið', 'Senda tölvupóst á svið.', 'options_onoff', 'taxonomy_term',
+    [0 => 'Nei', 1 => 'Já']);
 
-  $streets_and_curbs = [
-    'Malbik',
-    'Hellur',
-    'Steypa',
-    'Kantsteinar',
-    'Hleðslur/veggir',
-    'Tröppur/rampar',
-    'Skilti',
-    'Pollar',
-    'Annað',
-  ];
+  $departments = _rvk_ticketing_get_departments_and_categories();
 
-  $veggetation_and_streetdata = [
-    'Grassvæði',
-    'Trjábeð/blómabeð',
-    'Götutré',
-    'Gróðurker/körfur',
-    'Ruslafötur',
-    'Bekkir/borð',
-    'Styttur/listaverk',
-    'Leiktæki/æfingatæki',
-    'Annað',
-  ];
-
-  $cables_and_lighting = [
-    'Ljósastaurar',
-    'Lýsing',
-    'Rafmagnskassar',
-    'Niðurföll/ristar',
-    'Drykkjafontar',
-    'Annað',
-  ];
-
-  $traffic = [
-    'Umferðarljós',
-    'Umferðarskilti',
-    'Gatnamerkingar',
-    'Hlið',
-    'Girðingar/vegrið',
-    'Strætóskýli',
-    'Annað',
-  ];
-
-  $winter_service = [
-    'Götur',
-    'Göngu- og hjólaleiðir',
-    'Hitakerfi',
-    'Stofnanalóðir',
-    'Annað',
-  ];
-
-  $grasscutting = [
-    'Grunn- og leikskólar',
-    'Önnur svæði',
-  ];
-
-  $cleaning = [
-    'Götur',
-    'Göngu- og hjólaleiðir',
-    'Miðborgarhreinsun',
-    'Veggjakrot',
-    'Annað',
-  ];
-
-  foreach($indications as $indication) {
-    $sub_weight = $weight * 10;
+  foreach($departments as $department) {
+    $category_weight = $weight * 10;
 
     $term = new stdClass();
-    $term->name = $indication;
+    $term->name = $department['name'];
     $term->vid = $vocabulary->vid;
     $term->weight = $weight++;
     $term->field_indication_response_time[LANGUAGE_NONE][0]['value'] = 2;
     taxonomy_term_save($term);
 
-    $var_name = null;
-    switch($indication) {
-      case 'Götur og gangstéttar' :
-        $var_name = 'streets_and_curbs';
-        break;
+    if(sizeof($department['categories']) > 0) {
+      foreach($department['categories'] as $category) {
+        $sub_category_weight = $category_weight * 10;
+        $cat = new stdClass();
+        $cat->name = $category['category'];
+        $cat->vid = $vocabulary->vid;
+        $cat->weight = $category_weight++;
+        $cat->parent = $term->tid;
+        $cat->field_indication_response_time[LANGUAGE_NONE][0]['value'] = 2;
+        taxonomy_term_save($cat);
 
-      case 'Gróður og götugögn' :
-        $var_name = 'veggetation_and_streetdata';
-        break;
-
-      case 'Lagnir og lýsing' :
-        $var_name = 'cables_and_lighting';
-        break;
-
-      case 'Umferð' :
-        $var_name = 'traffic';
-        break;
-
-      case 'Vetrarþjónusta' :
-        $var_name = 'winter_service';
-        break;
-
-      case 'Grassláttur' :
-        $var_name = 'grasscutting';
-        break;
-
-      case 'Hreinsun' :
-        $var_name = 'cleaning';
-        break;
-
-      default:
-        $var_name = null;
-    }
-
-    if(isset($var_name)) {
-      foreach($$var_name as $cat) {
-        $sub_term = new stdClass();
-        $sub_term->name = $cat;
-        $sub_term->vid = $vocabulary->vid;
-        $sub_term->parent = $term->tid;
-        $sub_term->weight = $sub_weight++;
-        $sub_term->field_indication_response_time[LANGUAGE_NONE][0]['value'] = 2;
-        taxonomy_term_save($sub_term);
+        if(isset($category['sub_categories'])) {
+          foreach($category['sub_categories'] as $sub_category) {
+            $sub_term = new stdClass();
+            $sub_term->name = $sub_category;
+            $sub_term->vid = $vocabulary->vid;
+            $sub_term->parent = $cat->tid;
+            $sub_term->weight = $sub_category_weight++;
+            $sub_term->field_indication_response_time[LANGUAGE_NONE][0]['value'] = 2;
+            taxonomy_term_save($sub_term);
+          }
+        }
       }
     }
   }
@@ -244,43 +147,6 @@ function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
     $term->vid = $vocabulary->vid;
     $term->weight = $weight++;
     taxonomy_term_save($term);
-  }
-}
-
-function _rvk_ticketing_create_department_taxonomy_vocabulary() {
-  if($tax = taxonomy_vocabulary_machine_name_load('departments')) {
-    return;
-  }
-
-  $vocabulary = new stdClass();
-  $vocabulary->name = "Departments";
-  $vocabulary->machine_name = "departments";
-  $vocabulary->description = "Svið borgarinnar";
-  $vocabulary->module = "taxonomy";
-
-  taxonomy_vocabulary_save($vocabulary);
-
-  _rvk_ticketing_add_fields_to_bundle('field_send_mail_f_new_indication', 'list_boolean', 'departments',
-    'Senda tölvupóst á alla á sviði í hvert skipti sem ábendingu er úthlutað á svið', 'Senda tölvupóst á svið.', 'options_onoff', 'taxonomy_term',
-    [0 => 'Nei', 1 => 'Já']);
-
-  $departments = [
-    'Umhverfis- og skipulagssvið',
-    'Skóla- og frístundasvið',
-    'Velferðarsvið',
-    'Íþrótta- og tómstundasvið',
-    'Menningar- og ferðamálasvið',
-    'Skrifstofur Ráðhúss',
-    'Stofnanir og fyrirtæki',
-    'Þjónustuver',
-  ];
-
-  foreach($departments as $department) {
-    $term = new stdClass();
-    $term->name = $department;
-    $term->vid = $vocabulary->vid;
-    taxonomy_term_save($term);
-    $term->field_send_mail_f_new_indication[LANGUAGE_NONE][0]['value'] = 1;
   }
 }
 
@@ -494,4 +360,145 @@ function _rvk_ticketing_remove_content_type(array $type_name){
       variable_del('node_preview_' . $type);
     }
   }
+}
+
+function _rvk_ticketing_get_departments_and_categories() {
+  $departments = [
+    [
+      'name' => 'Umhverfis- og skipulagssvið',
+      'categories' =>
+        [
+          [
+            'category' => 'Götur og gangstéttar',
+            'sub_categories' => [
+              'Malbik',
+              'Hellur',
+              'Steypa',
+              'Kantsteinar',
+              'Hleðslur/veggir',
+              'Tröppur/rampar',
+              'Skilti',
+              'Pollar',
+              'Annað',
+            ],
+          ],
+          [
+            'category' => 'Gróður og götugögn',
+            'sub_categories' => [
+              'Grassvæði',
+              'Trjábeð/blómabeð',
+              'Götutré',
+              'Gróðurker/körfur',
+              'Ruslafötur',
+              'Bekkir/borð',
+              'Styttur/listaverk',
+              'Leiktæki/æfingatæki',
+              'Annað',
+            ],
+          ],
+          [
+            'category' => 'Lagnir og lýsing',
+            'sub_categories' => [
+              'Ljósastaurar',
+              'Lýsing',
+              'Rafmagnskassar',
+              'Niðurföll/ristar',
+              'Drykkjafontar',
+              'Annað',
+            ],
+          ],
+          [
+            'category' => 'Umferð',
+            'sub_categories' => [
+              'Umferðarljós',
+              'Umferðarskilti',
+              'Gatnamerkingar',
+              'Hlið',
+              'Girðingar/vegrið',
+              'Strætóskýli',
+              'Annað',
+            ],
+          ],
+          [
+            'category' => 'Vetrarþjónusta',
+            'sub_categories' => [
+              'Götur',
+              'Göngu- og hjólaleiðir',
+              'Hitakerfi',
+              'Stofnanalóðir',
+              'Annað',
+            ],
+          ],
+          [
+            'category' => 'Grassláttur',
+            'sub_categories' => [
+              'Grunn- og leikskólar',
+              'Önnur svæði',
+            ],
+          ],
+          [
+            'category' => 'Hreinsun',
+            'sub_categories' => [
+              'Götur',
+              'Göngu- og hjólaleiðir',
+              'Miðborgarhreinsun',
+              'Veggjakrot',
+              'Annað',
+            ],
+          ],
+        ],
+    ],
+    [
+      'name' => 'Skóla- og frístundasvið',
+      'categories' =>
+        [
+          [
+            'category' => 'Mötuneyti',
+          ],
+        ],
+    ],
+    [
+      'name' => 'Velferðarsvið',
+      'categories' => [
+
+      ],
+    ],
+    [
+      'name' => 'Íþrótta- og tómstundasvið',
+      'categories' =>
+        [
+
+        ],
+    ],
+    [
+      'name' => 'Menningar- og ferðamálasvið',
+      'categories' =>
+        [
+
+        ],
+    ],
+    [
+      'name' => 'Skrifstofur Ráðhúss',
+      'categories' =>
+        [
+
+        ],
+    ],
+    [
+      'name' => 'Stofnanir og fyrirtæki',
+      'categories' =>
+        [
+
+        ],
+    ],
+    [
+      'name' => 'Þjónustuver',
+      'categories' =>
+        [
+
+        ],
+    ],
+  ];
+
+  return $departments;
 }

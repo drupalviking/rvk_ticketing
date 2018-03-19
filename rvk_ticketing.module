@@ -881,6 +881,7 @@ function rvk_ticketing_views_default_views() {
   return $export;
 }
 
+
 /**
  * Validates an Icelandic SSN number
  *
