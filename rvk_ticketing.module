@@ -610,10 +610,18 @@ function rvk_ticketing_create_indication_node($data) {
     $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
   }
 
-  $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['name'];
-  $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['ssn'];
-  $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['email'];
-  $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'] = $data['tel'];
+  if(strlen($data['name']) > 0) {
+    $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['name'];
+  }
+  if(strlen($data['ssn']) > 0) {
+    $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['ssn'];
+  }
+  if(strlen($data['email']) > 0) {
+    $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['email'];
+  }
+  if(strlen($data['tel']) > 0) {
+    $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'] = $data['tel'];
+  }
 
   $tax_vocabulary = taxonomy_vocabulary_machine_name_load('indication_status');
   $taxonomy = taxonomy_get_tree($tax_vocabulary->vid);
@@ -624,12 +632,12 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
 
-  $tax_vocabulary = taxonomy_vocabulary_machine_name_load('departments');
+  $tax_vocabulary = taxonomy_vocabulary_machine_name_load('indication_types');
   $taxonomy = taxonomy_get_tree($tax_vocabulary->vid);
   $department_tid = null;
   foreach($taxonomy as $tax) {
     if($tax->name == 'Þjónustuver') {
-      $department_tid = $tax->tid;
+      $indication_type_tid = $tax->tid;
     }
   }
 
@@ -650,7 +658,7 @@ function rvk_ticketing_create_indication_node($data) {
   }
 
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
-  $node->field_department_ref[LANGUAGE_NONE][0]['tid'] = $department_tid;
+  $node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $indication_type_tid;
   $node->language = 'is';
   $node->is_new = true;
 

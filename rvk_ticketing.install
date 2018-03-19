@@ -292,13 +292,9 @@ function _rvk_ticketing_create_indication_content_type() {
     ['allowed_values' => [0 => ['vocabulary' => 'indication_status', 'parent' => 0]],
       'options_list_callback' => 'i18n_taxonomy_allowed_values'], TRUE);
   _rvk_ticketing_add_fields_to_bundle('field_indication_type_ref', 'taxonomy_term_reference',
-    $type_name, 'Ábendingategund', 'Ábendingategund', 'autocomplete', 'node',
+    $type_name, 'Ábendingategund', 'Ábendingategund', 'hierarchical_select', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'indication_types', 'parent' => 0]],
       'options_list_callback' => 'i18n_taxonomy_allowed_values']);
-  _rvk_ticketing_add_fields_to_bundle('field_department_ref', 'taxonomy_term_reference',
-    $type_name, 'Svið ábyrgðaraðila', 'Svið', 'autocomplete', 'node',
-    ['allowed_values' => [0 => ['vocabulary' => 'departments', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values'], TRUE);
   _rvk_ticketing_add_fields_to_bundle('field_forward_to_external_dp', 'taxonomy_term_reference',
     $type_name, 'Áframsenda á utanaðkomandi', 'Áframsenda á utanaðkomandi', 'autocomplete', 'node',
     ['allowed_values' => [0 => ['vocabulary' => 'external_departments', 'parent' => 0]],
