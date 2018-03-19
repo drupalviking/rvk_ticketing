@@ -64,7 +64,6 @@ Efni (group_indication_content)
 
 Flokkun í þjónustuveri (group_indication_service_cat)
 	Staða
-	Svið
 	Ábendingategund
 
 Skilaboð starfsmanna (group_indication_messages)
@@ -84,5 +83,11 @@ Sendandi (group_indication_sender)
 
 Áframsenda (group_indication_forward)
 	Áframsenda á utanaðkomandi
+
+Tímasetningar (group_indication_timestamps)
+    Svara ábendingu fyrir
+    Ábendingunni svarað þann
+    Ábendingunni þarf að loka fyrir
+    Ábendingunni lokað þann
 
 More text to come

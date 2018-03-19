@@ -74,7 +74,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_position_x']['#access'] = FALSE;
         $form['field_indication_position_y']['#access'] = FALSE;
         $form['field_indication_location']['#access'] = FALSE;
-        $form['field_indication_respond_by']['#access'] = FALSE;
+        //$form['field_indication_respond_by']['#access'] = FALSE;
         $form['field_indication_responded_at']['#access'] = FALSE;
         $form['field_indication_close_by']['#access'] = FALSE;
         $form['field_indication_closed_at']['#access'] = FALSE;
@@ -120,25 +120,30 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['created_markup']['#markup'] = "<div class=\"response-by-time-readonly\"><label class=\"control-label\">Ábending barst</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->created) . "</p> </p></div>";
         $form['#group_children']['created_markup'] = "group_indication_timestamps";
 
+        $respond_by_date = $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value'];
+        $respond_by_date = strtotime($respond_by_date);
+
         $form['respond_by_markup']['#weight'] = 40;
-        $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+        $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $respond_by_date) . "</p> </p></div>";
         $form['#group_children']['respond_by_markup'] = "group_indication_timestamps";
 
         if(isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0])) {
           $form['responded_at_markup']['#weight'] = 41;
-          $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+          $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', strtotime($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value'])) . "</p> </p></div>";
           $form['#group_children']['responded_at_markup'] = "group_indication_timestamps";
         }
 
         if(isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0])) {
           $form['close_by_markup']['#weight'] = 42;
-          $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+          $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', strtotime($form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value'])) . "</p> </p></div>";
           $form['#group_children']['close_by_markup'] = "group_indication_timestamps";
         }
 
         if(isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0])) {
+          $closed_at_date = $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value'];
+
           $form['closed_at_markup']['#weight'] = 43;
-          $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']) . "</p> </p></div>";
+          $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $closed_at_date) . "</p> </p></div>";
           $form['#group_children']['closed_at_markup'] = "group_indication_timestamps";
         }
       }
@@ -178,7 +183,11 @@ function rvk_ticketing_node_presave($node) {
     //If there is text in the indication response, we'll create a new timestamp and log the time it was answered.
     if(isset($node->field_indication_response[LANGUAGE_NONE][0])) {
       if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-        $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
+        $respond_at = new DateTime('now');
+        $respond_at = $respond_at->format('Y-M-d H:i:s');
+        $respond_at = str_replace(' ', 'T', $respond_at);
+        $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $respond_at;
+        $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
       }
     }
 
@@ -189,17 +198,20 @@ function rvk_ticketing_node_presave($node) {
         if(isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
           $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
 
-          $second_response_time = strtotime(rvk_ticketing_get_last_response_date(
+          $second_response_time = rvk_ticketing_get_last_response_date(
             new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
-          )->format('Y-m-d H:i'));
+          )->format('Y-m-d H:i:s');
+          $second_response_time = str_replace(' ', 'T', $second_response_time);
         }
         else {
-          $second_response_time = strtotime(rvk_ticketing_get_last_response_date(
+          $second_response_time = rvk_ticketing_get_last_response_date(
             new DateTime('now'), 2
-          )->format('Y-m-d H:i'));
+          )->format('Y-m-d H:i:s');
+          $second_response_time = str_replace(' ', 'T', $second_response_time);
         }
 
         $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
+        $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
       }
     }
 
@@ -209,20 +221,34 @@ function rvk_ticketing_node_presave($node) {
       $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
       if($status_term->name == "Lokið") {
         if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
-          $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = strtotime(rvk_ticketing_get_last_response_date(
+          $respond_by = rvk_ticketing_get_last_response_date(
             new DateTime('now'), 2
-          )->format('Y-m-d H:i'));
+          )->format('Y-m-d H:i');
+          $respond_by = str_replace(' ', 'T', $respond_by);
+          $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
+          $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
         }
         if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = time();
+          $responded_at = new DateTime('now');
+          $responded_at = $responded_at->format('Y-M-d H:i:s');
+          $responded_at = str_replace(' ', 'T', $responded_at);
+          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $responded_at;
+          $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
         }
         if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = strtotime(rvk_ticketing_get_last_response_date(
+          $close_by = rvk_ticketing_get_last_response_date(
             new DateTime('now'), 2
-          )->format('Y-m-d H:i'));
+          )->format('Y-m-d H:i');
+          $close_by = str_replace(' ', 'T', $close_by);
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $close_by;
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
         }
         if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
-          $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = time();
+          $closed_at = new DateTime('now');
+          $closed_at = $closed_at->format('Y-M-d H:i:s');
+          $closed_at = str_replace(' ', 'T', $closed_at);
+          $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = $closed_at;
+          $node->field_indication_closed_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
         }
       }
     }
@@ -598,14 +624,14 @@ function rvk_ticketing_create_indication_node($data) {
 
   $node->field_indication_text[LANGUAGE_NONE][0]['value'] = $data['content'];
   $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'] = $data['content'];
-  if(isset($data['address'])) {
+  if(strlen($data['address']) > 0) {
     $node->field_indication_location[LANGUAGE_NONE][0]['value'] = $data['address'];
-    if(isset($data['xcoords'])) {
+    if(strlen($data['xcoords']) > 0) {
       $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
       $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
     }
   }
-  elseif(isset($data['xcoords'])) {
+  elseif(strlen($data['xcoords']) > 0) {
     $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
     $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
   }
@@ -670,8 +696,15 @@ function rvk_ticketing_create_indication_node($data) {
 
   }
 
-  $respond_by = new DateTime(strftime('%Y-%m-%d %H:%M', $node->created));
-  $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = strtotime(rvk_ticketing_get_last_response_date($respond_by)->format('Y-m-d H:i'));
+  $response_time = RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND;
+  $respond_by = strftime('%Y-%m-%d %H:%M:%S', $node->created);
+  $respond_by = rvk_ticketing_get_last_response_date(
+    new DateTime($respond_by), $response_time
+  )->format('Y-m-d H:i:s');
+
+  $respond_by = str_replace(' ', 'T', $respond_by);
+  $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
+  $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
   try{
     node_save($node);
   }
