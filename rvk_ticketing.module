@@ -121,30 +121,43 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['#group_children']['created_markup'] = "group_indication_timestamps";
 
         $respond_by_date = $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value'];
-        $respond_by_date = strtotime($respond_by_date);
+        if($respond_by_date) {
+          $respond_by_date = strtotime($respond_by_date);
 
-        $form['respond_by_markup']['#weight'] = 40;
-        $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $respond_by_date) . "</p> </p></div>";
-        $form['#group_children']['respond_by_markup'] = "group_indication_timestamps";
+          $form['respond_by_markup']['#weight'] = 40;
+          $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $respond_by_date) . "</p> </p></div>";
+          $form['#group_children']['respond_by_markup'] = "group_indication_timestamps";
+        }
 
         if(isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0])) {
-          $form['responded_at_markup']['#weight'] = 41;
-          $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', strtotime($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value'])) . "</p> </p></div>";
-          $form['#group_children']['responded_at_markup'] = "group_indication_timestamps";
+          $responded_at_date = $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value'];
+          if($responded_at_date) {
+            $responded_at_date = strtotime($responded_at_date);
+
+            $form['responded_at_markup']['#weight'] = 41;
+            $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $responded_at_date) . "</p> </p></div>";
+            $form['#group_children']['responded_at_markup'] = "group_indication_timestamps";
+          }
         }
 
         if(isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0])) {
-          $form['close_by_markup']['#weight'] = 42;
-          $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', strtotime($form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value'])) . "</p> </p></div>";
-          $form['#group_children']['close_by_markup'] = "group_indication_timestamps";
+          $close_by_date = $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value'];
+          if($close_by_date) {
+            $close_by_date = strtotime($close_by_date);
+            $form['close_by_markup']['#weight'] = 42;
+            $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $close_by_date) . "</p> </p></div>";
+            $form['#group_children']['close_by_markup'] = "group_indication_timestamps";
+          }
         }
 
         if(isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0])) {
           $closed_at_date = $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value'];
-
-          $form['closed_at_markup']['#weight'] = 43;
-          $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $closed_at_date) . "</p> </p></div>";
-          $form['#group_children']['closed_at_markup'] = "group_indication_timestamps";
+          if($closed_at_date) {
+            $closed_at_date = strtotime($closed_at_date);
+            $form['closed_at_markup']['#weight'] = 43;
+            $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $closed_at_date) . "</p> </p></div>";
+            $form['#group_children']['closed_at_markup'] = "group_indication_timestamps";
+          }
         }
       }
     }
