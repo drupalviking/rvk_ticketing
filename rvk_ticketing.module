@@ -334,6 +334,7 @@ function rvk_ticketing_block_view($delta = '') {
   return $block;
 }
 
+
 /**
  * Form for submission of Incident
  *
@@ -351,6 +352,10 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
   ];
 
+  // Because we have many fields with the same values, we have to set
+  // #tree to be able to access them.
+  $form['#tree'] = TRUE;
+
   $form['indication_fieldset'] = [
     '#type' => 'fieldset',
     '#weight' => 10,
@@ -364,6 +369,8 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['image_fieldset'] = [
     '#type' => 'fieldset',
     '#weight' => 32,
+    '#prefix' => '<div id="images-fieldset-wrapper">',
+    '#suffix' => '</div>',
   ];
 
   $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
@@ -418,46 +425,44 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['indication_text_fieldset']['title'] = [
     '#type' => 'textfield',
     '#title' => 'Titill',
-    '#required' => TRUE,
+    //'#required' => TRUE,
   ];
 
   $form['indication_fieldset']['indication_text_fieldset']['content'] = [
     '#type' => 'textarea',
     '#title' => 'Efni ábendingar',
-    '#required' => TRUE,
+    //'#required' => TRUE,
   ];
 
-  $form['indication_fieldset']['image_fieldset']['image_1'] = [
-    '#type' => 'managed_file',
-    '#title' => 'Mynd',
-    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-    '#upload_location' => 'public://indication_images/',
-    '#weight' => 50,
-  ];
 
-  $form['indication_fieldset']['image_fieldset']['image_2'] = [
-    '#type' => 'managed_file',
-    '#title' => 'Mynd',
-    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-    '#upload_location' => 'public://indication_images/',
-    '#weight' => 50,
-  ];
+  // Build the fieldset with the proper number of names. We'll use
+  // $form_state['num_images'] to determine the number of textfields to build.
+  if (empty($form_state['num_images'])) {
+    $form_state['num_images'] = 1;
+  }
+  for ($i = 0; $i < $form_state['num_images']; $i++) {
+    $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
+      '#type' => 'managed_file',
+      '#title' => 'Mynd',
+      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+      '#upload_location' => 'public://indication_images/',
+      '#weight' => 50,
+    );
+  }
 
-  $form['indication_fieldset']['image_fieldset']['image_3'] = [
-    '#type' => 'managed_file',
-    '#title' => 'Mynd',
-    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-    '#upload_location' => 'public://indication_images/',
-    '#weight' => 50,
-  ];
-
-  $form['indication_fieldset']['image_fieldset']['image_4'] = [
-    '#type' => 'managed_file',
-    '#title' => 'Mynd',
-    '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-    '#upload_location' => 'public://indication_images/',
-    '#weight' => 50,
-  ];
+  $form['indication_fieldset']['image_fieldset']['add_image'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add one more'),
+    '#submit' => array(
+      'rvk_ticketing_add_more_add_one_image',
+    ),
+    // See the examples in ajax_example.module for more details on the
+    // properties of #ajax.
+    '#ajax' => array(
+      'callback' => 'rvk_ticketing_add_image_callback',
+      'wrapper' => 'images-fieldset-wrapper',
+    ),
+  );
 
   $form['indication_fieldset']['map_fieldset']['markup_location'] = [
     '#type' => 'markup',
@@ -480,8 +485,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#weight' => 10,
   ];
 
-
-
   $form['indication_fieldset']['map_fieldset']['xcoords'] = [
     '#type' => 'hidden',
     '#title' => 'xcoords',
@@ -497,8 +500,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
       'id' => ['ycoords']
     ],
   ];
-
-
 
   $form['personal_info_fieldset']['markup'] = [
     '#type' => 'markup',
@@ -542,20 +543,118 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   return $form;
 }
 
+function rvk_ticketing_create_test_form($form, &$form_state) {
+  $form['#attached']['css'] = [
+    'https://js.arcgis.com/3.13/esri/css/esri.css' => [
+      'type' => 'external',
+    ],
+    drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
+    drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
+  ];
+
+  $form['#tree'] = TRUE;
+
+  $form['indication_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  ];
+
+  $form['indication_fieldset']['indication_text_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  ];
+
+  $form['indication_fieldset']['image_fieldset'] = [
+    '#type' => 'fieldset',
+    '#weight' => 32,
+    '#prefix' => '<div id="images-fieldset-wrapper">',
+    '#suffix' => '</div>',
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
+    '#type' => 'markup',
+    '#weight' => 1,
+    '#markup' => '<h3><span class="toggle-icon"></span>Senda mynd</h3><div class="collapse">'
+  ];
+
+  $form['indication_fieldset']['image_fieldset']['post_markup'] = [
+    '#type' => 'markup',
+    '#weight' => 100,
+    '#markup' => '</div>',
+  ];
+
+
+
+  // Build the fieldset with the proper number of names. We'll use
+  // $form_state['num_images'] to determine the number of textfields to build.
+  if (empty($form_state['num_images'])) {
+    $form_state['num_images'] = 1;
+  }
+  for ($i = 0; $i < $form_state['num_images']; $i++) {
+    $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
+      '#type' => 'managed_file',
+      '#title' => 'Mynd',
+      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+      '#upload_location' => 'public://indication_images/',
+      '#weight' => 50,
+    );
+  }
+
+  $form['indication_fieldset']['image_fieldset']['add_image'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add one more'),
+    '#submit' => array(
+      'rvk_ticketing_add_more_add_one_image',
+    ),
+    // See the examples in ajax_example.module for more details on the
+    // properties of #ajax.
+    '#ajax' => array(
+      'callback' => 'rvk_ticketing_add_image_callback',
+      'wrapper' => 'images-fieldset-wrapper',
+    ),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Senda'),
+  );
+
+  return $form;
+}
+/**
+ * Callback for both ajax-enabled buttons.
+ *
+ * Selects and returns the fieldset with the names in it.
+ */
+function rvk_ticketing_add_image_callback($form, &$form_state) {
+  $return =  $form['indication_fieldset']['image_fieldset'];
+  return $return;
+}
+
+/**
+ * Submit handler for the "add-one-more" button.
+ *
+ * Increments the max counter and causes a rebuild.
+ */
+function rvk_ticketing_add_more_add_one_image($form, &$form_state) {
+  $form_state['num_images']++;
+  $form_state['rebuild'] = TRUE;
+}
+
 /**
  * Implements hook_form_validate().
  */
 function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   $values = $form_state['values'];
 
-  if(strlen($values['address']) > 0) {
-    if(!rvk_ticket_check_street_address_valid($values['address'])) {
+  if(strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
+    if(!rvk_ticket_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
       form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
     }
   }
 
-  if(strlen($values['ssn']) > 0) {
-    if(!_rvk_ticketing_ssn_validation($values['ssn'])) {
+  if(strlen($values['personal_info_fieldset']['ssn']) > 0) {
+    if(!_rvk_ticketing_ssn_validation($values['personal_info_fieldset']['ssn'])) {
       form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
     }
   }
@@ -583,39 +682,26 @@ function rvk_ticket_check_street_address_valid($address) {
 function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $values = $form_state['values'];
 
-  if($values['image_1']) {
-    $file = file_load((int)$values['image_1']);
-    $file->status = FILE_STATUS_PERMANENT;
-    file_save($file);
-    $values['image_1'] = $file;
+  if(isset($values['indication_fieldset'])) {
+    if(isset($values['indication_fieldset']['image_fieldset'])) {
+      if(isset($values['indication_fieldset']['image_fieldset']['image'])) {
+        foreach($values['indication_fieldset']['image_fieldset']['image'] as $image) {
+          $file = file_load((int)$image);
+          $file->status = FILE_STATUS_PERMANENT;
+          file_save($file);
+          $values['images'][] = $file;
+        }
+      }
+    }
   }
 
-  if($values['image_2']) {
-    $file = file_load((int)$values['image_2']);
-    $file->status = FILE_STATUS_PERMANENT;
-    file_save($file);
-    $values['image_2'] = $file;
-  }
-
-  if($values['image_3']) {
-    $file = file_load((int)$values['image_3']);
-    $file->status = FILE_STATUS_PERMANENT;
-    file_save($file);
-    $values['image_3'] = $file;
-  }
-
-  if($values['image_4']) {
-    $file = file_load((int)$values['image_4']);
-    $file->status = FILE_STATUS_PERMANENT;
-    file_save($file);
-    $values['image_4'] = $file;
-  }
-
-  if(strlen($values['xcoords']) == 0 && strlen($values['ycoords']) == 0 && strlen($values['address']) > 0) {
+  if(strlen($values['indication_fieldset']['map_fieldset']['xcoords']) == 0
+    && strlen($values['indication_fieldset']['map_fieldset']['ycoords']) == 0
+    && strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
     //Send another query to the Street lookup API, to get the X and Y coords
-    $street = borgarvefsja_search_by_address($values['address']);
-    $values['xcoords'] = $street[0]['x'];
-    $values['ycoords'] = $street[0]['y'];
+    $street = borgarvefsja_search_by_address($values['indication_fieldset']['map_fieldset']['address']['address']);
+    $values['indication_fieldset']['map_fieldset']['xcoords'] = $street[0]['x'];
+    $values['indication_fieldset']['map_fieldset']['ycoords'] = $street[0]['y'];
   }
 
   rvk_ticketing_create_indication_node($values);
@@ -631,35 +717,35 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
  */
 function rvk_ticketing_create_indication_node($data) {
   $node = new stdClass();
-  $node->title = $data['title'];
+  $node->title = $data['indication_fieldset']['indication_text_fieldset']['title'];
   $node->type = 'indications';
   node_object_prepare($node);
 
-  $node->field_indication_text[LANGUAGE_NONE][0]['value'] = $data['content'];
-  $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'] = $data['content'];
-  if(strlen($data['address']) > 0) {
-    $node->field_indication_location[LANGUAGE_NONE][0]['value'] = $data['address'];
-    if(strlen($data['xcoords']) > 0) {
-      $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
-      $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
+  $node->field_indication_text[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['indication_text_fieldset']['content'];
+  $node->field_interpered_indication_text[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['indication_text_fieldset']['content'];
+  if(strlen($data['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
+    $node->field_indication_location[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['address']['address'];
+    if(strlen($data['indication_fieldset']['map_fieldset']['xcoords']) > 0) {
+      $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['xcoords'];
+      $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['ycoords'];
     }
   }
-  elseif(strlen($data['xcoords']) > 0) {
-    $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['xcoords'];
-    $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['ycoords'];
+  elseif(strlen($data['indication_fieldset']['map_fieldset']['xcoords']) > 0) {
+    $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['xcoords'];
+    $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['ycoords'];
   }
 
-  if(strlen($data['name']) > 0) {
-    $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['name'];
+  if(strlen($data['personal_info_fieldset']['name']) > 0) {
+    $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['name'];
   }
-  if(strlen($data['ssn']) > 0) {
-    $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['ssn'];
+  if(strlen($data['personal_info_fieldset']['ssn']) > 0) {
+    $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['ssn'];
   }
-  if(strlen($data['email']) > 0) {
-    $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['email'];
+  if(strlen($data['personal_info_fieldset']['email']) > 0) {
+    $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['email'];
   }
-  if(strlen($data['tel']) > 0) {
-    $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'] = $data['tel'];
+  if(strlen($data['personal_info_fieldset']['tel']) > 0) {
+    $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['tel'];
   }
 
   $tax_vocabulary = taxonomy_vocabulary_machine_name_load('indication_status');
@@ -680,20 +766,10 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
 
-  if(is_object($data['image_1'])) {
-    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_1']->fid;
-  }
-
-  if(is_object($data['image_2'])) {
-    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_2']->fid;
-  }
-
-  if(is_object($data['image_3'])) {
-    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_3']->fid;
-  }
-
-  if(is_object($data['image_4'])) {
-    $node->field_image[LANGUAGE_NONE][]['fid'] = $data['image_4']->fid;
+  if(is_array($data['images'])) {
+    foreach($data['images'] as $image) {
+      $node->field_image[LANGUAGE_NONE][]['fid'] = $image->fid;
+    }
   }
 
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
