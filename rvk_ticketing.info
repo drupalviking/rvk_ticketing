@@ -17,3 +17,4 @@ dependencies[] = date
 dependencies[] = views_show_more
 dependencies[] = hierarchical_select
 dependencies[] = hs_taxonomy
+dependencies[] = tvi
