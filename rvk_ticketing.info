@@ -18,6 +18,7 @@ dependencies[] = views_show_more
 dependencies[] = hierarchical_select
 dependencies[] = hs_taxonomy
 dependencies[] = tvi
+dependencies[] = taxonomy_menu
 dependencies[] = views_block_area
 dependencies[] = date_views
 dependencies[] = date_popup
