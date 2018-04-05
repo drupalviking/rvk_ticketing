@@ -36,7 +36,9 @@ function rvk_ticketing_enable() {
  */
 function rvk_ticketing_disable() {
   $view = views_get_view('indications');
-  views_delete_view($view);
+  if($view) {
+    views_delete_view($view);
+  }
 
   $types = taxonomy_vocabulary_machine_name_load('indication_types');
   $status = taxonomy_vocabulary_machine_name_load('indication_status');
