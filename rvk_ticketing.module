@@ -39,7 +39,7 @@ function rvk_ticketing_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['admin/abendingar'] = [
+  $items['abendingar'] = [
     'title' => 'Ábendingar',
     'page callback' => 'rvk_ticketing_view_indications_page',
     'access arguments' => ['edit ticketing content'],
@@ -62,14 +62,72 @@ function rvk_ticketing_debug() {
 
 function rvk_ticketing_view_indications_page() {
   global $user;
+  $indications_closed_markup = "";
   $current_user = user_load($user->uid);
+  if(!isset($current_user->field_svid[LANGUAGE_NONE][0])) {
+    drupal_set_message("Svo virðist sem þú hafir ekki heimild til að skoða þetta svæði");
+    return "";
+  }
   $user_indication_group_tid = $current_user->field_svid[LANGUAGE_NONE][0]['tid'];
-  //$view = view
+  $user_indication_group = taxonomy_term_load($user_indication_group_tid);
+
+  if($user_indication_group->name == 'Þjónustuver') {
+    $new_indications_view = views_get_view('indications');
+    $new_indications_view->set_display('indications_new');
+    $new_indications_view->pre_execute();
+    $new_indications_view->execute();
+    $new_indications = $new_indications_view->render();
+
+    $indications_in_progress_view = views_get_view('indications');
+    $indications_in_progress_view->set_display('indications_in_process');
+    $indications_in_progress_view->pre_execute();
+    $indications_in_progress_view->execute();
+    $in_progress = $indications_in_progress_view->render();
+
+    $indications_expired_view = views_get_view('indications');
+    $indications_expired_view->set_display('indications_expired');
+    $indications_expired_view->pre_execute();
+    $indications_expired_view->execute();
+    $expired = $indications_expired_view->render();
+
+    $indications_closed_view = views_get_view('indications');
+    $indications_closed_view->set_display('indications_closed');
+    $indications_closed_view->pre_execute();
+    $indications_closed_view->execute();
+    $indications_closed_markup = $indications_closed_view->render();
+  }
+  else {
+    $new_indications_view = views_get_view('indications');
+    $new_indications_view->set_display('indications_recieved');
+    $new_indications_view->set_arguments([$user_indication_group_tid]);
+    $new_indications_view->pre_execute();
+    $new_indications_view->execute();
+    $new_indications = $new_indications_view->render();
+
+    $indications_in_progress_view = views_get_view('indications');
+    $indications_in_progress_view->set_display('indications_in_process_contextual');
+    $indications_in_progress_view->set_arguments([$user_indication_group_tid]);
+    $indications_in_progress_view->pre_execute();
+    $indications_in_progress_view->execute();
+    $in_progress = $indications_in_progress_view->render();
+
+    $indications_expired_view = views_get_view('indications');
+    $indications_expired_view->set_display('indications_expired_contextual');
+    $indications_expired_view->set_arguments([$user_indication_group_tid]);
+    $indications_expired_view->pre_execute();
+    $indications_expired_view->execute();
+    $expired = $indications_expired_view->render();
+  }
+
 
   $build = [
-    '#markup' => '<h1>YES YES YES</h1>',
-
+    '#markup' => "<div class='indications-new'>" . $new_indications . "</div>" .
+                 "<div class='indications-in-progress'>" . $in_progress . "</div>" .
+                 "<div class='indications-expired'>" . $expired . "</div>" .
+                 "<div class='indications-closed'>" . $indications_closed_markup . "</div>",
   ];
+
+
 
   return $build;
 }
@@ -203,86 +261,111 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
  * Implements hook_node_presave().
  */
 function rvk_ticketing_node_presave($node) {
-  if($node->type == 'indications') {
-    //If the indication is being sent to external department (as configured in a taxonomy), we'll just close the
-    //Indication
-    if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
-      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
-        $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
-        $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
-        $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
-      }
+  if($node->type == 'indications' && $node->is_new == FALSE) {
+    $indication_type_voc = taxonomy_vocabulary_machine_name_load('indication_types');
+    $service_desk_tid = _rvk_ticketing_find_indication_status_by_name($indication_type_voc->vid, 'Þjónustuver');
+    $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
+    $indication_new_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Ný ábending');
+    $indication_received_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Móttekin');
+
+    // If the status is not set, it's because we're going through the initial save of the node. Set the status to
+    // Þjónustuver, but do not go through any of the other test cases.
+    if(!isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
+      $node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $service_desk_tid->tid;
+      $node->field_indication_responded_at[LANGUAGE_NONE][0] = NULL;
+      $node->field_indication_close_by[LANGUAGE_NONE][0] = NULL;
+      $node->field_indication_closed_at[LANGUAGE_NONE][0] = NULL;
     }
-
-    //If there is text in the indication response, we'll create a new timestamp and log the time it was answered.
-    if(isset($node->field_indication_response[LANGUAGE_NONE][0])) {
-      if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-        $respond_at = new DateTime('now');
-        $respond_at = $respond_at->format('Y-M-d H:i:s');
-        $respond_at = str_replace(' ', 'T', $respond_at);
-        $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $respond_at;
-        $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+    else {
+      //If the indication is being sent to external department (as configured in a taxonomy), we'll just close the
+      //Indication
+      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
+        if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
+          $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
+          $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
+        }
       }
-    }
 
-    //If there is a timestamp for when the indication was answered for the first time, we need to calculate when the
-    //indication has to be closed completely
-    if(isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-      if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-        if(isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
-          $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
-
-          $second_response_time = rvk_ticketing_get_last_response_date(
-            new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
-          )->format('Y-m-d H:i:s');
-          $second_response_time = str_replace(' ', 'T', $second_response_time);
+      //If service desk is changing the indication type reference to another department, check if they have changed the
+      //status of the indication, and if not, change it to received.
+      if($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] != $service_desk_tid->tid) {
+        if($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] == $indication_new_tax->tid) {
+          $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_received_tax->tid;
         }
-        else {
-          $second_response_time = rvk_ticketing_get_last_response_date(
-            new DateTime('now'), 2
-          )->format('Y-m-d H:i:s');
-          $second_response_time = str_replace(' ', 'T', $second_response_time);
-        }
-
-        $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
-        $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
       }
-    }
 
-    //If the indication is closed, we need to record that timestamp, and also fill inn all the other timestamps that
-    //are missing (e.g. if the indication is closed right away).
-    if(isset($node->field_indication_status_ref[LANGUAGE_NONE][0])) {
-      $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
-      if($status_term->name == "Lokið") {
-        if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
-          $respond_by = rvk_ticketing_get_last_response_date(
-            new DateTime('now'), 2
-          )->format('Y-m-d H:i');
-          $respond_by = str_replace(' ', 'T', $respond_by);
-          $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
-          $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-        }
+      //If there is text in the indication response or the status is no longer Ný ábending, we'll create a new timestamp
+      // and log the time it was answered.
+      if(isset($node->field_indication_response[LANGUAGE_NONE][0]) ||
+        $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] != $indication_new_tax->tid) {
         if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-          $responded_at = new DateTime('now');
-          $responded_at = $responded_at->format('Y-M-d H:i:s');
-          $responded_at = str_replace(' ', 'T', $responded_at);
-          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $responded_at;
+          $respond_at = new DateTime('now');
+          $respond_at = $respond_at->format('Y-m-d H:i:s');
+          $respond_at = str_replace(' ', 'T', $respond_at);
+          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $respond_at;
           $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
         }
+      }
+
+      //If there is a timestamp for when the indication was answered for the first time, we need to calculate when the
+      //indication has to be closed completely
+      if(isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
         if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-          $close_by = rvk_ticketing_get_last_response_date(
-            new DateTime('now'), 2
-          )->format('Y-m-d H:i');
-          $close_by = str_replace(' ', 'T', $close_by);
-          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $close_by;
+          if(isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
+            $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
+
+            $second_response_time = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
+            )->format('Y-m-d H:i:s');
+            $second_response_time = str_replace(' ', 'T', $second_response_time);
+          }
+          else {
+            $second_response_time = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), 2
+            )->format('Y-m-d H:i:s');
+            $second_response_time = str_replace(' ', 'T', $second_response_time);
+          }
+
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
           $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
         }
-        if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
-          $closed_at = new DateTime('now');
-          $closed_at = $closed_at->format('Y-M-d H:i:s');
-          $closed_at = str_replace(' ', 'T', $closed_at);
-          $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = $closed_at;
-          $node->field_indication_closed_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+      }
+
+      //If the indication is closed, we need to record that timestamp, and also fill inn all the other timestamps that
+      //are missing (e.g. if the indication is closed right away).
+      if(isset($node->field_indication_status_ref[LANGUAGE_NONE][0])) {
+        $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
+        if($status_term->name == "Lokið") {
+          if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
+            $respond_by = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), 2
+            )->format('Y-m-d H:i');
+            $respond_by = str_replace(' ', 'T', $respond_by);
+            $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
+            $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+          if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+            $responded_at = new DateTime('now');
+            $responded_at = $responded_at->format('Y-M-d H:i:s');
+            $responded_at = str_replace(' ', 'T', $responded_at);
+            $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $responded_at;
+            $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+          if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
+            $close_by = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), 2
+            )->format('Y-m-d H:i');
+            $close_by = str_replace(' ', 'T', $close_by);
+            $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $close_by;
+            $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+          if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
+            $closed_at = new DateTime('now');
+            $closed_at = $closed_at->format('Y-m-d H:i:s');
+            $closed_at = str_replace(' ', 'T', $closed_at);
+            $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = $closed_at;
+            $node->field_indication_closed_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
         }
       }
     }
@@ -707,10 +790,15 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
     if(isset($values['indication_fieldset']['image_fieldset'])) {
       if(isset($values['indication_fieldset']['image_fieldset']['image'])) {
         foreach($values['indication_fieldset']['image_fieldset']['image'] as $image) {
-          $file = file_load((int)$image);
-          $file->status = FILE_STATUS_PERMANENT;
-          file_save($file);
-          $values['images'][] = $file;
+          if($image != 0) {
+            $file = file_load((int)$image);
+            $file->status = FILE_STATUS_PERMANENT;
+            file_save($file);
+            $values['images'][] = $file;
+          }
+          else {
+            $values['images'] = null;
+          }
         }
       }
     }
@@ -778,6 +866,7 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
 
+  /**
   $tax_vocabulary = taxonomy_vocabulary_machine_name_load('indication_types');
   $taxonomy = taxonomy_get_tree($tax_vocabulary->vid);
   $department_tid = null;
@@ -786,6 +875,7 @@ function rvk_ticketing_create_indication_node($data) {
       $indication_type_tid = $tax->tid;
     }
   }
+  **/
 
   if(is_array($data['images'])) {
     foreach($data['images'] as $image) {
@@ -794,7 +884,7 @@ function rvk_ticketing_create_indication_node($data) {
   }
 
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
-  $node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $indication_type_tid;
+  //$node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $indication_type_tid;
   $node->language = 'is';
   $node->is_new = true;
 
