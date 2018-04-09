@@ -42,91 +42,194 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['pager']['options']['effects']['speed_type'] = 'slow';
   $handler->display->display_options['pager']['options']['effects']['speed'] = 'slow';
   $handler->display->display_options['style_plugin'] = 'table';
-  /* Haus: Global: Result summary */
+  /* Header: Global: Result summary */
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
   $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Óhreyfðar ábendingar <span class="total-rows"> (@total)</span></h2>';
-  /* Reitur: Efni: Titill */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Reitur: Efni: Nafn sendanda */
+  /* Field: Content: Nafn sendanda */
   $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
-  /* Reitur: Efni: Post date */
+  /* Field: Content: Post date */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'node';
   $handler->display->display_options['fields']['created']['field'] = 'created';
   $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
   $handler->display->display_options['fields']['created']['date_format'] = 'short';
   $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
-  /* Reitur: Efni: Ábendingategund */
+  /* Field: Content: Ábendingategund */
   $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
-  /* Sort criterion: Efni: Post date */
+  /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
-  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Filter criterion: Efni: Birt */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
   $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Efni: Gerð */
+  /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
-  /* Filter criterion: Efni: Staða (field_indication_status_ref) */
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
-  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
 
   /* Display: Nýjar ábendingar */
-  $handler = $view->new_display('block', 'Nýjar ábendingar', 'block');
+  $handler = $view->new_display('block', 'Nýjar ábendingar', 'indications_new');
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['defaults']['header'] = FALSE;
-  /* Haus: Global: Result summary */
+  /* Header: Global: Result summary */
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
   $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--new"></span><span>Nýjar og óflokkaðar ábendingar </span><span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['label'] = 'No results';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = '<p>Engar nýjar ábendingar eru til staðar</p>';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Reitur: Efni: Titill */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Reitur: Efni: Nafn sendanda */
+  /* Field: Content: Nafn sendanda */
   $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
-  /* Reitur: Efni: Ábendingategund */
+  /* Field: Content: Ábendingategund */
   $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['delta_offset'] = '0';
-  /* Reitur: Efni: Post date */
+  $handler->display->display_options['fields']['field_indication_type_ref']['multi_type'] = 'ul';
+  /* Field: Content: Post date */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'node';
   $handler->display->display_options['fields']['created']['field'] = 'created';
   $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
   $handler->display->display_options['fields']['created']['date_format'] = 'short';
   $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+  /* Field: Content: Svara ábendingu fyrir */
+  $handler->display->display_options['fields']['field_indication_respond_by']['id'] = 'field_indication_respond_by';
+  $handler->display->display_options['fields']['field_indication_respond_by']['table'] = 'field_data_field_indication_respond_by';
+  $handler->display->display_options['fields']['field_indication_respond_by']['field'] = 'field_indication_respond_by';
+  $handler->display->display_options['fields']['field_indication_respond_by']['settings'] = array(
+    'format_type' => 'short',
+    'custom_date_format' => '',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+    'show_remaining_days' => 0,
+  );
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Contextual filter: Efni: Ábendingategund (field_indication_type_ref) */
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'indications' => 'indications',
+  );
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['operator'] = 'and';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
+    0 => '2178',
+  );
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
+
+  /* Display: Mótteknar ábendingar */
+  $handler = $view->new_display('block', 'Mótteknar ábendingar', 'indications_recieved');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['defaults']['header'] = FALSE;
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--new"></span><span>Nýjar ábendingar </span><span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['label'] = 'No results';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = '<p>Engar nýjar ábendingar eru til staðar</p>';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Nafn sendanda */
+  $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
+  /* Field: Content: Ábendingategund */
+  $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['delta_offset'] = '0';
+  $handler->display->display_options['fields']['field_indication_type_ref']['multi_type'] = 'ul';
+  /* Field: Content: Staða */
+  $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
+  /* Field: Content: Post date */
+  $handler->display->display_options['fields']['created']['id'] = 'created';
+  $handler->display->display_options['fields']['created']['table'] = 'node';
+  $handler->display->display_options['fields']['created']['field'] = 'created';
+  $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
+  $handler->display->display_options['fields']['created']['date_format'] = 'short';
+  $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+  /* Field: Content: Ábendingunni þarf að loka fyrir */
+  $handler->display->display_options['fields']['field_indication_close_by']['id'] = 'field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['table'] = 'field_data_field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['field'] = 'field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['settings'] = array(
+    'format_type' => 'medium',
+    'custom_date_format' => '',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+    'show_remaining_days' => 0,
+  );
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
+  /* Contextual filter: Content: Ábendingategund (field_indication_type_ref) */
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['id'] = 'field_indication_type_ref_tid';
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['field'] = 'field_indication_type_ref_tid';
@@ -140,43 +243,173 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['validate_options']['vocabularies'] = array(
     'indication_types' => 'indication_types',
   );
-  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['validate_options']['type'] = 'convert';
-
-  /* Display: Í vinnslu */
-  $handler = $view->new_display('block', 'Í vinnslu', 'block_1');
-  $handler->display->display_options['defaults']['relationships'] = FALSE;
-  /* Tengsl: Efni: Höfundur */
-  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
-  $handler->display->display_options['relationships']['uid']['table'] = 'node';
-  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Efni: Birt */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
   $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Efni: Gerð */
+  /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['operator'] = 'and';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
+    0 => '2179',
+  );
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
 
-  /* Display: Óhreyfðar ábendingar */
-  $handler = $view->new_display('block', 'Óhreyfðar ábendingar', 'block_2');
-  $handler->display->display_options['defaults']['title'] = FALSE;
+  /* Display: Í vinnslu */
+  $handler = $view->new_display('block', 'Í vinnslu', 'indications_in_process');
   $handler->display->display_options['defaults']['header'] = FALSE;
-  /* Haus: Global: Result summary */
+  /* Header: Global: Result summary */
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
-  $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--alert"></span><span>Komnar framyfir svartíma </span><span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Ábendingar í vinnslu <span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['label'] = 'No results';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = '<p>Engar ábendingar eru í vinnslu</p>';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+  $handler->display->display_options['defaults']['relationships'] = FALSE;
+  /* Relationship: Content: Author */
+  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['table'] = 'node';
+  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Nafn sendanda */
+  $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
+  /* Field: Content: Ábendingategund */
+  $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
+  /* Field: Content: Staða */
+  $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
+  /* Field: Content: Post date */
+  $handler->display->display_options['fields']['created']['id'] = 'created';
+  $handler->display->display_options['fields']['created']['table'] = 'node';
+  $handler->display->display_options['fields']['created']['field'] = 'created';
+  $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
+  $handler->display->display_options['fields']['created']['date_format'] = 'short';
+  $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+  /* Field: Content: Ábendingunni þarf að loka fyrir */
+  $handler->display->display_options['fields']['field_indication_close_by']['id'] = 'field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['table'] = 'field_data_field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['field'] = 'field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['settings'] = array(
+    'format_type' => 'medium',
+    'custom_date_format' => '',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+    'show_remaining_days' => 0,
+  );
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'indications' => 'indications',
+  );
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
+    0 => '2179',
+    1 => '2180',
+  );
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['operator_id'] = 'field_indication_status_ref_tid_op';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['label'] = 'Staða (field_indication_status_ref)';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['operator'] = 'field_indication_status_ref_tid_op';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['identifier'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
+
+  /* Display: Í vinnslu - Contextual */
+  $handler = $view->new_display('block', 'Í vinnslu - Contextual', 'indications_in_process_contextual');
+  $handler->display->display_options['defaults']['header'] = FALSE;
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Ábendingar í vinnslu <span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['label'] = 'No results';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = '<p>Engar ábendingar eru í vinnslu</p>';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+  $handler->display->display_options['defaults']['relationships'] = FALSE;
+  /* Relationship: Content: Author */
+  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['table'] = 'node';
+  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Nafn sendanda */
+  $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
+  /* Field: Content: Post date */
+  $handler->display->display_options['fields']['created']['id'] = 'created';
+  $handler->display->display_options['fields']['created']['table'] = 'node';
+  $handler->display->display_options['fields']['created']['field'] = 'created';
+  $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
+  $handler->display->display_options['fields']['created']['date_format'] = 'short';
+  $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+  /* Field: Content: Ábendingategund */
+  $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
+  /* Field: Content: Staða */
+  $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Contextual filter: Efni: Ábendingategund (field_indication_type_ref) */
+  /* Contextual filter: Content: Ábendingategund (field_indication_type_ref) */
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['id'] = 'field_indication_type_ref_tid';
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['field'] = 'field_indication_type_ref_tid';
@@ -187,55 +420,263 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Efni: Birt */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
   $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Efni: Gerð */
+  /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
-  /* Filter criterion: Efni: Dags. uppfært */
-  $handler->display->display_options['filters']['changed']['id'] = 'changed';
-  $handler->display->display_options['filters']['changed']['table'] = 'node';
-  $handler->display->display_options['filters']['changed']['field'] = 'changed';
-  $handler->display->display_options['filters']['changed']['operator'] = '<=';
-  $handler->display->display_options['filters']['changed']['value']['value'] = '-5 days';
-  $handler->display->display_options['filters']['changed']['value']['type'] = 'offset';
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
+    0 => '2180',
+  );
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['operator_id'] = 'field_indication_status_ref_tid_op';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['label'] = 'Staða (field_indication_status_ref)';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['operator'] = 'field_indication_status_ref_tid_op';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['expose']['identifier'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
 
-  /* Display: Lokaðar ábendingar */
-  $handler = $view->new_display('page', 'Lokaðar ábendingar', 'page_1');
+  /* Display: Óhreyfðar ábendingar */
+  $handler = $view->new_display('block', 'Óhreyfðar ábendingar', 'indications_expired');
+  $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['defaults']['header'] = FALSE;
-  /* Haus: Global: Result summary */
+  /* Header: Global: Result summary */
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
-  $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Lokaðar ábendingar <span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--alert"></span><span>Komnar framyfir svartíma </span><span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = 'Engin ábending er komin fram yfir svartíma';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Reitur: Efni: Titill */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Reitur: Efni: Nafn sendanda */
+  /* Field: Content: Nafn sendanda */
   $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
-  /* Reitur: Efni: Post date */
+  /* Field: Content: Ábendingategund */
+  $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
+  /* Field: Content: Post date */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'node';
   $handler->display->display_options['fields']['created']['field'] = 'created';
   $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
   $handler->display->display_options['fields']['created']['date_format'] = 'short';
   $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
-  /* Reitur: Efni: Ábendingunni lokað þann */
+  /* Field: Content: Staða */
+  $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
+  /* Field: Content: Svara ábendingu fyrir */
+  $handler->display->display_options['fields']['field_indication_respond_by']['id'] = 'field_indication_respond_by';
+  $handler->display->display_options['fields']['field_indication_respond_by']['table'] = 'field_data_field_indication_respond_by';
+  $handler->display->display_options['fields']['field_indication_respond_by']['field'] = 'field_indication_respond_by';
+  $handler->display->display_options['fields']['field_indication_respond_by']['label'] = 'Svara þarf ábendingu fyrir';
+  $handler->display->display_options['fields']['field_indication_respond_by']['settings'] = array(
+    'format_type' => 'medium',
+    'custom_date_format' => '',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+    'show_remaining_days' => 0,
+  );
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['filter_groups']['groups'] = array(
+    1 => 'AND',
+    2 => 'OR',
+  );
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'indications' => 'indications',
+  );
+  $handler->display->display_options['filters']['type']['group'] = 1;
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['operator'] = 'not';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
+    0 => '2181',
+  );
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['group'] = 1;
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
+  /* Filter criterion: Content: Svara ábendingu fyrir (field_indication_respond_by) */
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['id'] = 'field_indication_respond_by_value';
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['table'] = 'field_data_field_indication_respond_by';
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['field'] = 'field_indication_respond_by_value';
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['operator'] = '<=';
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['group'] = 2;
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['form_type'] = 'date_popup';
+  $handler->display->display_options['filters']['field_indication_respond_by_value']['default_date'] = 'now';
+  /* Filter criterion: Content: Ábendingunni þarf að loka fyrir (field_indication_close_by) */
+  $handler->display->display_options['filters']['field_indication_close_by_value']['id'] = 'field_indication_close_by_value';
+  $handler->display->display_options['filters']['field_indication_close_by_value']['table'] = 'field_data_field_indication_close_by';
+  $handler->display->display_options['filters']['field_indication_close_by_value']['field'] = 'field_indication_close_by_value';
+  $handler->display->display_options['filters']['field_indication_close_by_value']['operator'] = '<=';
+  $handler->display->display_options['filters']['field_indication_close_by_value']['group'] = 2;
+  $handler->display->display_options['filters']['field_indication_close_by_value']['form_type'] = 'date_popup';
+  $handler->display->display_options['filters']['field_indication_close_by_value']['default_date'] = 'now';
+
+  /* Display: Óhreyfðar ábendingar - Contextual */
+  $handler = $view->new_display('block', 'Óhreyfðar ábendingar - Contextual', 'indications_expired_contextual');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['defaults']['header'] = FALSE;
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--alert"></span><span>Komnar framyfir svartíma </span><span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Nafn sendanda */
+  $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
+  /* Field: Content: Ábendingategund */
+  $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
+  $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
+  /* Field: Content: Post date */
+  $handler->display->display_options['fields']['created']['id'] = 'created';
+  $handler->display->display_options['fields']['created']['table'] = 'node';
+  $handler->display->display_options['fields']['created']['field'] = 'created';
+  $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
+  $handler->display->display_options['fields']['created']['date_format'] = 'short';
+  $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+  /* Field: Content: Ábendingunni þarf að loka fyrir */
+  $handler->display->display_options['fields']['field_indication_close_by']['id'] = 'field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['table'] = 'field_data_field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['field'] = 'field_indication_close_by';
+  $handler->display->display_options['fields']['field_indication_close_by']['settings'] = array(
+    'format_type' => 'medium',
+    'custom_date_format' => '',
+    'fromto' => 'both',
+    'multiple_number' => '',
+    'multiple_from' => '',
+    'multiple_to' => '',
+    'show_remaining_days' => 0,
+  );
+  /* Field: Content: Staða */
+  $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
+  /* Contextual filter: Content: Ábendingategund (field_indication_type_ref) */
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['id'] = 'field_indication_type_ref_tid';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['table'] = 'field_data_field_indication_type_ref';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['field'] = 'field_indication_type_ref_tid';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['default_argument_type'] = 'taxonomy_tid';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['field_indication_type_ref_tid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'indications' => 'indications',
+  );
+  /* Filter criterion: Content: Ábendingunni lokað þann (field_indication_closed_at) */
+  $handler->display->display_options['filters']['field_indication_closed_at_value']['id'] = 'field_indication_closed_at_value';
+  $handler->display->display_options['filters']['field_indication_closed_at_value']['table'] = 'field_data_field_indication_closed_at';
+  $handler->display->display_options['filters']['field_indication_closed_at_value']['field'] = 'field_indication_closed_at_value';
+  $handler->display->display_options['filters']['field_indication_closed_at_value']['operator'] = '<=';
+  $handler->display->display_options['filters']['field_indication_closed_at_value']['form_type'] = 'date_popup';
+  $handler->display->display_options['filters']['field_indication_closed_at_value']['default_date'] = 'now';
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['operator'] = 'not';
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
+    0 => '2181',
+  );
+  $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
+
+  /* Display: Lokaðar ábendingar */
+  $handler = $view->new_display('page', 'Lokaðar ábendingar', 'indications_closed');
+  $handler->display->display_options['defaults']['exposed_form'] = FALSE;
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['exposed_form']['options']['submit_button'] = 'Sækja';
+  $handler->display->display_options['exposed_form']['options']['reset_button'] = TRUE;
+  $handler->display->display_options['exposed_form']['options']['reset_button_label'] = 'Endursetja';
+  $handler->display->display_options['exposed_form']['options']['exposed_sorts_label'] = 'Raða eftir';
+  $handler->display->display_options['defaults']['header'] = FALSE;
+  /* Header: Global: Result summary */
+  $handler->display->display_options['header']['result']['id'] = 'result';
+  $handler->display->display_options['header']['result']['table'] = 'views';
+  $handler->display->display_options['header']['result']['field'] = 'result';
+  $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Lokaðar ábendingar <span class="total-rows"> (@total)</span></h2>';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Nafn sendanda */
+  $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
+  $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
+  /* Field: Content: Post date */
+  $handler->display->display_options['fields']['created']['id'] = 'created';
+  $handler->display->display_options['fields']['created']['table'] = 'node';
+  $handler->display->display_options['fields']['created']['field'] = 'created';
+  $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
+  $handler->display->display_options['fields']['created']['date_format'] = 'short';
+  $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+  /* Field: Content: Ábendingunni lokað þann */
   $handler->display->display_options['fields']['field_indication_closed_at']['id'] = 'field_indication_closed_at';
   $handler->display->display_options['fields']['field_indication_closed_at']['table'] = 'field_data_field_indication_closed_at';
   $handler->display->display_options['fields']['field_indication_closed_at']['field'] = 'field_indication_closed_at';
@@ -250,7 +691,7 @@ function rvk_ticketing_views_default_views() {
     'show_remaining_days' => 0,
     'show_repeat_rule' => 'show',
   );
-  /* Reitur: Efni: Ábendingategund */
+  /* Field: Content: Ábendingategund */
   $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
@@ -258,30 +699,30 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['fields']['field_indication_type_ref']['multi_type'] = 'ul';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Efni: Birt */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
   $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Efni: Gerð */
+  /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
-  /* Filter criterion: Efni: Staða (field_indication_status_ref) */
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['operator'] = 'and';
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['value'] = array(
-    0 => '916',
+    0 => '2181',
   );
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['vocabulary'] = 'indication_status';
-  /* Filter criterion: Dagsetning: Date (node) */
+  /* Filter criterion: Date: Date (node) */
   $handler->display->display_options['filters']['date_filter']['id'] = 'date_filter';
   $handler->display->display_options['filters']['date_filter']['table'] = 'node';
   $handler->display->display_options['filters']['date_filter']['field'] = 'date_filter';
@@ -308,7 +749,7 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['filters']['date_filter']['date_fields'] = array(
     'node.created' => 'node.created',
   );
-  /* Filter criterion: Efni: Nafn sendanda (field_indication_reporter_name) */
+  /* Filter criterion: Content: Nafn sendanda (field_indication_reporter_name) */
   $handler->display->display_options['filters']['field_indication_reporter_name_value']['id'] = 'field_indication_reporter_name_value';
   $handler->display->display_options['filters']['field_indication_reporter_name_value']['table'] = 'field_data_field_indication_reporter_name';
   $handler->display->display_options['filters']['field_indication_reporter_name_value']['field'] = 'field_indication_reporter_name_value';
@@ -331,7 +772,7 @@ function rvk_ticketing_views_default_views() {
     9 => 0,
     13 => 0,
   );
-  /* Filter criterion: Efni: Ábendingategund (field_indication_type_ref) */
+  /* Filter criterion: Content: Ábendingategund (field_indication_type_ref) */
   $handler->display->display_options['filters']['field_indication_type_ref_tid']['id'] = 'field_indication_type_ref_tid';
   $handler->display->display_options['filters']['field_indication_type_ref_tid']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['filters']['field_indication_type_ref_tid']['field'] = 'field_indication_type_ref_tid';
@@ -363,7 +804,7 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Yfirlit ábendinga';
   $handler->display->display_options['defaults']['header'] = FALSE;
-  /* Haus: Global: Block area */
+  /* Header: Global: Block area */
   $handler->display->display_options['header']['block']['id'] = 'block';
   $handler->display->display_options['header']['block']['table'] = 'views';
   $handler->display->display_options['header']['block']['field'] = 'block';
@@ -371,48 +812,48 @@ function rvk_ticketing_views_default_views() {
   $handler->display->display_options['header']['block']['empty'] = TRUE;
   $handler->display->display_options['header']['block']['block_to_insert'] = 'menu:menu-abendingar';
   $handler->display->display_options['header']['block']['title'] = 'Svið';
-  /* Haus: Global: Result summary */
+  /* Header: Global: Result summary */
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
   $handler->display->display_options['header']['result']['content'] = '<h2><span class="icon-status"></span>Ábendingar<span class="total-rows"> (@total)</span></h2>';
   $handler->display->display_options['defaults']['footer'] = FALSE;
-  /* Fótur: Global: Block area */
+  /* Footer: Global: Block area */
   $handler->display->display_options['footer']['block']['id'] = 'block';
   $handler->display->display_options['footer']['block']['table'] = 'views';
   $handler->display->display_options['footer']['block']['field'] = 'block';
   $handler->display->display_options['footer']['block']['block_to_insert'] = 'views:indications-block_2';
   $handler->display->display_options['footer']['block']['title'] = '<none>';
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Reitur: Efni: Titill */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
   $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Reitur: Efni: Nafn sendanda */
+  /* Field: Content: Nafn sendanda */
   $handler->display->display_options['fields']['field_indication_reporter_name']['id'] = 'field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['table'] = 'field_data_field_indication_reporter_name';
   $handler->display->display_options['fields']['field_indication_reporter_name']['field'] = 'field_indication_reporter_name';
-  /* Reitur: Efni: Post date */
+  /* Field: Content: Post date */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'node';
   $handler->display->display_options['fields']['created']['field'] = 'created';
   $handler->display->display_options['fields']['created']['label'] = 'Skráð þann';
   $handler->display->display_options['fields']['created']['date_format'] = 'short';
   $handler->display->display_options['fields']['created']['second_date_format'] = 'long';
-  /* Reitur: Efni: Ábendingategund */
+  /* Field: Content: Ábendingategund */
   $handler->display->display_options['fields']['field_indication_type_ref']['id'] = 'field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['field'] = 'field_indication_type_ref';
   $handler->display->display_options['fields']['field_indication_type_ref']['delta_offset'] = '0';
   $handler->display->display_options['fields']['field_indication_type_ref']['multi_type'] = 'ul';
-  /* Reitur: Efni: Staða */
+  /* Field: Content: Staða */
   $handler->display->display_options['fields']['field_indication_status_ref']['id'] = 'field_indication_status_ref';
   $handler->display->display_options['fields']['field_indication_status_ref']['table'] = 'field_data_field_indication_status_ref';
   $handler->display->display_options['fields']['field_indication_status_ref']['field'] = 'field_indication_status_ref';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Contextual filter: Efni: Ábendingategund (field_indication_type_ref) */
+  /* Contextual filter: Content: Ábendingategund (field_indication_type_ref) */
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['id'] = 'field_indication_type_ref_tid';
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['table'] = 'field_data_field_indication_type_ref';
   $handler->display->display_options['arguments']['field_indication_type_ref_tid']['field'] = 'field_indication_type_ref_tid';
@@ -427,21 +868,21 @@ function rvk_ticketing_views_default_views() {
   );
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Efni: Birt */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
   $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Efni: Gerð */
+  /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'indications' => 'indications',
   );
-  /* Filter criterion: Efni: Staða (field_indication_status_ref) */
+  /* Filter criterion: Content: Staða (field_indication_status_ref) */
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['id'] = 'field_indication_status_ref_tid';
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['table'] = 'field_data_field_indication_status_ref';
   $handler->display->display_options['filters']['field_indication_status_ref_tid']['field'] = 'field_indication_status_ref_tid';
@@ -468,17 +909,32 @@ function rvk_ticketing_views_default_views() {
     t('aftasta »'),
     t('Sjá allar'),
     t('<h2><span class="icon-status"></span>Óhreyfðar ábendingar <span class="total-rows"> (@total)</span></h2>'),
-    t('Titill'),
+    t('Title'),
     t('Nafn sendanda'),
     t('Skráð þann'),
     t('Ábendingategund'),
     t('Nýjar ábendingar'),
+    t('more'),
     t('<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--new"></span><span>Nýjar og óflokkaðar ábendingar </span><span class="total-rows"> (@total)</span></h2>'),
+    t('No results'),
+    t('<p>Engar nýjar ábendingar eru til staðar</p>'),
+    t('Svara ábendingu fyrir'),
+    t('Mótteknar ábendingar'),
+    t('<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--new"></span><span>Nýjar ábendingar </span><span class="total-rows"> (@total)</span></h2>'),
+    t('Staða'),
+    t('Ábendingunni þarf að loka fyrir'),
     t('All'),
     t('Í vinnslu'),
-    t('höfundur'),
+    t('<h2><span class="icon-status"></span>Ábendingar í vinnslu <span class="total-rows"> (@total)</span></h2>'),
+    t('<p>Engar ábendingar eru í vinnslu</p>'),
+    t('author'),
+    t('Staða (field_indication_status_ref)'),
+    t('Í vinnslu - Contextual'),
     t('Óhreyfðar ábendingar'),
     t('<h2 class="table-layout1__item-count"><span class="icon-circle icon-circle--alert"></span><span>Komnar framyfir svartíma </span><span class="total-rows"> (@total)</span></h2>'),
+    t('Engin ábending er komin fram yfir svartíma'),
+    t('Svara þarf ábendingu fyrir'),
+    t('Óhreyfðar ábendingar - Contextual'),
     t('Lokaðar ábendingar'),
     t('<h2><span class="icon-status"></span>Lokaðar ábendingar <span class="total-rows"> (@total)</span></h2>'),
     t('Lokað þann'),
@@ -487,7 +943,6 @@ function rvk_ticketing_views_default_views() {
     t('Yfirlit ábendinga'),
     t('Svið'),
     t('<h2><span class="icon-status"></span>Ábendingar<span class="total-rows"> (@total)</span></h2>'),
-    t('Staða'),
   );
 
   // Add view to list of views to provide.
