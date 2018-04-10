@@ -3,14 +3,16 @@
 
   Drupal.behaviors.accordion = {
     attach: function (context, settings) {
-      $( '#edit-map-fieldset .toggle-icon' ).click(function() {
-        $(this).parent().next('.collapse').toggleClass('show');
+      $( '#edit-indication-fieldset-map-fieldset .toggle-icon' ).click(function() {
+        $(this).parent().next('.collapse').toggleClass('show-map');
         $(this).toggleClass('flip');
         $(this).parent().parent().parent().parent().parent().parent().toggleClass('move');
       });
 
-      $( '#edit-image-fieldset .toggle-icon' ).click(function() {
-        $(this).parent().next('.collapse').toggleClass('show');
+      var test = $('#block-rvk-ticketing-indication-form');
+
+      $( '#images-fieldset-wrapper .toggle-icon' ).click(function() {
+        $(this).parentsUntil('#block-rvk-ticketing-indication-form').parent().toggleClass('show-image');
         $(this).toggleClass('flip');
       });
 

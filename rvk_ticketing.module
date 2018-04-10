@@ -617,22 +617,27 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#markup' => '<h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
   ];
 
-  $form['personal_info_fieldset']['name'] = [
+  $form['personal_info_fieldset']['person'] = [
+    '#type' => 'fieldset',
+    '#weight' => 20,
+  ];
+
+  $form['personal_info_fieldset']['person']['name'] = [
     '#type' => 'textfield',
     '#title' => 'Nafn',
   ];
 
-  $form['personal_info_fieldset']['ssn'] = [
+  $form['personal_info_fieldset']['person']['ssn'] = [
     '#type' => 'textfield',
     '#title' => 'Kennitala',
   ];
 
-  $form['personal_info_fieldset']['email'] = [
+  $form['personal_info_fieldset']['person']['email'] = [
     '#type' => 'textfield',
     '#title' => 'Netfang',
   ];
 
-  $form['personal_info_fieldset']['tel'] = [
+  $form['personal_info_fieldset']['person']['tel'] = [
     '#type' => 'textfield',
     '#title' => 'Sími',
   ];
