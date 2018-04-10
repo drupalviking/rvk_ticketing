@@ -490,6 +490,11 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#markup' => '</div>',
   ];
 
+  $form['indication_fieldset']['image_fieldset']['image'] = [
+    '#type' => 'fieldset',
+    '#weight' => 25
+  ];
+
   $form['indication_fieldset']['map_fieldset'] = [
     '#type' => 'fieldset',
     '#weight' => 30,
@@ -555,12 +560,13 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     );
   }
 
-  $form['indication_fieldset']['image_fieldset']['add_image'] = array(
+  $form['indication_fieldset']['image_fieldset']['image']['add_image'] = array(
     '#type' => 'submit',
     '#value' => t('Add one more'),
     '#submit' => array(
       'rvk_ticketing_add_more_add_one_image',
     ),
+    '#weight' => 70,
     // See the examples in ajax_example.module for more details on the
     // properties of #ajax.
     '#ajax' => array(
@@ -648,84 +654,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   return $form;
 }
 
-function rvk_ticketing_create_test_form($form, &$form_state) {
-  $form['#attached']['css'] = [
-    'https://js.arcgis.com/3.13/esri/css/esri.css' => [
-      'type' => 'external',
-    ],
-    drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
-    drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
-  ];
-
-  $form['#tree'] = TRUE;
-
-  $form['indication_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 10,
-  ];
-
-  $form['indication_fieldset']['indication_text_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 10,
-  ];
-
-  $form['indication_fieldset']['image_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 32,
-    '#prefix' => '<div id="images-fieldset-wrapper">',
-    '#suffix' => '</div>',
-  ];
-
-  $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
-    '#type' => 'markup',
-    '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>Senda mynd</h3><div class="collapse">'
-  ];
-
-  $form['indication_fieldset']['image_fieldset']['post_markup'] = [
-    '#type' => 'markup',
-    '#weight' => 100,
-    '#markup' => '</div>',
-  ];
-
-
-
-  // Build the fieldset with the proper number of names. We'll use
-  // $form_state['num_images'] to determine the number of textfields to build.
-  if (empty($form_state['num_images'])) {
-    $form_state['num_images'] = 1;
-  }
-  for ($i = 0; $i < $form_state['num_images']; $i++) {
-    $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
-      '#type' => 'managed_file',
-      '#title' => 'Mynd',
-      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-      '#upload_location' => 'public://indication_images/',
-      '#weight' => 50,
-    );
-  }
-
-  $form['indication_fieldset']['image_fieldset']['add_image'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add one more'),
-    '#submit' => array(
-      'rvk_ticketing_add_more_add_one_image',
-    ),
-    // See the examples in ajax_example.module for more details on the
-    // properties of #ajax.
-    '#ajax' => array(
-      'callback' => 'rvk_ticketing_add_image_callback',
-      'wrapper' => 'images-fieldset-wrapper',
-    ),
-  );
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Senda'),
-  );
-
-  return $form;
-}
 /**
  * Callback for both ajax-enabled buttons.
  *
