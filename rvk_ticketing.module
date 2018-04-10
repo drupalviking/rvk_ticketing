@@ -39,7 +39,7 @@ function rvk_ticketing_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['abendingar'] = [
+  $items['abendingar/stjornbord'] = [
     'title' => 'Ábendingar',
     'page callback' => 'rvk_ticketing_view_indications_page',
     'access arguments' => ['edit ticketing content'],
@@ -68,6 +68,7 @@ function rvk_ticketing_view_indications_page() {
     drupal_set_message("Svo virðist sem þú hafir ekki heimild til að skoða þetta svæði");
     return "";
   }
+
   $user_indication_group_tid = $current_user->field_svid[LANGUAGE_NONE][0]['tid'];
   $user_indication_group = taxonomy_term_load($user_indication_group_tid);
 
