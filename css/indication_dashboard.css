@@ -1,3 +1,129 @@
-body {
-    background: pink !important;
+/* Indication Dasboard */
+
+.table-layout1 {
+	margin-bottom: 36px;
+}
+
+.table-layout1 table {
+	border-collapse: collapse;
+	margin-bottom: 0;
+}
+
+.table-layout1 .table-responsive {
+	overflow-x: unset;
+}
+
+.table-layout1 .view-content {
+	margin-bottom: 32px;
+}
+
+.table-layout1 thead tr th {
+	background-color: #8b8b8b;
+	color: white;
+	font-size: 16px;
+	font-weight: 600;
+	padding: 9px 12px 11px !important;
+	border: none;
+	border-right: 1px solid white;
+}
+
+.table-layout1 thead tr th:last-child {
+	border-right: none;
+}
+
+.table-layout1 tbody tr td {
+	font-size: 16px;
+	padding: 6px 12px 8px;
+	border: none;
+	border-right: 1px solid #f1f1f1;
+}
+
+.table-layout1 tbody a:link,
+.table-layout1 tbody a:visited {
+	text-decoration: none;
+	color: #404040;
+}
+
+.table-layout1 tbody tr:nth-child(odd) td {
+	background-color: white;
+}
+
+.table-layout1 tbody tr:nth-child(even) td {
+	background-color: #f1f1f1;
+	border-right: 1px solid white;
+}
+
+.table-layout1 td ul {
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+}
+
+.table-layout1 .table-layout1__item-count {
+	font-size: 1.8em;
+	font-weight: 600;
+	padding-bottom: 18px;
+}
+
+.table-layout1 .table-layout1__item-count span {
+	display: inline-block;
+	vertical-align: middle;
+	white-space: pre-wrap;
+}
+
+.icon-circle {
+	width: 23px;
+	height: 23px;
+	margin-right: 10px;
+}
+
+.table-layout1 tbody a:before {
+	content: '';
+	background: url(images/svg/right-arrow.svg) no-repeat top left;
+	width: 8px;
+	height: 14px;
+	position: absolute;
+	right: 0;
+	top: 7px;
+	background-size: 8px 14px;
+}
+
+.table-layout1 tbody a {
+	padding-right: 30px;
+	position: relative;
+	display: block;
+}
+
+.icon-circle--new {
+	background: url(images/svg/circle-yellow.svg) no-repeat top left;
+}
+
+.icon-circle--alert {
+	background: url(images/svg/circle-red.svg) no-repeat top left;
+}
+
+.icon-circle--success {
+	background: url(images/svg/circle-green.svg) no-repeat top left;
+}
+
+.table-layout1 .pager-show-more a {
+	border-radius: 100px;
+    width: 175px;
+    font-size: 14px;
+    padding: 12px;
+    text-decoration: none;
+    transition: all .25s ease-in;
+    -moz-transition: all .25s ease-in;
+    -webkit-transition: all .25s ease-in;
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    text-transform: uppercase;
+}
+
+.table-layout1 .pager-show-more a:hover,
+.table-layout1 .pager-show-more a:focus {
+	color: #fff;
+    background-color: #286090;
+    border-color: #204d74;
 }
