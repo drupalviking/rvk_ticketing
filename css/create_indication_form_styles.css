@@ -182,7 +182,7 @@
 }
 
 #rvk-ticketing-create-ticket-form .collapse.show-map,
-#block-rvk-ticketing-indication-form.show-image #images-fieldset-wrapper .collapse {
+#rvk-ticketing-create-ticket-form.show-image #images-fieldset-wrapper .collapse {
 	max-height: 1000px;
 }
 

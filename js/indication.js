@@ -9,10 +9,9 @@
         $(this).parent().parent().parent().parent().parent().parent().toggleClass('move');
       });
 
-      var test = $('#block-rvk-ticketing-indication-form');
-
+     
       $( '#images-fieldset-wrapper .toggle-icon' ).click(function() {
-        $(this).parentsUntil('#block-rvk-ticketing-indication-form').parent().toggleClass('show-image');
+        $(this).parent().parent().parent().parent().parent().parent().parent().parent().toggleClass('show-image');
         $(this).toggleClass('flip');
       });
 
