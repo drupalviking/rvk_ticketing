@@ -128,8 +128,6 @@ function rvk_ticketing_view_indications_page() {
                  "<div class='indications-closed'>" . $indications_closed_markup . "</div>",
   ];
 
-
-
   return $build;
 }
 
@@ -686,7 +684,7 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   $values = $form_state['values'];
 
   if(strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
-    if(!rvk_ticket_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
+    if(!rvk_ticketing_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
       form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
     }
   }
@@ -705,9 +703,37 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
  * @param string $address The Address to validate
  * @return bool
  */
-function rvk_ticket_check_street_address_valid($address) {
+function rvk_ticketing_check_street_address_valid($address) {
   $street = borgarvefsja_search_by_address($address);
   return($street[0]['text'] != $address) ? false : true;
+}
+
+/**
+ * Implements hook_preprocess_page
+ */
+function rvk_ticketing_preprocess_page(&$variables) {
+  /**
+   * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
+   */
+  if($variables['node']->type == 'indications' ) {
+    if(isset($variables['node']->field_indication_position_x[LANGUAGE_NONE])) {
+      $xcoord = $variables['node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
+      $ycoord = $variables['node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
+
+      $coords = [
+        'xcoord' => $xcoord,
+        'ycoord' => $ycoord,
+      ];
+
+      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
+      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
+      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
+      drupal_add_js('https://js.arcgis.com/3.13/init.js');
+      drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
+      drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
+      drupal_add_js($coords, 'setting');
+    }
+  }
 }
 
 /**
