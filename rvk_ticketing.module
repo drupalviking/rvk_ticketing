@@ -736,6 +736,14 @@ function rvk_ticketing_preprocess_page(&$variables) {
       }
     }
   }
+
+  if(isset($variables['page'])) {
+    if(isset($variables['theme_hook_suggestions'])) {
+      if(in_array('page__abendingar__stjornbord', $variables['theme_hook_suggestions'])) {
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/indication_dashboard.css');
+      }
+    }
+  }
 }
 
 /**
