@@ -715,23 +715,25 @@ function rvk_ticketing_preprocess_page(&$variables) {
   /**
    * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
    */
-  if($variables['node']->type == 'indications' ) {
-    if(isset($variables['node']->field_indication_position_x[LANGUAGE_NONE])) {
-      $xcoord = $variables['node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
-      $ycoord = $variables['node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
+  if(isset($variables['node'])) {
+    if($variables['node']->type == 'indications' ) {
+      if(isset($variables['node']->field_indication_position_x[LANGUAGE_NONE])) {
+        $xcoord = $variables['node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
+        $ycoord = $variables['node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
 
-      $coords = [
-        'xcoord' => $xcoord,
-        'ycoord' => $ycoord,
-      ];
+        $coords = [
+          'xcoord' => $xcoord,
+          'ycoord' => $ycoord,
+        ];
 
-      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
-      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
-      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
-      drupal_add_js('https://js.arcgis.com/3.13/init.js');
-      drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
-      drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
-      drupal_add_js($coords, 'setting');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
+        drupal_add_js('https://js.arcgis.com/3.13/init.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
+        drupal_add_js($coords, 'setting');
+      }
     }
   }
 }
@@ -757,7 +759,12 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
             $values['images'][] = $file;
           }
           else {
-            if(sizeof($values['images']) == 0) {
+            if(!isset($values['images'])) {
+              if(sizeof($values['images']) == 0) {
+                $values['images'] = null;
+              }
+            }
+            else {
               $values['images'] = null;
             }
           }
