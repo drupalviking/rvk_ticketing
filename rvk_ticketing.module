@@ -759,21 +759,20 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   if(isset($values['indication_fieldset'])) {
     if(isset($values['indication_fieldset']['image_fieldset'])) {
       if(isset($values['indication_fieldset']['image_fieldset']['image'])) {
-        foreach($values['indication_fieldset']['image_fieldset']['image'] as $image) {
-          if($image != 0) {
-            $file = file_load((int)$image);
-            $file->status = FILE_STATUS_PERMANENT;
-            file_save($file);
-            $values['images'][] = $file;
-          }
-          else {
-            if(!isset($values['images'])) {
-              if(sizeof($values['images']) == 0) {
-                $values['images'] = null;
-              }
+        foreach($values['indication_fieldset']['image_fieldset']['image'] as $key => $image) {
+          if(is_numeric($key)) {
+            if($image != 0) {
+              $file = file_load((int)$image);
+              $file->status = FILE_STATUS_PERMANENT;
+              file_save($file);
+              $values['images'][] = $file;
             }
             else {
-              $values['images'] = null;
+              if(!isset($values['images'])) {
+                if(sizeof($values['images']) == 0) {
+                  $values['images'] = null;
+                }
+              }
             }
           }
         }
