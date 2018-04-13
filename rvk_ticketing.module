@@ -734,21 +734,23 @@ function rvk_ticketing_preprocess_node(&$variables) {
    */
   if($variables['type']== 'indications' ) {
     if(isset($variables['field_indication_position_x'])) {
-      $xcoord = $variables['field_indication_position_x'][0]['value'];
-      $ycoord = $variables['field_indication_position_y'][0]['value'];
+      if(isset($variables['field_indication_position_x'][0])) {
+        $xcoord = $variables['field_indication_position_x'][0]['value'];
+        $ycoord = $variables['field_indication_position_y'][0]['value'];
 
-      $coords = [
-        'xcoord' => $xcoord,
-        'ycoord' => $ycoord,
-      ];
+        $coords = [
+          'xcoord' => $xcoord,
+          'ycoord' => $ycoord,
+        ];
 
-      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
-      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
-      drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
-      drupal_add_js('https://js.arcgis.com/3.13/init.js');
-      drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
-      drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
-      drupal_add_js($coords, 'setting');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
+        drupal_add_js('https://js.arcgis.com/3.13/init.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
+        drupal_add_js($coords, 'setting');
+      }
     }
   }
 }
