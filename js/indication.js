@@ -26,7 +26,7 @@
                 $(this).val('');
             });
 
-        $("#edit-address--2", context).bind('autocompleteSelect', function(event, node) {
+        $("#edit-indication-fieldset-map-fieldset-address-address", context).bind('autocompleteSelect', function(event, node) {
           var key = $(node).data('autocompleteValue');
           // If matches found...
           if (key != '0') {
