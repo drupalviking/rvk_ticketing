@@ -625,10 +625,10 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#title' => 'Nafn',
   ];
 
-  $form['personal_info_fieldset']['person']['ssn'] = [
+  /**$form['personal_info_fieldset']['person']['ssn'] = [
     '#type' => 'textfield',
     '#title' => 'Kennitala',
-  ];
+  ];*/
 
   $form['personal_info_fieldset']['person']['email'] = [
     '#type' => 'textfield',
@@ -689,11 +689,12 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
     }
   }
 
+  /**
   if(strlen($values['personal_info_fieldset']['person']['ssn']) > 0) {
     if(!_rvk_ticketing_ssn_validation($values['personal_info_fieldset']['person']['ssn'])) {
       form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
     }
-  }
+  }*/
 }
 
 /**
@@ -846,9 +847,9 @@ function rvk_ticketing_create_indication_node($data) {
   if(strlen($data['personal_info_fieldset']['person']['name']) > 0) {
     $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['name'];
   }
-  if(strlen($data['personal_info_fieldset']['person']['ssn']) > 0) {
+  /**if(strlen($data['personal_info_fieldset']['person']['ssn']) > 0) {
     $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['ssn'];
-  }
+  }*/
   if(strlen($data['personal_info_fieldset']['person']['email']) > 0) {
     $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['email'];
   }

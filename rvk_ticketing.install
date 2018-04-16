@@ -283,8 +283,8 @@ function _rvk_ticketing_create_indication_content_type() {
     'Mynd með tilkynningu', 'image_image');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_name', 'text',
     $type_name, 'Nafn sendanda', 'Nafn sendanda', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',
-    $type_name, 'Kennitala sendanda', 'Kennitala sendanda', 'textfield');
+  /**_rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',
+    $type_name, 'Kennitala sendanda', 'Kennitala sendanda', 'textfield');*/
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_email', 'text',
     $type_name, 'Netfang', 'Netfang', 'textfield');
   _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_phone', 'text',
