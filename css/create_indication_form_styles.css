@@ -186,6 +186,10 @@
 	max-height: 1000px;
 }
 
+#rvk-ticketing-create-ticket-form .collapse.show-map {
+	overflow-y: visible;
+}
+
 #rvk-ticketing-create-ticket-form #LocateButton {
     top: 93px;
     left: 21px;
