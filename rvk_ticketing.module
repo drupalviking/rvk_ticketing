@@ -754,6 +754,15 @@ function rvk_ticketing_preprocess_node(&$variables) {
       }
     }
   }
+  elseif($variables['type'] == 'page') {
+    if($variables['title'] == 'Takk fyrir ábendinguna') {
+      $param = drupal_get_query_parameters();
+      $path = $GLOBALS['base_url'] . '/abendingar/' . $param['nid'];
+
+      $variables['content']['body'][0]['#markup'] =
+        $variables['content']['body'][0]['#markup'] . '<p><a href="' . $path . '">' . $path . '</a></p>';
+    }
+  }
 }
 
 /**
@@ -793,9 +802,7 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
             }
             else {
               if(!isset($values['images'])) {
-                if(sizeof($values['images']) == 0) {
-                  $values['images'] = null;
-                }
+                $values['images'] = null;
               }
             }
           }
@@ -813,9 +820,13 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
     $values['indication_fieldset']['map_fieldset']['ycoords'] = $street[0]['y'];
   }
 
-  rvk_ticketing_create_indication_node($values);
+  $node = rvk_ticketing_create_indication_node($values);
 
-  drupal_goto(variable_get('rvk_ticketing_thank_you_page'));
+  drupal_goto(variable_get('rvk_ticketing_thank_you_page'), [
+    "query" => [
+      "nid" => $node->nid
+    ]
+  ]);
 }
 
 /**
