@@ -801,6 +801,30 @@ function rvk_ticketing_preprocess_node(&$variables) {
         drupal_add_js($coords, 'setting');
       }
     }
+
+    $respond_by = (isset($variables['field_indication_respond_by']))
+      ? $variables['field_indication_respond_by'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $responded_at = (isset($variables['field_indication_responded_at']))
+      ? $variables['field_indication_responded_at'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $close_by = (isset($variables['field_indication_close_by']))
+      ? $variables['field_indication_close_by'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $closed_at = (isset($variables['field_indication_closed_at']))
+      ? $variables['field_indication_closed_at'][LANGUAGE_NONE][0]['value']
+      : null;
+    if(rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at)) {
+      $expired = [
+        'expired_status' => TRUE,
+        'expired_text' => 'Ábendingin er komin framyfir svar/framkvæmdartíma',
+      ];
+
+      drupal_add_js($expired, 'setting');
+    }
   }
   elseif($variables['type'] == 'page') {
     if($variables['title'] == 'Takk fyrir ábendinguna') {
