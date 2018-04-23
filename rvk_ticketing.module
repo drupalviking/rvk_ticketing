@@ -4,6 +4,7 @@ define('RVK_TICKETING_SERVICE_DESK_OPENING_HOUR', variable_get('rvk_ticketing_se
 define('RVK_TICKETING_SERVICE_DESK_OPENING_MINUTE', variable_get('rvk_ticketing_service_desk_opening_minute'));
 define('RVK_TICKETING_SERVICE_DESK_DURATION', variable_get('rvk_ticketing_service_desk_duration'));
 define('RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND', variable_get('rvk_ticketing_service_desk_days_to_respond'));
+define('RVK_TICKETING_EXPIRED_INDICATION_TEXT', variable_get('rvk_ticketing_expired_indication_text'));
 
 /**
  * MODULE FILE
@@ -244,7 +245,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
     if(!$expired) {
       $form['field_indication_expired_markup']['#weight'] = -50;
       $form['field_indication_expired_markup']['#markup'] =
-        '<div class="indication-expired-readonly"><div><p>Ábendingin er komin fram yfir svar/framkvæmdartíma!!!</p></div></div>';
+        '<div class="indication-expired-readonly"><div><p>' . RVK_TICKETING_EXPIRED_INDICATION_TEXT . '</p></div></div>';
 
       //Moves the markup into the fieldset group_indication_content
       $form['#group_children']['field_indication_expired_markup'] = "group_indication_content";
@@ -802,31 +803,34 @@ function rvk_ticketing_preprocess_node(&$variables) {
       }
     }
 
-    $respond_by = (isset($variables['field_indication_respond_by']))
+    $respond_by = (isset($variables['field_indication_respond_by'][LANGUAGE_NONE]))
       ? $variables['field_indication_respond_by'][LANGUAGE_NONE][0]['value']
       : null;
 
-    $responded_at = (isset($variables['field_indication_responded_at']))
+    $responded_at = (isset($variables['field_indication_responded_at'][LANGUAGE_NONE]))
       ? $variables['field_indication_responded_at'][LANGUAGE_NONE][0]['value']
       : null;
 
-    $close_by = (isset($variables['field_indication_close_by']))
+    $close_by = (isset($variables['field_indication_close_by'][LANGUAGE_NONE]))
       ? $variables['field_indication_close_by'][LANGUAGE_NONE][0]['value']
       : null;
 
-    $closed_at = (isset($variables['field_indication_closed_at']))
+    $closed_at = (isset($variables['field_indication_closed_at'][LANGUAGE_NONE]))
       ? $variables['field_indication_closed_at'][LANGUAGE_NONE][0]['value']
       : null;
+
     if(rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at)) {
       $expired = [
+        'display_expired_status' => user_access('edit ticketing content'),
         'expired_status' => TRUE,
-        'expired_text' => 'Ábendingin er komin framyfir svar/framkvæmdartíma',
+        'expired_text' => RVK_TICKETING_EXPIRED_INDICATION_TEXT,
       ];
     }
     else {
       $expired = [
+        'display_expired_status' => user_access('edit ticketing content'),
         'expired_status' => FALSE,
-        'expired_text' => 'Ábendingin er komin framyfir svar/framkvæmdartíma',
+        'expired_text' => '',
       ];
     }
 
