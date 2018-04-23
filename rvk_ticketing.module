@@ -822,9 +822,15 @@ function rvk_ticketing_preprocess_node(&$variables) {
         'expired_status' => TRUE,
         'expired_text' => 'Ábendingin er komin framyfir svar/framkvæmdartíma',
       ];
-
-      drupal_add_js($expired, 'setting');
     }
+    else {
+      $expired = [
+        'expired_status' => FALSE,
+        'expired_text' => 'Ábendingin er komin framyfir svar/framkvæmdartíma',
+      ];
+    }
+
+    drupal_add_js($expired, 'setting');
   }
   elseif($variables['type'] == 'page') {
     if($variables['title'] == 'Takk fyrir ábendinguna') {
