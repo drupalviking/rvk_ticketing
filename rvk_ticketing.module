@@ -240,6 +240,16 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       }
     }
 
+    $expired = rvk_ticketing_check_if_response_time_is_expired($form, $form_state);
+    if(!$expired) {
+      $form['field_indication_expired_markup']['#weight'] = -50;
+      $form['field_indication_expired_markup']['#markup'] =
+        '<div class="indication-expired-readonly"><div><p>Ábendingin er komin fram yfir svar/framkvæmdartíma!!!</p></div></div>';
+
+      //Moves the markup into the fieldset group_indication_content
+      $form['#group_children']['field_indication_expired_markup'] = "group_indication_content";
+    }
+
     $form['#attached']['js'] = array(
       'https://js.arcgis.com/3.13/init.js' => array(
         'type' => 'external',
@@ -254,6 +264,44 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
     }
   }
+}
+
+function rvk_ticketing_check_if_response_time_is_expired(&$form, &$form_state) {
+  $respond_by = (isset($form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value']
+    : null;
+  $responded_at = (isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']
+    : null;
+
+  $close_by = (isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value']
+    : null;
+
+  $closed_at = (isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']
+    : null;
+
+  return rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at);
+}
+
+function rvk_ticketing_process_expiration_times($respond_by, $respsonded_at, $close_by, $closed_at) {
+  $today = str_replace(' ', 'T', strftime('%Y-%m-%d %H:%M:%S'));
+
+  //If the indication is closed, the response time is no longer expired, even if it was at one point
+  if(isset($closed_at)) {
+    return FALSE;
+  }
+
+  if(isset($close_by)) {
+    return (strcmp($today, $close_by) == 1) ? TRUE : FALSE;
+  }
+
+  if(isset($respond_by) || !isset($close_by) ) {
+    return (strcmp($today, $respond_by) == 1) ? TRUE : FALSE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -711,7 +759,7 @@ function rvk_ticketing_check_street_address_valid($address) {
 
 function rvk_ticketing_preprocess_field(&$variables) {
   if($variables['element']['#field_name'] == 'field_indication_status_ref') {
-    switch($variables['items'][0]['#title']) {
+    switch($variables['items'][0]['#markup']) {
       case 'Móttekin' :
         $variables['classes_array'][] = 'received';
         break;
