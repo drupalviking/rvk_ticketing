@@ -16,15 +16,6 @@
  * Implements hook_install().
  */
 function rvk_ticketing_install() {
-  /*_rvk_ticketing_create_indication_type_taxonomy_vocabulary();
-  _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
-  _rvk_ticketing_create_indication_content_type();*/
-}
-
-/**
- * Implements hook_enable().
- */
-function rvk_ticketing_enable() {
   _rvk_ticketing_create_indication_type_taxonomy_vocabulary();
   _rvk_ticketing_create_indication_status_taxonomy_vocabulary();
   _rvk_ticketing_create_external_department_taxonomy_vocabulary();
@@ -32,9 +23,23 @@ function rvk_ticketing_enable() {
 }
 
 /**
+ * Implements hook_enable().
+ */
+function rvk_ticketing_enable() {
+
+}
+
+/**
  * Implements hook_disable().
  */
 function rvk_ticketing_disable() {
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function rvk_ticketing_uninstall() {
   $view = views_get_view('indications');
   if($view) {
     views_delete_view($view);
@@ -53,13 +58,6 @@ function rvk_ticketing_disable() {
   variable_del('comment_preview_indications');
   variable_del('comment_subject_field_indications');
   variable_del('node_options_indications');
-}
-
-/**
- * Implements hook_uninstall().
- */
-function rvk_ticketing_uninstall() {
-
 }
 
 function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
