@@ -11,10 +11,6 @@ function rvk_ticketing_edit_indication_page() {
 
   module_load_include('inc', 'node', 'node.pages');
   $build['form'] = [
-    'header_text' => [
-      '#type' => 'markup',
-      '#markup' => '<h2>' . t('Edit indication') . '</h2>',
-    ],
     'indication_edit_form' => drupal_get_form("indications_node_form", $indication),
   ];
 

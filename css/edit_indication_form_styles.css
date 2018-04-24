@@ -21,6 +21,7 @@
     max-width: 986px;
     font-family: 'Open Sans', sans-serif;
     margin: 0 auto;
+    margin-bottom: 36px;
 }
 
 .node-indications-form .panel-body {
@@ -109,11 +110,13 @@
     font-size: 16px
 }
 
-.node-indications-form .form-type-select {
+.node-indications-form .form-type-select,
+.node-indications-form .form-type-hierarchical-select {
     position: relative;
 }
 
-.node-indications-form .form-type-select:before {
+.node-indications-form .form-type-select:before,
+.node-indications-form .form-type-hierarchical-select:before {
     content: '';
     background-image: url("images/svg/select-arrow.svg");
     width: 23px;
@@ -122,6 +125,13 @@
     right: 25px;
     top: 42px;
     pointer-events: none;
+}
+
+.node-indications-form .location-text-readonly p,
+.node-indications-form .response-by-time-readonly p,
+.node-indications-form .response-time-readonly p,
+.node-indications-form .closing-time-readonly p {
+    padding-left: 6px;
 }
 
 .node-indications-form .form-actions {
@@ -266,22 +276,52 @@
     padding: 0 0 20px 0;
 }
 
+#indications-node-form #edit-field-image-und-body .input-group-btn button,
+#indications-node-form #edit-field-image .input-group-btn button {
+    position: absolute;
+    right: 0;
+    margin: 0;
+    height: 45px;
+    top: 0;
+    display: block;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    width: 150px;
+    z-index: 3;
+}
+
+#indications-node-form .field-type-image .form-control,
+#indications-node-form .field-type-text .form-control,
+#indications-node-form .field-widget-options-select .form-control,
+#indications-node-form .hierarchical-select .form-control {
+    height: 46px;
+    border-radius: 8px;
+    box-shadow: unset;
+    background-image: none;
+}
+
+#indications-node-form .hierarchical-select .selects {
+    float: none;
+}
+
 @media screen and (min-width: 610px) {
     
-    .node-indications-form .image-preview,
-    .node-indications-form .image-widget-data {
-        width: 50%;
+    .node-indications-form #edit-field-image-und-table .image-preview,
+    .node-indications-form #edit-field-image-und-table .image-widget-data {
+        width: auto;
         display: inline-block;
         vertical-align: middle;
         float: none;
     }
 
-    .node-indications-form .image-preview {
+    .node-indications-form #edit-field-image-und-table .image-preview {
         padding-bottom: 0;
         border-right: 18px solid transparent;
     }
 
-    .node-indications-form .image-widget-data {
+    .node-indications-form #edit-field-image-und-table .image-widget-data {
         border-left: 18px solid transparent;
     }
 }

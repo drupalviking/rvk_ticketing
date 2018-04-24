@@ -29,15 +29,15 @@ function rvk_ticketing_admin() {
     '#weight' => 10,
     '#title' => t('URL to thank you page'),
     '#description' => t('Enter the URL you want users to be redirected to, after the submit their indication'),
-    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/takk-fyrir-abendinguna'),
+    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/abendingar/takk-fyrir-abendinguna'),
   ];
 
-  $form['rvk_ticketing_config']['rvk_ticketing_thank_you_page'] = [
+  $form['rvk_ticketing_config']['rvk_ticketing_expired_indication_text'] = [
     '#type' => 'textarea',
     '#weight' => 10,
-    '#title' => t('URL to thank you page'),
-    '#description' => t('Enter the URL you want users to be redirected to, after the submit their indication'),
-    '#default_value' => variable_get('rvk_ticketing_thank_you_page', '/abendingar/takk-fyrir-abendinguna'),
+    '#title' => t('Text to display when response time for indication has expired'),
+    '#description' => t('Enter the text to display when response time for indication has expired'),
+    '#default_value' => variable_get('rvk_ticketing_expired_indication_text', 'Ábendingin er komin framyfir svar/framkvæmdartíma'),
   ];
 
   $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_hours'] = [

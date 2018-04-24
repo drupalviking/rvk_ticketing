@@ -50,6 +50,17 @@ within this module.
 You need to add a field to the User, a taxonomy term reference to Ábendingategundir vocabulary. That can be done here:
 /admin/config/people/accounts/fields
 
+You also need to add the path to 'abendingar/stjornbord' into the user menu: /admin/structure/menu/manage/management/add
+Keep the weight at 50, so it will always be to the furthest right.
+
+Remove the old redirect, here: /admin/config/search/redirect (It's called abendingar)
+
+Apparently, the filters for Indication status do not export over to the production site. So you need to go to
+/admin/structure/views/view/indications/edit/indications_new and edit each filter in every display, where
+Efni: Staða (=) | Stillingar (The equal sign is indicating that there is no filter criteria.
+
+The Node
+====================
 For the node type itself (indications), there is also some configuration to be done. First we need to configure the
 taxonomy term field field_indication_type_ref to use Hierarchical Select Widget
 (/admin/structure/types/manage/indications/fields/field_indication_type_ref/widget-type). It also has to have Save term
@@ -92,6 +103,11 @@ Tímasetningar (group_indication_timestamps)
     Ábendingunni lokað þann
 
 We also need to change the pathauto config, to not use the title as url path, but node id's (abendingar/xxx)
+
+Node display
+======================
+When the indication nodes are displayed, a map might have to be shown. In order to display the map and to push the
+data from the node to the Javascripts, I had to override the preprocess_page hook.
 
 
 Dependencies

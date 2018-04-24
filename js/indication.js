@@ -3,14 +3,15 @@
 
   Drupal.behaviors.accordion = {
     attach: function (context, settings) {
-      $( '#edit-map-fieldset .toggle-icon' ).click(function() {
-        $(this).parent().next('.collapse').toggleClass('show');
+      $( '#edit-indication-fieldset-map-fieldset .toggle-icon' ).click(function() {
+        $(this).parent().next('.collapse').toggleClass('show-map');
         $(this).toggleClass('flip');
         $(this).parent().parent().parent().parent().parent().parent().toggleClass('move');
       });
 
-      $( '#edit-image-fieldset .toggle-icon' ).click(function() {
-        $(this).parent().next('.collapse').toggleClass('show');
+     
+      $( '#images-fieldset-wrapper .toggle-icon' ).click(function() {
+        $(this).parent().parent().parent().parent().parent().parent().parent().parent().toggleClass('show-image');
         $(this).toggleClass('flip');
       });
 
@@ -25,7 +26,7 @@
                 $(this).val('');
             });
 
-        $("#edit-address--2", context).bind('autocompleteSelect', function(event, node) {
+        $("#edit-indication-fieldset-map-fieldset-address-address", context).bind('autocompleteSelect', function(event, node) {
           var key = $(node).data('autocompleteValue');
           // If matches found...
           if (key != '0') {

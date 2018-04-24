@@ -4,6 +4,7 @@ define('RVK_TICKETING_SERVICE_DESK_OPENING_HOUR', variable_get('rvk_ticketing_se
 define('RVK_TICKETING_SERVICE_DESK_OPENING_MINUTE', variable_get('rvk_ticketing_service_desk_opening_minute'));
 define('RVK_TICKETING_SERVICE_DESK_DURATION', variable_get('rvk_ticketing_service_desk_duration'));
 define('RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND', variable_get('rvk_ticketing_service_desk_days_to_respond'));
+define('RVK_TICKETING_EXPIRED_INDICATION_TEXT', variable_get('rvk_ticketing_expired_indication_text'));
 
 /**
  * MODULE FILE
@@ -128,8 +129,6 @@ function rvk_ticketing_view_indications_page() {
                  "<div class='indications-closed'>" . $indications_closed_markup . "</div>",
   ];
 
-
-
   return $build;
 }
 
@@ -242,6 +241,16 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       }
     }
 
+    $expired = rvk_ticketing_check_if_response_time_is_expired($form, $form_state);
+    if(!$expired) {
+      $form['field_indication_expired_markup']['#weight'] = -50;
+      $form['field_indication_expired_markup']['#markup'] =
+        '<div class="indication-expired-readonly"><div><p>' . RVK_TICKETING_EXPIRED_INDICATION_TEXT . '</p></div></div>';
+
+      //Moves the markup into the fieldset group_indication_content
+      $form['#group_children']['field_indication_expired_markup'] = "group_indication_content";
+    }
+
     $form['#attached']['js'] = array(
       'https://js.arcgis.com/3.13/init.js' => array(
         'type' => 'external',
@@ -256,6 +265,44 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
     }
   }
+}
+
+function rvk_ticketing_check_if_response_time_is_expired(&$form, &$form_state) {
+  $respond_by = (isset($form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value']
+    : null;
+  $responded_at = (isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']
+    : null;
+
+  $close_by = (isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value']
+    : null;
+
+  $closed_at = (isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']
+    : null;
+
+  return rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at);
+}
+
+function rvk_ticketing_process_expiration_times($respond_by, $respsonded_at, $close_by, $closed_at) {
+  $today = str_replace(' ', 'T', strftime('%Y-%m-%d %H:%M:%S'));
+
+  //If the indication is closed, the response time is no longer expired, even if it was at one point
+  if(isset($closed_at)) {
+    return FALSE;
+  }
+
+  if(isset($close_by)) {
+    return (strcmp($today, $close_by) == 1) ? TRUE : FALSE;
+  }
+
+  if(isset($respond_by) || !isset($close_by) ) {
+    return (strcmp($today, $respond_by) == 1) ? TRUE : FALSE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -490,6 +537,11 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#markup' => '</div>',
   ];
 
+  $form['indication_fieldset']['image_fieldset']['image'] = [
+    '#type' => 'fieldset',
+    '#weight' => 25
+  ];
+
   $form['indication_fieldset']['map_fieldset'] = [
     '#type' => 'fieldset',
     '#weight' => 30,
@@ -555,12 +607,13 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     );
   }
 
-  $form['indication_fieldset']['image_fieldset']['add_image'] = array(
+  $form['indication_fieldset']['image_fieldset']['image']['add_image'] = array(
     '#type' => 'submit',
     '#value' => t('Add one more'),
     '#submit' => array(
       'rvk_ticketing_add_more_add_one_image',
     ),
+    '#weight' => 70,
     // See the examples in ajax_example.module for more details on the
     // properties of #ajax.
     '#ajax' => array(
@@ -611,22 +664,27 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#markup' => '<h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
   ];
 
-  $form['personal_info_fieldset']['name'] = [
+  $form['personal_info_fieldset']['person'] = [
+    '#type' => 'fieldset',
+    '#weight' => 20,
+  ];
+
+  $form['personal_info_fieldset']['person']['name'] = [
     '#type' => 'textfield',
     '#title' => 'Nafn',
   ];
 
-  $form['personal_info_fieldset']['ssn'] = [
+  /**$form['personal_info_fieldset']['person']['ssn'] = [
     '#type' => 'textfield',
     '#title' => 'Kennitala',
-  ];
+  ];*/
 
-  $form['personal_info_fieldset']['email'] = [
+  $form['personal_info_fieldset']['person']['email'] = [
     '#type' => 'textfield',
     '#title' => 'Netfang',
   ];
 
-  $form['personal_info_fieldset']['tel'] = [
+  $form['personal_info_fieldset']['person']['tel'] = [
     '#type' => 'textfield',
     '#title' => 'Sími',
   ];
@@ -648,84 +706,6 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   return $form;
 }
 
-function rvk_ticketing_create_test_form($form, &$form_state) {
-  $form['#attached']['css'] = [
-    'https://js.arcgis.com/3.13/esri/css/esri.css' => [
-      'type' => 'external',
-    ],
-    drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
-    drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
-  ];
-
-  $form['#tree'] = TRUE;
-
-  $form['indication_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 10,
-  ];
-
-  $form['indication_fieldset']['indication_text_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 10,
-  ];
-
-  $form['indication_fieldset']['image_fieldset'] = [
-    '#type' => 'fieldset',
-    '#weight' => 32,
-    '#prefix' => '<div id="images-fieldset-wrapper">',
-    '#suffix' => '</div>',
-  ];
-
-  $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
-    '#type' => 'markup',
-    '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>Senda mynd</h3><div class="collapse">'
-  ];
-
-  $form['indication_fieldset']['image_fieldset']['post_markup'] = [
-    '#type' => 'markup',
-    '#weight' => 100,
-    '#markup' => '</div>',
-  ];
-
-
-
-  // Build the fieldset with the proper number of names. We'll use
-  // $form_state['num_images'] to determine the number of textfields to build.
-  if (empty($form_state['num_images'])) {
-    $form_state['num_images'] = 1;
-  }
-  for ($i = 0; $i < $form_state['num_images']; $i++) {
-    $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
-      '#type' => 'managed_file',
-      '#title' => 'Mynd',
-      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
-      '#upload_location' => 'public://indication_images/',
-      '#weight' => 50,
-    );
-  }
-
-  $form['indication_fieldset']['image_fieldset']['add_image'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add one more'),
-    '#submit' => array(
-      'rvk_ticketing_add_more_add_one_image',
-    ),
-    // See the examples in ajax_example.module for more details on the
-    // properties of #ajax.
-    '#ajax' => array(
-      'callback' => 'rvk_ticketing_add_image_callback',
-      'wrapper' => 'images-fieldset-wrapper',
-    ),
-  );
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Senda'),
-  );
-
-  return $form;
-}
 /**
  * Callback for both ajax-enabled buttons.
  *
@@ -753,16 +733,17 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   $values = $form_state['values'];
 
   if(strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
-    if(!rvk_ticket_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
+    if(!rvk_ticketing_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
       form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
     }
   }
 
-  if(strlen($values['personal_info_fieldset']['ssn']) > 0) {
-    if(!_rvk_ticketing_ssn_validation($values['personal_info_fieldset']['ssn'])) {
+  /**
+  if(strlen($values['personal_info_fieldset']['person']['ssn']) > 0) {
+    if(!_rvk_ticketing_ssn_validation($values['personal_info_fieldset']['person']['ssn'])) {
       form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
     }
-  }
+  }*/
 }
 
 /**
@@ -772,9 +753,112 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
  * @param string $address The Address to validate
  * @return bool
  */
-function rvk_ticket_check_street_address_valid($address) {
+function rvk_ticketing_check_street_address_valid($address) {
   $street = borgarvefsja_search_by_address($address);
   return($street[0]['text'] != $address) ? false : true;
+}
+
+function rvk_ticketing_preprocess_field(&$variables) {
+  if($variables['element']['#field_name'] == 'field_indication_status_ref') {
+    switch($variables['items'][0]['#markup']) {
+      case 'Móttekin' :
+        $variables['classes_array'][] = 'received';
+        break;
+      case 'Í úrvinnslu' :
+        $variables['classes_array'][] = 'in_progress';
+        break;
+      case 'Lokið' :
+        $variables['classes_array'][] = 'closed';
+        break;
+      case 'Ný ábending' :
+      default :
+        $variables['classes_array'][] = 'new_indication';
+        break;
+    }
+  }
+}
+
+function rvk_ticketing_preprocess_node(&$variables) {
+  /**
+   * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
+   */
+  if($variables['type']== 'indications' ) {
+    if(isset($variables['field_indication_position_x'])) {
+      if(isset($variables['field_indication_position_x'][0])) {
+        $xcoord = $variables['field_indication_position_x'][0]['value'];
+        $ycoord = $variables['field_indication_position_y'][0]['value'];
+
+        $coords = [
+          'xcoord' => $xcoord,
+          'ycoord' => $ycoord,
+        ];
+
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
+        drupal_add_js('https://js.arcgis.com/3.13/init.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
+        drupal_add_js($coords, 'setting');
+      }
+    }
+
+    $respond_by = (isset($variables['field_indication_respond_by'][LANGUAGE_NONE]))
+      ? $variables['field_indication_respond_by'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $responded_at = (isset($variables['field_indication_responded_at'][LANGUAGE_NONE]))
+      ? $variables['field_indication_responded_at'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $close_by = (isset($variables['field_indication_close_by'][LANGUAGE_NONE]))
+      ? $variables['field_indication_close_by'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $closed_at = (isset($variables['field_indication_closed_at'][LANGUAGE_NONE]))
+      ? $variables['field_indication_closed_at'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    if(rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at)) {
+      $expired = [
+        'display_expired_status' => user_access('edit ticketing content'),
+        'expired_status' => TRUE,
+        'expired_text' => RVK_TICKETING_EXPIRED_INDICATION_TEXT,
+      ];
+    }
+    else {
+      $expired = [
+        'display_expired_status' => user_access('edit ticketing content'),
+        'expired_status' => FALSE,
+        'expired_text' => '',
+      ];
+    }
+
+    drupal_add_js($expired, 'setting');
+  }
+  elseif($variables['type'] == 'page') {
+    if($variables['title'] == 'Takk fyrir ábendinguna') {
+      $param = drupal_get_query_parameters();
+      $path = $GLOBALS['base_url'] . '/abendingar/' . $param['nid'];
+
+      $variables['content']['body'][0]['#markup'] =
+        $variables['content']['body'][0]['#markup'] . '<p><a href="' . $path . '">' . $path . '</a></p>';
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_page
+ */
+function rvk_ticketing_preprocess_page(&$variables) {
+
+  if(isset($variables['page'])) {
+    if(isset($variables['theme_hook_suggestions'])) {
+      if(in_array('page__abendingar__stjornbord', $variables['theme_hook_suggestions'])) {
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/indication_dashboard.css');
+      }
+    }
+  }
 }
 
 /**
@@ -790,15 +874,19 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   if(isset($values['indication_fieldset'])) {
     if(isset($values['indication_fieldset']['image_fieldset'])) {
       if(isset($values['indication_fieldset']['image_fieldset']['image'])) {
-        foreach($values['indication_fieldset']['image_fieldset']['image'] as $image) {
-          if($image != 0) {
-            $file = file_load((int)$image);
-            $file->status = FILE_STATUS_PERMANENT;
-            file_save($file);
-            $values['images'][] = $file;
-          }
-          else {
-            $values['images'] = null;
+        foreach($values['indication_fieldset']['image_fieldset']['image'] as $key => $image) {
+          if(is_numeric($key)) {
+            if($image != 0) {
+              $file = file_load((int)$image);
+              $file->status = FILE_STATUS_PERMANENT;
+              file_save($file);
+              $values['images'][] = $file;
+            }
+            else {
+              if(!isset($values['images'])) {
+                $values['images'] = null;
+              }
+            }
           }
         }
       }
@@ -814,9 +902,13 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
     $values['indication_fieldset']['map_fieldset']['ycoords'] = $street[0]['y'];
   }
 
-  rvk_ticketing_create_indication_node($values);
+  $node = rvk_ticketing_create_indication_node($values);
 
-  drupal_goto(variable_get('rvk_ticketing_thank_you_page'));
+  drupal_goto(variable_get('rvk_ticketing_thank_you_page'), [
+    "query" => [
+      "nid" => $node->nid
+    ]
+  ]);
 }
 
 /**
@@ -845,17 +937,17 @@ function rvk_ticketing_create_indication_node($data) {
     $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['ycoords'];
   }
 
-  if(strlen($data['personal_info_fieldset']['name']) > 0) {
-    $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['name'];
+  if(strlen($data['personal_info_fieldset']['person']['name']) > 0) {
+    $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['name'];
   }
-  if(strlen($data['personal_info_fieldset']['ssn']) > 0) {
-    $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['ssn'];
+  /**if(strlen($data['personal_info_fieldset']['person']['ssn']) > 0) {
+    $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['ssn'];
+  }*/
+  if(strlen($data['personal_info_fieldset']['person']['email']) > 0) {
+    $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['email'];
   }
-  if(strlen($data['personal_info_fieldset']['email']) > 0) {
-    $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['email'];
-  }
-  if(strlen($data['personal_info_fieldset']['tel']) > 0) {
-    $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['tel'];
+  if(strlen($data['personal_info_fieldset']['person']['tel']) > 0) {
+    $node->field_indication_reporter_phone[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['tel'];
   }
 
   $tax_vocabulary = taxonomy_vocabulary_machine_name_load('indication_status');
