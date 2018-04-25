@@ -111,12 +111,12 @@ function rvk_ticketing_view_indications_page() {
   }
 
 
-  $build = [
+  $build = array(
     '#markup' => "<div class='indications-new'>" . $new_indications . "</div>" .
                  "<div class='indications-in-progress'>" . $in_progress . "</div>" .
                  "<div class='indications-expired'>" . $expired . "</div>" .
                  "<div class='indications-closed'>" . $indications_closed_markup . "</div>",
-  ];
+  );
 
   return $build;
 }
@@ -435,9 +435,9 @@ function rvk_ticketing_permission() {
  * @return array
  */
 function rvk_ticketing_create_indication_page() {
-  $build = [
+  $build = array(
     'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
-  ];
+  );
 
   return $build;
 }
