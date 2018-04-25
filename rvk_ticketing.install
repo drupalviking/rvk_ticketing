@@ -14,6 +14,7 @@
 
 /**
  * Implements hook_install().
+ * @throws Exception
  */
 function rvk_ticketing_install() {
   _rvk_ticketing_create_indication_type_taxonomy_vocabulary();
@@ -37,7 +38,9 @@ function rvk_ticketing_disable() {
 }
 
 /**
+ *
  * Implements hook_uninstall().
+ * @throws Exception
  */
 function rvk_ticketing_uninstall() {
   $view = views_get_view('indications');
@@ -60,6 +63,12 @@ function rvk_ticketing_uninstall() {
   variable_del('node_options_indications');
 }
 
+
+/**
+ * Creates the Indication Type Vocabulary
+ * @throws Exception
+ * @throws FieldException
+ */
 function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
   if($tax = taxonomy_vocabulary_machine_name_load('indication_types')) {
     return;
@@ -74,12 +83,29 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
 
   taxonomy_vocabulary_save($vocabulary);
 
-  _rvk_ticketing_add_fields_to_bundle('field_indication_response_time', 'text', 'indication_types',
-    'Tími frá fyrsta svari þangað til loka þarf ábendingu', 'Þarf að svara fyrir (dagar):', 'textfield', 'taxonomy_term');
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_response_time',
+    'text',
+    'indication_types',
+    'Tími frá fyrsta svari þangað til loka þarf ábendingu',
+    'Þarf að svara fyrir (dagar):',
+    'textfield',
+    'taxonomy_term'
+  );
 
-  _rvk_ticketing_add_fields_to_bundle('field_send_mail_f_new_indication', 'list_boolean', 'indication_types',
-    'Senda tölvupóst á alla á sviði í hvert skipti sem ábendingu er úthlutað á svið', 'Senda tölvupóst á svið.', 'options_onoff', 'taxonomy_term',
-    [0 => 'Nei', 1 => 'Já']);
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_send_mail_f_new_indication',
+    'list_boolean',
+    'indication_types',
+    'Senda tölvupóst á alla á sviði í hvert skipti sem ábendingu er úthlutað á svið',
+    'Senda tölvupóst á svið.',
+    'options_onoff',
+    'taxonomy_term',
+    array(
+      0 => 'Nei',
+      1 => 'Já'
+    )
+  );
 
   $departments = _rvk_ticketing_get_departments_and_categories();
 
@@ -120,6 +146,9 @@ function _rvk_ticketing_create_indication_type_taxonomy_vocabulary() {
   }
 }
 
+/**
+ * Creates the Indication Status Vocabulary
+ */
 function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
   if($tax = taxonomy_vocabulary_machine_name_load('indication_status')) {
     return;
@@ -133,12 +162,12 @@ function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
 
   taxonomy_vocabulary_save($vocabulary);
 
-  $status = [
+  $status = array(
     'Ný ábending',
     'Móttekin',
     'Í úrvinnslu',
     'Lokið',
-  ];
+  );
 
   $weight = 1;
   foreach($status as $s) {
@@ -150,6 +179,12 @@ function _rvk_ticketing_create_indication_status_taxonomy_vocabulary() {
   }
 }
 
+/**
+ * Creates the External Department Vocabulary
+ *
+ * @throws Exception
+ * @throws FieldException
+ */
 function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
   if($tax = taxonomy_vocabulary_machine_name_load('external_departments')) {
     return;
@@ -163,14 +198,21 @@ function _rvk_ticketing_create_external_department_taxonomy_vocabulary() {
 
   taxonomy_vocabulary_save($vocabulary);
 
-  _rvk_ticketing_add_fields_to_bundle('field_ed_email', 'text', 'external_departments',
-    'Email', 'Tölvupóstfang sem áframsenda skal mál á.', 'textfield', 'taxonomy_term');
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_ed_email',
+    'text',
+    'external_departments',
+    'Email',
+    'Tölvupóstfang sem áframsenda skal mál á.',
+    'textfield',
+    'taxonomy_term'
+  );
 
-  $departments = [
+  $departments = array(
     'Faxaflóahafnir',
     'Strætó',
     'Orka Náttúrunnar',
-  ];
+  );
 
   $weight = 1;
   foreach($departments as $department) {
@@ -247,6 +289,12 @@ function _rvk_ticketing_add_fields_to_bundle(
   }
 }
 
+/**
+ * Creates the Indication Content type.
+ *
+ * @throws Exception
+ * @throws FieldException
+ */
 function _rvk_ticketing_create_indication_content_type() {
   //CODE FROM THE DRUPAL WATCHDOG:  https://www.drupalwatchdog.com/volume-3/issue-2/drupal-7-content-types-code
   //  The machine name of the content type can contain only lowercase alphanumeric
@@ -272,55 +320,195 @@ function _rvk_ticketing_create_indication_content_type() {
   $type = node_type_set_defaults( $type );
   node_type_save( $type );
 
-  _rvk_ticketing_add_fields_to_bundle('field_indication_text', 'text_long', $type_name,
-    'Ábending frá íbúa', 'Ábending', 'text_textarea');
-  _rvk_ticketing_add_fields_to_bundle('field_interpered_indication_text', 'text_long', $type_name,
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_text',
+    'text_long',
+    $type_name,
+    'Ábending frá íbúa',
+    'Ábending',
+    'text_textarea'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_interpered_indication_text',
+    'text_long',
+    $type_name,
     'Túlkuð ábending frá íbúa, eftir að þjónustufulltrúi hefur farið yfir hana',
-    'Túlkuð ábending', 'text_textarea');
-  _rvk_ticketing_add_fields_to_bundle('field_image', 'image', $type_name, 'Mynd með tilkynningu',
-    'Mynd með tilkynningu', 'image_image');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_name', 'text',
-    $type_name, 'Nafn sendanda', 'Nafn sendanda', 'textfield');
-  /**_rvk_ticketing_add_fields_to_bundle('field_indication_reporter_ssn', 'text',
-    $type_name, 'Kennitala sendanda', 'Kennitala sendanda', 'textfield');*/
-  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_email', 'text',
-    $type_name, 'Netfang', 'Netfang', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_reporter_phone', 'text',
-    $type_name, 'Símanúmer', 'Símanúmer', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_status_ref', 'taxonomy_term_reference',
-    $type_name, 'Staða ábendingar', 'Staða', 'autocomplete', 'node',
-    ['allowed_values' => [0 => ['vocabulary' => 'indication_status', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values'], TRUE);
-  _rvk_ticketing_add_fields_to_bundle('field_indication_type_ref', 'taxonomy_term_reference',
-    $type_name, 'Ábendingategund', 'Ábendingategund', 'hierarchical_select', 'node',
-    ['allowed_values' => [0 => ['vocabulary' => 'indication_types', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
-  _rvk_ticketing_add_fields_to_bundle('field_forward_to_external_dp', 'taxonomy_term_reference',
-    $type_name, 'Áframsenda á utanaðkomandi', 'Áframsenda á utanaðkomandi', 'autocomplete', 'node',
-    ['allowed_values' => [0 => ['vocabulary' => 'external_departments', 'parent' => 0]],
-      'options_list_callback' => 'i18n_taxonomy_allowed_values']);
-  _rvk_ticketing_add_fields_to_bundle('field_indication_int_comm', 'text_long', $type_name,
-    'Innri málsmeðferð', 'Innri málsmeðferð', 'text_textarea', 'node');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_response', 'text_long', $type_name,
-    'Svar þjónustuvers við ábendingunni', 'Svar', 'text_textarea', 'node');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_location', 'text', $type_name,
-    'Staðsetning (götunafn í nefnifalli)', 'Staðsetning', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_position_x', 'text', $type_name,
-    'XHnit frá Borgarvefsjá', 'XHnit', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_position_y', 'text', $type_name,
-    'YHnit frá Borgarvefsjá', 'YHnit', 'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_respond_by', 'date', $type_name,
-    'The date and time of when the indication should be answered', 'Svara ábendingu fyrir',
+    'Túlkuð ábending',
+    'text_textarea'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_image',
+    'image',
+    $type_name,
+    'Mynd með tilkynningu',
+    'Mynd með tilkynningu',
+    'image_image'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_reporter_name',
+    'text',
+    $type_name,
+    'Nafn sendanda',
+    'Nafn sendanda',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_reporter_email',
+    'text',
+    $type_name,
+    'Netfang',
+    'Netfang',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_reporter_phone',
+    'text',
+    $type_name,
+    'Símanúmer',
+    'Símanúmer',
     'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_responded_at', 'date', $type_name,
-    'The date and time of when the indication was answered', 'Ábendingunni svarað þann',
-    'textfield');
-  _rvk_ticketing_add_fields_to_bundle('field_indication_close_by', 'date', $type_name,
-    'The date and time of when the indication should be closed', 'Ábendingunni þarf að loka fyrir',
-    'textfield');
-    _rvk_ticketing_add_fields_to_bundle('field_indication_closed_at', 'date', $type_name,
-        'The date and time of when the indication was closed', 'Ábendingunni lokað þann',
-        'textfield');
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_status_ref',
+    'taxonomy_term_reference',
+    $type_name,
+    'Staða ábendingar',
+    'Staða',
+    'autocomplete',
+    'node',
+    array('allowed_values' => array(
+      0 => array(
+        'vocabulary' => 'indication_status',
+        'parent' => 0)
+      ),
+      'options_list_callback' => 'i18n_taxonomy_allowed_values'
+    ),
+    TRUE
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_type_ref',
+    'taxonomy_term_reference',
+    $type_name,
+    'Ábendingategund',
+    'Ábendingategund',
+    'hierarchical_select',
+    'node',
+    array('allowed_values' => array(
+      0 => array(
+        'vocabulary' => 'indication_types',
+        'parent' => 0
+        )
+      ),
+      'options_list_callback' => 'i18n_taxonomy_allowed_values'
+    )
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_forward_to_external_dp',
+    'taxonomy_term_reference',
+    $type_name,
+    'Áframsenda á utanaðkomandi',
+    'Áframsenda á utanaðkomandi',
+    'autocomplete',
+    'node',
+    array('allowed_values' => array(
+      0 => array(
+        'vocabulary' => 'external_departments',
+        'parent' => 0,
+        )
+      ),
+      'options_list_callback' => 'i18n_taxonomy_allowed_values'
+    )
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_int_comm',
+    'text_long',
+    $type_name,
+    'Innri málsmeðferð',
+    'Innri málsmeðferð',
+    'text_textarea',
+    'node'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_response',
+    'text_long',
+    $type_name,
+    'Svar þjónustuvers við ábendingunni',
+    'Svar',
+    'text_textarea',
+    'node'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_location',
+    'text',
+    $type_name,
+    'Staðsetning (götunafn í nefnifalli)',
+    'Staðsetning',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_position_x',
+    'text',
+    $type_name,
+    'XHnit frá Borgarvefsjá',
+    'XHnit',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_position_y',
+    'text',
+    $type_name,
+    'YHnit frá Borgarvefsjá',
+    'YHnit',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_respond_by',
+    'date',
+    $type_name,
+    'The date and time of when the indication should be answered',
+    'Svara ábendingu fyrir',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_responded_at',
+    'date',
+    $type_name,
+    'The date and time of when the indication was answered',
+    'Ábendingunni svarað þann',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_close_by',
+    'date',
+    $type_name,
+    'The date and time of when the indication should be closed',
+    'Ábendingunni þarf að loka fyrir',
+    'textfield'
+  );
+
+  _rvk_ticketing_add_fields_to_bundle(
+    'field_indication_closed_at',
+    'date',
+    $type_name,
+    'The date and time of when the indication was closed',
+    'Ábendingunni lokað þann',
+    'textfield'
+  );
 
   //Set preview to none and disable the subject line for comments
   variable_set('comment_indication', '1');
@@ -359,14 +547,14 @@ function _rvk_ticketing_remove_content_type(array $type_name){
 }
 
 function _rvk_ticketing_get_departments_and_categories() {
-  $departments = [
-    [
+  $departments = array(
+    array(
       'name' => 'Umhverfis- og skipulagssvið',
       'categories' =>
-        [
-          [
+        array(
+          array(
             'category' => 'Götur og gangstéttar',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Malbik',
               'Hellur',
               'Steypa',
@@ -376,11 +564,11 @@ function _rvk_ticketing_get_departments_and_categories() {
               'Skilti',
               'Pollar',
               'Annað',
-            ],
-          ],
-          [
+            ),
+          ),
+          array(
             'category' => 'Gróður og götugögn',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Grassvæði',
               'Trjábeð/blómabeð',
               'Götutré',
@@ -390,22 +578,22 @@ function _rvk_ticketing_get_departments_and_categories() {
               'Styttur/listaverk',
               'Leiktæki/æfingatæki',
               'Annað',
-            ],
-          ],
-          [
+            ),
+          ),
+          array(
             'category' => 'Lagnir og lýsing',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Ljósastaurar',
               'Lýsing',
               'Rafmagnskassar',
               'Niðurföll/ristar',
               'Drykkjafontar',
               'Annað',
-            ],
-          ],
-          [
+            ),
+          ),
+          array(
             'category' => 'Umferð',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Umferðarljós',
               'Umferðarskilti',
               'Gatnamerkingar',
@@ -413,88 +601,72 @@ function _rvk_ticketing_get_departments_and_categories() {
               'Girðingar/vegrið',
               'Strætóskýli',
               'Annað',
-            ],
-          ],
-          [
+            ),
+          ),
+          array(
             'category' => 'Vetrarþjónusta',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Götur',
               'Göngu- og hjólaleiðir',
               'Hitakerfi',
               'Stofnanalóðir',
               'Annað',
-            ],
-          ],
-          [
+            ),
+          ),
+          array(
             'category' => 'Grassláttur',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Grunn- og leikskólar',
               'Önnur svæði',
-            ],
-          ],
-          [
+            ),
+          ),
+          array(
             'category' => 'Hreinsun',
-            'sub_categories' => [
+            'sub_categories' => array(
               'Götur',
               'Göngu- og hjólaleiðir',
               'Miðborgarhreinsun',
               'Veggjakrot',
               'Annað',
-            ],
-          ],
-        ],
-    ],
-    [
+            ),
+          ),
+        ),
+    ),
+    array(
       'name' => 'Skóla- og frístundasvið',
       'categories' =>
-        [
-          [
+        array(
             'category' => 'Mötuneyti',
-          ],
-        ],
-    ],
-    [
+        ),
+      ),
+    array(
       'name' => 'Velferðarsvið',
-      'categories' => [
+      'categories' => array(
 
-      ],
-    ],
-    [
+      ),
+    ),
+    array(
       'name' => 'Íþrótta- og tómstundasvið',
       'categories' =>
-        [
-
-        ],
-    ],
-    [
+        array(),
+    ),
+    array(
       'name' => 'Menningar- og ferðamálasvið',
-      'categories' =>
-        [
-
-        ],
-    ],
-    [
+      'categories' => array(),
+    ),
+    array(
       'name' => 'Skrifstofur Ráðhúss',
-      'categories' =>
-        [
-
-        ],
-    ],
-    [
+      'categories' => array(),
+    ),
+    array(
       'name' => 'Stofnanir og fyrirtæki',
-      'categories' =>
-        [
-
-        ],
-    ],
-    [
+      'categories' =>array(),
+    ),
+    array(
       'name' => 'Þjónustuver',
-      'categories' =>
-        [
-
-        ],
-    ],
-  ];
+      'categories' => array(),
+    )
+  );
 
   return $departments;
 }
