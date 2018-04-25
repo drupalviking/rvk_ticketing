@@ -10,9 +10,9 @@ function rvk_ticketing_edit_indication_page() {
   $indication = node_load($arg);
 
   module_load_include('inc', 'node', 'node.pages');
-  $build['form'] = [
+  $build['form'] = array(
     'indication_edit_form' => drupal_get_form("indications_node_form", $indication),
-  ];
+  );
 
   return $build;
 }
