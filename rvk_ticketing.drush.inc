@@ -3,9 +3,9 @@
  * DRUSH FILE
  */
 function rvk_ticketing_drush_command() {
-  $items['rvk-ticketing-debug'] = [
+  $items['rvk-ticketing-debug'] = array(
     'description' => 'Debug function',
-  ];
+  );
 
   return $items;
 }
