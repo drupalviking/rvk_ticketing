@@ -14,20 +14,20 @@ define('RVK_TICKETING_EXPIRED_INDICATION_TEXT', variable_get('rvk_ticketing_expi
  * Implements hook_menu().
  */
 function rvk_ticketing_menu() {
-  $items['abendingar/senda-inn-abendingu'] = [
+  $items['abendingar/senda-inn-abendingu'] = array(
     'title' => 'Senda inn ábendingu',
     'page callback' => 'rvk_ticketing_create_indication_page',
-    'access arguments' => ['view ticketing content'],
-  ];
+    'access arguments' => array('view ticketing content'),
+  );
 
-  $items['abendingar/breyta-abendingu/%'] = [
+  $items['abendingar/breyta-abendingu/%'] = array(
     'title' => 'Breyta ábendingu',
     'page callback' => 'rvk_ticketing_edit_indication_page',
-    'access arguments' => ['edit ticketing content'],
+    'access arguments' => array('edit ticketing content'),
     'page arguments' => array(2),
     'file' => 'includes/indication_edit.inc',
     'file path' => drupal_get_path('module', 'rvk_ticketing'),
-  ];
+  );
 
   $items['admin/config/services/abendingar'] = array(
     'title' => t('Ábendingar config'),
@@ -40,25 +40,14 @@ function rvk_ticketing_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['abendingar/stjornbord'] = [
+  $items['abendingar/stjornbord'] = array(
     'title' => 'Ábendingar',
     'page callback' => 'rvk_ticketing_view_indications_page',
-    'access arguments' => ['edit ticketing content'],
+    'access arguments' => array('edit ticketing content'),
     'type' => MENU_NORMAL_ITEM,
-  ];
-
-  $items['debug'] = [
-    'title' => t('Debug page'),
-    'description' => 'Debug page',
-    'page callback' => 'rvk_ticketing_debug',
-    'access arguments' => ['access content'],
-  ];
+  );
 
   return $items;
-}
-
-function rvk_ticketing_debug() {
-
 }
 
 function rvk_ticketing_view_indications_page() {
@@ -138,13 +127,13 @@ function rvk_ticketing_view_indications_page() {
 function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
 
-    $form['#attached']['css'] = [
-      'https://js.arcgis.com/3.13/esri/css/esri.css' => [
+    $form['#attached']['css'] = array(
+      'https://js.arcgis.com/3.13/esri/css/esri.css' => array(
         'type' => 'external',
-      ],
+      ),
       drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
       drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
-    ];
+    );
 
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
@@ -177,10 +166,10 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['coords_markup']['#markup'] = '<div class="location-text-readonly"><label class="control-label">X og Y hnit</label><p>X: ' . $xcoord . ' Y: ' . $ycoord . '</p></div>';
           $form['#group_children']['coords_markup'] = "group_indication_media_items";
 
-          $coords = [
+          $coords = array(
             'xcoord' => $xcoord,
             'ycoord' => $ycoord,
-          ];
+          );
 
           drupal_add_js($coords, 'setting');
         }
@@ -421,13 +410,6 @@ function rvk_ticketing_node_presave($node) {
 }
 
 /**
- * Was implemented, but all code removed since we stopped supporting Mainmanager API
- * @param $node
- */
-function rvk_ticketing_node_validate($node) {
-
-}
-/**
  * Implements hook_permission().
  */
 function rvk_ticketing_permission() {
@@ -435,15 +417,15 @@ function rvk_ticketing_permission() {
     'view ticketing content' => array(
       'title' => t('View ticketing content'),
     ),
-    'edit ticketing content' => [
+    'edit ticketing content' => array(
       'title' => t('Edit ticketing content'),
-    ],
+    ),
     'administer ticketing content' => array(
       'title' => t('Administer ticketing content'),
     ),
-    'administer ticketing settings' => [
+    'administer ticketing settings' => array(
       'title' => t('Administer ticketing settings'),
-    ]
+    )
   );
 }
 
@@ -464,9 +446,9 @@ function rvk_ticketing_create_indication_page() {
  * Implements hook_block_info().
  */
 function rvk_ticketing_block_info() {
-  $blocks['indication_form'] = [
+  $blocks['indication_form'] = array(
     'info' => 'Ábendingarform',
-  ];
+  );
 
   return $blocks;
 }
@@ -496,100 +478,100 @@ function rvk_ticketing_block_view($delta = '') {
  * @return mixed
  */
 function rvk_ticketing_create_ticket_form($form, &$form_state) {
-  $form['#attached']['css'] = [
-    'https://js.arcgis.com/3.13/esri/css/esri.css' => [
+  $form['#attached']['css'] = array(
+    'https://js.arcgis.com/3.13/esri/css/esri.css' => array(
       'type' => 'external',
-    ],
+    ),
     drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
     drupal_get_path('module', 'rvk_ticketing') . '/css/create_indication_form_styles.css',
-  ];
+  );
 
   // Because we have many fields with the same values, we have to set
   // #tree to be able to access them.
   $form['#tree'] = TRUE;
 
-  $form['indication_fieldset'] = [
+  $form['indication_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 10,
-  ];
+  );
 
-  $form['indication_fieldset']['indication_text_fieldset'] = [
+  $form['indication_fieldset']['indication_text_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 10,
-  ];
+  );
 
-  $form['indication_fieldset']['image_fieldset'] = [
+  $form['indication_fieldset']['image_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 32,
     '#prefix' => '<div id="images-fieldset-wrapper">',
     '#suffix' => '</div>',
-  ];
+  );
 
-  $form['indication_fieldset']['image_fieldset']['pre_markup'] = [
+  $form['indication_fieldset']['image_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
     '#markup' => '<h3><span class="toggle-icon"></span>Senda mynd</h3><div class="collapse">'
-  ];
+  );
 
-  $form['indication_fieldset']['image_fieldset']['post_markup'] = [
+  $form['indication_fieldset']['image_fieldset']['post_markup'] = array(
     '#type' => 'markup',
     '#weight' => 100,
     '#markup' => '</div>',
-  ];
+  );
 
-  $form['indication_fieldset']['image_fieldset']['image'] = [
+  $form['indication_fieldset']['image_fieldset']['image'] = array(
     '#type' => 'fieldset',
     '#weight' => 25
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset'] = [
+  $form['indication_fieldset']['map_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 30,
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['pre_markup'] = [
+  $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
     '#markup' => '<h3><span class="toggle-icon"></span>Veldu staðsetningu á korti</h3><div class="collapse">'
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['post_markup'] = [
+  $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
     '#type' => 'markup',
     '#weight' => 100,
     '#markup' => '</div>',
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['map'] = [
+  $form['indication_fieldset']['map_fieldset']['map'] = array(
     '#type' => 'fieldset',
     '#weight' => 20,
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['address'] = [
+  $form['indication_fieldset']['map_fieldset']['address'] = array(
     '#type' => 'fieldset',
     '#weight' => 30,
-  ];
+  );
 
-  $form['personal_info_fieldset'] = [
+  $form['personal_info_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 20,
-  ];
+  );
 
-  $form['indication_fieldset']['markup'] = [
+  $form['indication_fieldset']['markup'] = array(
     '#type' => 'markup',
     '#markup' => '<h2>Senda ábendingu</h2><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p>',
-  ];
+  );
 
-  $form['indication_fieldset']['indication_text_fieldset']['title'] = [
+  $form['indication_fieldset']['indication_text_fieldset']['title'] = array(
     '#type' => 'textfield',
     '#title' => 'Titill',
-    //'#required' => TRUE,
-  ];
+    '#required' => TRUE,
+  );
 
-  $form['indication_fieldset']['indication_text_fieldset']['content'] = [
+  $form['indication_fieldset']['indication_text_fieldset']['content'] = array(
     '#type' => 'textarea',
     '#title' => 'Efni ábendingar',
-    //'#required' => TRUE,
-  ];
+    '#required' => TRUE,
+  );
 
 
   // Build the fieldset with the proper number of names. We'll use
@@ -622,72 +604,67 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ),
   );
 
-  $form['indication_fieldset']['map_fieldset']['markup_location'] = [
+  $form['indication_fieldset']['map_fieldset']['markup_location'] = array(
     '#type' => 'markup',
     '#markup' => '<p>Þú getur slegið inn heimilisfang eða sett punkt á kortið með því að smella á þann stað á kortinu sem tengist ábendingunni. Ef þú ert í snjallsíma geturðu virkjað staðsetninguna þína með því að ýta á <span class="locate-icon"></span> hnappinn á kortinu.</p>',
     '#weight' => 21,
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['map']['map_markup'] = [
+  $form['indication_fieldset']['map_fieldset']['map']['map_markup'] = array(
     '#type' => 'markup',
     '#prefix' => '<div id="mapDiv">',
     '#postfix' => '</div>',
     '#markup' => '<div id="LocateButton"></div>',
     '#weight' => 20,
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['address']['address'] = [
+  $form['indication_fieldset']['map_fieldset']['address']['address'] = array(
     '#type' => 'textfield',
     '#title' => 'Staðsetning (Götuheiti í nefnifalli)',
     '#autocomplete_path' => 'gata/fletta_upp_gotu_autocomplete_callback',
     '#weight' => 10,
-  ];
+  );
 
-  $form['indication_fieldset']['map_fieldset']['xcoords'] = [
+  $form['indication_fieldset']['map_fieldset']['xcoords'] = array(
     '#type' => 'hidden',
     '#title' => 'xcoords',
-    '#attributes' => [
-      'id' => ['xcoords']
-    ],
-  ];
+    '#attributes' => array(
+      'id' => array('xcoords')
+    ),
+  );
 
-  $form['indication_fieldset']['map_fieldset']['ycoords'] = [
+  $form['indication_fieldset']['map_fieldset']['ycoords'] = array(
     '#type' => 'hidden',
     '#title' => 'ycoords',
-    '#attributes' => [
-      'id' => ['ycoords']
-    ],
-  ];
+    '#attributes' => array(
+      'id' => array('ycoords')
+    ),
+  );
 
-  $form['personal_info_fieldset']['markup'] = [
+  $form['personal_info_fieldset']['markup'] = array(
     '#type' => 'markup',
     '#markup' => '<h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
-  ];
+  );
 
-  $form['personal_info_fieldset']['person'] = [
+  $form['personal_info_fieldset']['person'] = array(
     '#type' => 'fieldset',
     '#weight' => 20,
-  ];
+  );
 
-  $form['personal_info_fieldset']['person']['name'] = [
+  $form['personal_info_fieldset']['person']['name'] = array(
     '#type' => 'textfield',
     '#title' => 'Nafn',
-  ];
+  );
 
-  /**$form['personal_info_fieldset']['person']['ssn'] = [
-    '#type' => 'textfield',
-    '#title' => 'Kennitala',
-  ];*/
-
-  $form['personal_info_fieldset']['person']['email'] = [
+  $form['personal_info_fieldset']['person']['email'] = array(
     '#type' => 'textfield',
     '#title' => 'Netfang',
-  ];
+  );
 
-  $form['personal_info_fieldset']['person']['tel'] = [
+  $form['personal_info_fieldset']['person']['tel'] = array(
     '#type' => 'textfield',
     '#title' => 'Sími',
-  ];
+  );
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -737,13 +714,6 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
       form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
     }
   }
-
-  /**
-  if(strlen($values['personal_info_fieldset']['person']['ssn']) > 0) {
-    if(!_rvk_ticketing_ssn_validation($values['personal_info_fieldset']['person']['ssn'])) {
-      form_set_error('ssn', 'Kennitalan virðist ekki vera rétt, vinsamlegast athugið hana.');
-    }
-  }*/
 }
 
 /**
@@ -788,10 +758,10 @@ function rvk_ticketing_preprocess_node(&$variables) {
         $xcoord = $variables['field_indication_position_x'][0]['value'];
         $ycoord = $variables['field_indication_position_y'][0]['value'];
 
-        $coords = [
+        $coords = array(
           'xcoord' => $xcoord,
           'ycoord' => $ycoord,
-        ];
+        );
 
         drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
         drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
@@ -820,18 +790,18 @@ function rvk_ticketing_preprocess_node(&$variables) {
       : null;
 
     if(rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at)) {
-      $expired = [
+      $expired = array(
         'display_expired_status' => user_access('edit ticketing content'),
         'expired_status' => TRUE,
         'expired_text' => RVK_TICKETING_EXPIRED_INDICATION_TEXT,
-      ];
+      );
     }
     else {
-      $expired = [
+      $expired = array(
         'display_expired_status' => user_access('edit ticketing content'),
         'expired_status' => FALSE,
         'expired_text' => '',
-      ];
+      );
     }
 
     drupal_add_js($expired, 'setting');
@@ -864,10 +834,8 @@ function rvk_ticketing_preprocess_page(&$variables) {
 /**
  * Implements hook_form_submit().
  *
- * Since it's a multistep form, validations on where the user is in it, are in
- * place.
+ * @throws Exception
  */
-
 function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $values = $form_state['values'];
 
@@ -904,11 +872,12 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
 
   $node = rvk_ticketing_create_indication_node($values);
 
-  drupal_goto(variable_get('rvk_ticketing_thank_you_page'), [
-    "query" => [
+  drupal_goto(variable_get('rvk_ticketing_thank_you_page'), array(
+    "query" => array(
       "nid" => $node->nid
-    ]
-  ]);
+      ),
+    )
+  );
 }
 
 /**
@@ -916,6 +885,7 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
  *
  * @param array $data The data comes from a form
  * @return \stdClass
+ * @throws Exception
  */
 function rvk_ticketing_create_indication_node($data) {
   $node = new stdClass();
@@ -940,9 +910,7 @@ function rvk_ticketing_create_indication_node($data) {
   if(strlen($data['personal_info_fieldset']['person']['name']) > 0) {
     $node->field_indication_reporter_name[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['name'];
   }
-  /**if(strlen($data['personal_info_fieldset']['person']['ssn']) > 0) {
-    $node->field_indication_reporter_ssn[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['ssn'];
-  }*/
+
   if(strlen($data['personal_info_fieldset']['person']['email']) > 0) {
     $node->field_indication_reporter_email[LANGUAGE_NONE][0]['value'] = $data['personal_info_fieldset']['person']['email'];
   }
@@ -959,17 +927,6 @@ function rvk_ticketing_create_indication_node($data) {
     }
   }
 
-  /**
-  $tax_vocabulary = taxonomy_vocabulary_machine_name_load('indication_types');
-  $taxonomy = taxonomy_get_tree($tax_vocabulary->vid);
-  $department_tid = null;
-  foreach($taxonomy as $tax) {
-    if($tax->name == 'Þjónustuver') {
-      $indication_type_tid = $tax->tid;
-    }
-  }
-  **/
-
   if(is_array($data['images'])) {
     foreach($data['images'] as $image) {
       $node->field_image[LANGUAGE_NONE][]['fid'] = $image->fid;
@@ -977,17 +934,10 @@ function rvk_ticketing_create_indication_node($data) {
   }
 
   $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $status_default_tid;
-  //$node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $indication_type_tid;
   $node->language = 'is';
   $node->is_new = true;
 
-  try{
-    node_save($node);
-  }
-
-  catch(exception $e) {
-
-  }
+  node_save($node);
 
   $response_time = RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND;
   $respond_by = strftime('%Y-%m-%d %H:%M:%S', $node->created);
@@ -998,13 +948,8 @@ function rvk_ticketing_create_indication_node($data) {
   $respond_by = str_replace(' ', 'T', $respond_by);
   $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
   $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-  try{
-    node_save($node);
-  }
+  node_save($node);
 
-  catch(exception $e) {
-
-  }
   return $node;
 }
 
@@ -1148,8 +1093,10 @@ function _rvk_ticketing_is_day_a_holiday(DateTime $day) {
  */
 function _rvk_ticketing_is_day_on_a_weekend(DateTime $day) {
   $weekday = $day->format('w');
-  if($weekday == 6 || $weekday == 0 )
+  if($weekday == 6 || $weekday == 0 ) {
     return true;
+  }
+
   return false;
 }
 
