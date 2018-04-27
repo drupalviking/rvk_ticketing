@@ -1107,7 +1107,7 @@ function _rvk_ticketing_is_day_on_a_weekend(DateTime $day) {
  * @return array
  */
 function _rvk_ticketing_get_holidays_for_year($year, $time) {
-  $holidays = [];
+  $holidays = array();
   $holidays['new_years_day'] = new DateTime($year . '-01-01 ' . $time);
   $holidays['may_first'] = new DateTime($year . '-05-01 ' . $time);
   $holidays['june_seventeenth'] = new DateTime($year . '-06-17 ' . $time);
