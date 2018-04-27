@@ -55,7 +55,7 @@ function rvk_ticketing_uninstall() {
   taxonomy_vocabulary_delete($status->vid);
   taxonomy_vocabulary_delete($external_departments->vid);
 
-  _rvk_ticketing_remove_content_type(['indications']);
+  _rvk_ticketing_remove_content_type(array('indications'));
 
   variable_del('comment_indication');
   variable_del('comment_preview_indications');
