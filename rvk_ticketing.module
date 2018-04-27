@@ -90,21 +90,21 @@ function rvk_ticketing_view_indications_page() {
   else {
     $new_indications_view = views_get_view('indications');
     $new_indications_view->set_display('indications_recieved');
-    $new_indications_view->set_arguments([$user_indication_group_tid]);
+    $new_indications_view->set_arguments(array($user_indication_group_tid));
     $new_indications_view->pre_execute();
     $new_indications_view->execute();
     $new_indications = $new_indications_view->render();
 
     $indications_in_progress_view = views_get_view('indications');
     $indications_in_progress_view->set_display('indications_in_process_contextual');
-    $indications_in_progress_view->set_arguments([$user_indication_group_tid]);
+    $indications_in_progress_view->set_arguments(array($user_indication_group_tid));
     $indications_in_progress_view->pre_execute();
     $indications_in_progress_view->execute();
     $in_progress = $indications_in_progress_view->render();
 
     $indications_expired_view = views_get_view('indications');
     $indications_expired_view->set_display('indications_expired_contextual');
-    $indications_expired_view->set_arguments([$user_indication_group_tid]);
+    $indications_expired_view->set_arguments(array($user_indication_group_tid));
     $indications_expired_view->pre_execute();
     $indications_expired_view->execute();
     $expired = $indications_expired_view->render();
