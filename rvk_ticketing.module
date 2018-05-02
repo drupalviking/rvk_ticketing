@@ -121,6 +121,14 @@ function rvk_ticketing_view_indications_page() {
   return $build;
 }
 
+function _rvk_ticketing_get_user_department($user) {
+  $current_user = user_load($user->uid);
+  if(isset($current_user->field_svid[LANGUAGE_NONE])) {
+    $deparment_taxonomy = taxonomy_term_load($current_user->field_svid[LANGUAGE_NONE][0]['tid']);
+    return $deparment_taxonomy->name;
+  }
+}
+
 /**
  * Implements form_alter().
  */
@@ -137,6 +145,12 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
+        global $user;
+        $user_department = _rvk_ticketing_get_user_department($user);
+        $is_delicate = isset($form['#node']->field_delicate_info[LANGUAGE_NONE])
+          ? $form['#node']->field_delicate_info[LANGUAGE_NONE][0]['value']
+          : FALSE;
+
         //Disables the fields that should not be shown (eg. editable)
         $form['field_indication_text']['#access'] = FALSE;
         $form['field_indication_position_x']['#access'] = FALSE;
@@ -146,6 +160,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_responded_at']['#access'] = FALSE;
         $form['field_indication_close_by']['#access'] = FALSE;
         $form['field_indication_closed_at']['#access'] = FALSE;
+        $form['field_image']['#access'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
         //of the fields
@@ -153,8 +168,30 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_interpered_indication_text']['#weight'] = 100;
         $form['field_response']['#weight'] = 200;
         $form['field_indication_text_markup']['#weight'] = 20;
-        $form['field_indication_text_markup']['#markup'] =
-          '<div class="indication-text-readonly"><label class="control-label">Ábending</label><div><p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p></div></div>";
+
+        //People who do not work in Þjónustuver cannot see the indications that are marked delicate
+        //Also, if the indication is marked delicate, a normal user cannot change the delicacy status.
+        if($is_delicate && $user_department == 'Þjónustuver') {
+          $form['field_indication_text_markup']['#markup'] =
+            '<div class="indication-text-readonly">
+            <label class="control-label">Ábending</label>
+            <div>
+              <p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p>
+            </div>
+          </div>";
+        }
+        else {
+          $form['field_indication_text_markup']['#markup'] =
+            '<div class="indication-text-readonly">
+            <label class="control-label">Ábending</label>
+            <div>
+              <p>' . variable_get('rvk_ticketing_delicate_info') . "</p>
+            </div>
+          </div>";
+
+          $form['field_delicate_info']['#access'] = FALSE;
+          $form['field_interpered_indication_text']['#access'] = FALSE;
+        }
 
         //Moves the markup into the fieldset group_indication_content
         $form['#group_children']['field_indication_text_markup'] = "group_indication_content";
@@ -173,6 +210,11 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
           drupal_add_js($coords, 'setting');
         }
+
+        if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
+          $a = 10;
+        }
+
         if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
           $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
           $form['#group_children']['location_markup'] = "group_indication_media_items";
@@ -197,6 +239,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['#group_children']['respond_by_markup'] = "group_indication_timestamps";
         }
 
+        //Timestamps
         if(isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0])) {
           $responded_at_date = $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value'];
           if($responded_at_date) {
