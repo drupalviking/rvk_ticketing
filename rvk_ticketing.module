@@ -201,6 +201,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $xcoord = $form['#node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
           $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
           $form['coords_markup']['#markup'] = '<div class="location-text-readonly"><label class="control-label">X og Y hnit</label><p>X: ' . $xcoord . ' Y: ' . $ycoord . '</p></div>';
+          $form['coords_markup']['#weight'] = 50;
           $form['#group_children']['coords_markup'] = "group_indication_media_items";
 
           $coords = array(
@@ -209,22 +210,38 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           );
 
           drupal_add_js($coords, 'setting');
+
+          $form['map_markup']['#weight'] = 16;
+          $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="max-width: 920px"></div></div>';
+
+          //Moves the markup into the fieldset group_indication_content
+          $form['#group_children']['map_markup'] = "group_indication_media_items";
         }
 
         if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
-          $a = 10;
+          $images = $form['#node']->field_image[LANGUAGE_NONE];
+          $image_string = "<ul>";
+          foreach($images as $image) {
+            $image_string .= "<li>";
+            $image_string .= "<img src='" . image_style_url('medium', $image['uri']) . "' />";
+            $image_string .= "</li>";
+          }
+
+          $image_string .= "</ul>";
+
+          $form['image_markup']['#markup'] = "
+            <div class=\"indication-images-readonly\">
+              <label class\"control-label\">Myndir</label>"
+              . $image_string
+              . "</div>";
+
+          $form['#group_children']['image_markup'] = "group_indication_media_items";
         }
 
         if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
           $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
           $form['#group_children']['location_markup'] = "group_indication_media_items";
         }
-
-        $form['map_markup']['#weight'] = 16;
-        $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="max-width: 920px"></div></div>';
-
-        //Moves the markup into the fieldset group_indication_content
-        $form['#group_children']['map_markup'] = "group_indication_media_items";
 
         $form['created_markup']['#weight'] = 39;
         $form['created_markup']['#markup'] = "<div class=\"response-by-time-readonly\"><label class=\"control-label\">Ábending barst</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->created) . "</p> </p></div>";
