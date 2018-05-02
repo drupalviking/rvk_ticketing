@@ -425,7 +425,7 @@ function rvk_ticketing_permission() {
     ),
     'administer ticketing settings' => array(
       'title' => t('Administer ticketing settings'),
-    )
+    ),
   );
 }
 
@@ -753,6 +753,11 @@ function rvk_ticketing_preprocess_node(&$variables) {
    * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
    */
   if($variables['type']== 'indications' ) {
+    if(isset($variables['field_delicate_info'])) {
+      if($variables['field_delicate_info'][0]['value'] == TRUE) {
+        $variables['content']['field_indication_text'][0]['#markup'] = variable_get('rvk_ticketing_delicate_info');
+      }
+    }
     if(isset($variables['field_indication_position_x'])) {
       if(isset($variables['field_indication_position_x'][0])) {
         $xcoord = $variables['field_indication_position_x'][0]['value'];

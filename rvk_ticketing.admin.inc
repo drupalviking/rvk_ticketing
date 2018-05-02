@@ -40,6 +40,18 @@ function rvk_ticketing_admin() {
     '#default_value' => variable_get('rvk_ticketing_expired_indication_text', 'Ábendingin er komin framyfir svar/framkvæmdartíma'),
   );
 
+  $form['rvk_ticketing_config']['rvk_ticketing_delicate_info'] = array(
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('Text to display when indication has been marked delicate'),
+    '#description' => t('Enter the text to display when the indication has been marked delicate. This will replace
+     the text displayed, so that the delicate info is not shown.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_delicate_info',
+      'Ábendingin inniheldur viðkvæmar upplýsingar og eru þær ekki birtar hér'
+    ),
+  );
+
   $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_hours'] = array(
     '#type' => 'textfield',
     '#weight' => 20,
