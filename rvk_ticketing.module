@@ -592,7 +592,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>Veldu staðsetningu á korti</h3><div class="collapse">'
+    '#markup' => '<h3><span class="toggle-icon"></span>Veldu staðsetningu á korti (ef á við)</h3><div class="collapse">'
   );
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
@@ -631,6 +631,11 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#type' => 'textarea',
     '#title' => 'Efni ábendingar',
     '#required' => TRUE,
+  );
+
+  $form['age'] = array(
+    '#type' => 'hidden',
+    '#title' => 'age',
   );
 
 
