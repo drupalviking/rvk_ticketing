@@ -28,6 +28,15 @@
     padding: 0;
 }
 
+.node-indications-form #edit-field-delicate-info,
+.node-indications-form #edit-field-indication-insurance-prob {
+    display: inline-block;
+}
+
+.node-indications-form #edit-field-delicate-info {
+    margin-right: 36px;
+}
+
 .node-indications-form .indication-text-readonly div {
     font-size: 16px;
     line-height: 1.65;
@@ -123,7 +132,7 @@
     height: 14px;
     position: absolute;
     right: 25px;
-    top: 42px;
+    top: 50px;
     pointer-events: none;
 }
 
@@ -306,6 +315,26 @@
     float: none;
 }
 
+#bootstrap-panel--4,
+#bootstrap-panel--5 {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.indication-images-readonly ul {
+    list-style: none;
+    padding: 0;
+}
+
+.indication-images-readonly ul li {
+    display: inline-block;
+    margin-right: 24px;
+}
+
+.indication-images-readonly ul li:last-child {
+    margin-right: 0;
+}
+
 @media screen and (min-width: 610px) {
     
     .node-indications-form #edit-field-image-und-table .image-preview,
@@ -364,17 +393,17 @@
     .node-indications-form #edit-field-indication-reporter-email,
     .node-indications-form #edit-field-indication-reporter-phone,
     .node-indications-form #edit-field-mainmanager-id,
-    .node-indications-form #edit-field-sent-to-mainmanager {
+    .node-indications-form #edit-field-sent-to-mainmanager,
+    .node-indications-form .group-indication-forward {
         float: left;
         width: 50%;
     }
 
     .node-indications-form #edit-field-indication-status-ref,
-    .node-indications-form #edit-field-indication-type-ref,
     .node-indications-form #edit-field-indication-position-x,
     .node-indications-form #edit-field-indication-reporter-name,
-    .node-indications-form #edit-field-indication-reporter-email,
-    .node-indications-form #edit-field-sent-to-mainmanager {
+    .node-indications-form #edit-field-sent-to-mainmanager,
+    .node-indications-form #edit-field-indication-reporter-phone {
         border-right: 18px solid transparent;
     }
 
@@ -382,8 +411,10 @@
     .node-indications-form #edit-field-indication-controller-new,
     .node-indications-form #edit-field-indication-position-y,
     .node-indications-form #edit-field-indication-reporter-ssn,
-    .node-indications-form #edit-field-indication-reporter-phone,
-    .node-indications-form #edit-field-mainmanager-id {
+    .node-indications-form #edit-field-mainmanager-id,
+    .node-indications-form #edit-field-indication-reporter-email,
+    .node-indications-form .group-indication-forward,
+    .node-indications-form #edit-field-indication-type-ref {
         border-left: 18px solid transparent;
     }
 
