@@ -171,7 +171,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
         //People who do not work in Þjónustuver cannot see the indications that are marked delicate
         //Also, if the indication is marked delicate, a normal user cannot change the delicacy status.
-        if($is_delicate && $user_department == 'Þjónustuver') {
+        if(($is_delicate && $user_department == 'Þjónustuver') || (!$is_delicate)) {
           $form['field_indication_text_markup']['#markup'] =
             '<div class="indication-text-readonly">
             <label class="control-label">Ábending</label>
@@ -291,7 +291,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
     }
 
     $expired = rvk_ticketing_check_if_response_time_is_expired($form, $form_state);
-    if(!$expired) {
+    if($expired) {
       $form['field_indication_expired_markup']['#weight'] = -50;
       $form['field_indication_expired_markup']['#markup'] =
         '<div class="indication-expired-readonly"><div><p>' . RVK_TICKETING_EXPIRED_INDICATION_TEXT . '</p></div></div>';
