@@ -315,12 +315,6 @@
     float: none;
 }
 
-#bootstrap-panel--4,
-#bootstrap-panel--5 {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
 .indication-images-readonly ul {
     list-style: none;
     padding: 0;
@@ -331,9 +325,35 @@
     margin-right: 24px;
 }
 
+.indication-expired-readonly {
+    background-color: #ff0000;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 11px 23px 13px;
+    border: 1px solid #d10000;
+    border-radius: 8px !important;
+    margin-bottom: 15px;
+}
+
 .indication-images-readonly ul li:last-child {
     margin-right: 0;
 }
+
+.node-indications-form .group-indication-timestamps label,
+.node-indications-form .group-indication-timestamps p {
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.node-indications-form .group-indication-timestamps .panel-body div {
+    padding: 11px 23px 13px;
+}
+
+.node-indications-form .group-indication-timestamps .panel-body div:nth-child(odd) {
+    background-color: #dcdcdc;
+}
+
 
 @media screen and (min-width: 610px) {
     
@@ -393,8 +413,7 @@
     .node-indications-form #edit-field-indication-reporter-email,
     .node-indications-form #edit-field-indication-reporter-phone,
     .node-indications-form #edit-field-mainmanager-id,
-    .node-indications-form #edit-field-sent-to-mainmanager,
-    .node-indications-form .group-indication-forward {
+    .node-indications-form #edit-field-sent-to-mainmanager {
         float: left;
         width: 50%;
     }
@@ -413,7 +432,6 @@
     .node-indications-form #edit-field-indication-reporter-ssn,
     .node-indications-form #edit-field-mainmanager-id,
     .node-indications-form #edit-field-indication-reporter-email,
-    .node-indications-form .group-indication-forward,
     .node-indications-form #edit-field-indication-type-ref {
         border-left: 18px solid transparent;
     }
