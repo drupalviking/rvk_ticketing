@@ -618,7 +618,12 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<h2>Senda ábendingu</h2><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p>',
+    '#markup' => '<div class="create-ticket-form-info"><h2>Senda ábendingu</h2><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p></div>',
+  );
+
+  $form['indication_fieldset']['indication_text_fieldset']['markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="icon-wrapper"><span class="icon"></span><span class="icon-bg"></span></div>',
   );
 
   $form['indication_fieldset']['indication_text_fieldset']['title'] = array(
