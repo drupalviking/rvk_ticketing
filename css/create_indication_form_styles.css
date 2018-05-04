@@ -258,11 +258,11 @@
 
 #rvk-ticketing-create-ticket-form .btn-default,
 #rvk-ticketing-create-ticket-form .form-submit,
-#rvk-ticketing-create-ticket-form .input-group-btn button {
+#rvk-ticketing-create-ticket-form .input-group-btn button,
+#rvk-ticketing-create-ticket-form .media-info-btn-wrapper .btn {
 	border-color: #2e6da4;
 	background-color: #337ab7;
 	border-radius: 100px;
-	width: 175px;
 	font-size: 14px;
 	padding: 12px;
 	text-transform: uppercase;
@@ -270,9 +270,22 @@
 	margin-bottom: 23px;
 }
 
+#rvk-ticketing-create-ticket-form .btn-default,
+#rvk-ticketing-create-ticket-form .form-submit,
+#rvk-ticketing-create-ticket-form .input-group-btn button {
+	width: 175px;
+}
+
+#rvk-ticketing-create-ticket-form .media-info-btn-wrapper .btn { 
+	width: 250px;
+	margin: 0 24px 48px;
+}
+
+
 #rvk-ticketing-create-ticket-form .btn-default:hover,
 #rvk-ticketing-create-ticket-form .form-submit:hover,
-#rvk-ticketing-create-ticket-form .input-group-btn button:hover {
+#rvk-ticketing-create-ticket-form .input-group-btn button:hover,
+#rvk-ticketing-create-ticket-form .media-info-btn-wrapper .btn:hover {
 	color: #ffffff;
 	background-color: #7ab733;
 	border-color: #61902a;
