@@ -592,7 +592,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>Veldu staðsetningu á korti (ef á við)</h3><div class="collapse">'
+    '#markup' => '<div class="media-info"><h2>Staðsetning og myndir</h2><p>Hér getur þú merkt staðsetningu ábendingar á korti og sent myndir til skýringa en það getur hjálpað okkur að bregðast hratt og vel við. Þessu má einnig sleppa.</p></div><h3><span class="toggle-icon"></span>Veldu staðsetningu á korti (ef á við)</h3><div class="collapse">'
   );
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
@@ -623,7 +623,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['indication_text_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<div class="icon-wrapper"><span class="icon"></span><span class="icon-bg"></span></div>',
+    '#markup' => '<div class="icon-wrapper"><span class="icon icon-document"></span><span class="icon-bg"></span></div>',
   );
 
   $form['indication_fieldset']['indication_text_fieldset']['title'] = array(
@@ -713,7 +713,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['personal_info_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
+    '#markup' => '<div class="create-ticket-form-personal-info"><div class="icon-wrapper"><span class="icon icon-user"></span><span class="icon-bg"></span></div><h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p></div>',
   );
 
   $form['personal_info_fieldset']['person'] = array(
