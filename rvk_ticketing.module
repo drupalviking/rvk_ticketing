@@ -136,9 +136,10 @@ function rvk_ticketing_view_indications_page() {
 
   $build = array(
     '#markup' => "<div class='indications-new'>" . $new_indications . "</div>" .
+                 "<div class='indications-closed'>" . $indications_closed_markup . "</div>" ,
                  "<div class='indications-in-progress'>" . $in_progress . "</div>" .
-                 "<div class='indications-expired'>" . $expired . "</div>" .
-                 "<div class='indications-closed'>" . $indications_closed_markup . "</div>",
+                 "<div class='indications-expired'>" . $expired . "</div>",
+
   );
 
   return $build;
@@ -855,6 +856,7 @@ function rvk_ticketing_preprocess_node(&$variables) {
    * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
    */
   if($variables['type']== 'indications' ) {
+    $variables['content']['title'][0]['#markup'] .= "<p><span class='indication-number'>Ábending nr: " . $variables['nid'] . "</span></p>";
     if(isset($variables['field_delicate_info'])) {
       if($variables['field_delicate_info'][0]['value'] == TRUE) {
         $variables['content']['field_indication_text'][0]['#markup'] = variable_get('rvk_ticketing_delicate_info');
