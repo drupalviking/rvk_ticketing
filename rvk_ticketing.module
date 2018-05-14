@@ -50,6 +50,16 @@ function rvk_ticketing_menu() {
   return $items;
 }
 
+/**
+ * Displays the Indication dashboard page (Stjórnborð).
+ *
+ * Will determine if the user works for Þjónustuborð (and then gets all the indications) or if he's working in one
+ * or more departments (refactored on 14/05/2018 by @drupalviking to allow multiple values). Views have to be altered
+ * as well to allow multiple values (seperated by , or a +).
+ *
+ * @author drupalviking
+ * @return array|string
+ */
 function rvk_ticketing_view_indications_page() {
   global $user;
   $indications_closed_markup = "";
@@ -59,10 +69,14 @@ function rvk_ticketing_view_indications_page() {
     return "";
   }
 
-  $user_indication_group_tid = $current_user->field_svid[LANGUAGE_NONE][0]['tid'];
-  $user_indication_group = taxonomy_term_load($user_indication_group_tid);
+  foreach($current_user->field_svid[LANGUAGE_NONE] as $svid) {
+    $user_indication_group_tid = $svid['tid'];
+    $user_indication_group = taxonomy_term_load($user_indication_group_tid);
+    $user_indication_group_name_array[] = $user_indication_group->name;
+    $user_indication_group_tid_array[] = $user_indication_group->tid;
+  }
 
-  if($user_indication_group->name == 'Þjónustuver') {
+  if(in_array('Þjónustuver', $user_indication_group_name_array)) {
     $new_indications_view = views_get_view('indications');
     $new_indications_view->set_display('indications_new');
     $new_indications_view->pre_execute();
@@ -90,21 +104,21 @@ function rvk_ticketing_view_indications_page() {
   else {
     $new_indications_view = views_get_view('indications');
     $new_indications_view->set_display('indications_recieved');
-    $new_indications_view->set_arguments(array($user_indication_group_tid));
+    $new_indications_view->set_arguments(array(implode(',', $user_indication_group_tid_array)));
     $new_indications_view->pre_execute();
     $new_indications_view->execute();
     $new_indications = $new_indications_view->render();
 
     $indications_in_progress_view = views_get_view('indications');
     $indications_in_progress_view->set_display('indications_in_process_contextual');
-    $indications_in_progress_view->set_arguments(array($user_indication_group_tid));
+    $indications_in_progress_view->set_arguments(array(implode(',', $user_indication_group_tid_array)));
     $indications_in_progress_view->pre_execute();
     $indications_in_progress_view->execute();
     $in_progress = $indications_in_progress_view->render();
 
     $indications_expired_view = views_get_view('indications');
     $indications_expired_view->set_display('indications_expired_contextual');
-    $indications_expired_view->set_arguments(array($user_indication_group_tid));
+    $indications_expired_view->set_arguments(array(implode(',', $user_indication_group_tid_array)));
     $indications_expired_view->pre_execute();
     $indications_expired_view->execute();
     $expired = $indications_expired_view->render();
