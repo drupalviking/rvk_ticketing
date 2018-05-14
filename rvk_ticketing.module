@@ -5,6 +5,15 @@ define('RVK_TICKETING_SERVICE_DESK_OPENING_MINUTE', variable_get('rvk_ticketing_
 define('RVK_TICKETING_SERVICE_DESK_DURATION', variable_get('rvk_ticketing_service_desk_duration'));
 define('RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND', variable_get('rvk_ticketing_service_desk_days_to_respond'));
 define('RVK_TICKETING_EXPIRED_INDICATION_TEXT', variable_get('rvk_ticketing_expired_indication_text'));
+define('RVK_TICKETING_MAIN_HEADLINE', variable_get('rvk_ticketing_main_headline'));
+define('RVK_TICKETING_MAIN_MESSAGE', variable_get('rvk_ticketing_main_message'));
+define('RVK_TICKETING_USER_HEADLINE', variable_get('rvk_ticketing_user_headline'));
+define('RVK_TICKETING_USER_MESSAGE', variable_get('rvk_ticketing_user_message'));
+define('RVK_TICKETING_CHILD_SERVICES_MESSAGE', variable_get('rvk_ticketing_child_services_message'));
+define('RVK_TICKETING_IMAGE_HEADLINE', variable_get('rvk_ticketing_image_headline'));
+define('RVK_TICKETING_IMAGE_MESSAGE', variable_get('rvk_ticketing_image_message'));
+define('RVK_TICKETING_MAP_LOCATION_HEADLINE', variable_get('rvk_ticketing_map_location_headline'));
+define('RVK_TICKETING_MAP_LOCATION_MESSAGE', variable_get('rvk_ticketing_map_location_message'));
 
 /**
  * MODULE FILE
@@ -564,6 +573,17 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   // #tree to be able to access them.
   $form['#tree'] = TRUE;
 
+  $form['child_services_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  );
+
+  $form['child_services_fieldset']['child_services_message'] = array(
+    '#type' => 'markup',
+    '#markup' => "<div class='child-services-markup'><p>" . RVK_TICKETING_CHILD_SERVICES_MESSAGE . "</p></div>",
+    '#weight' => -50,
+  );
+
   $form['indication_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 10,
@@ -584,7 +604,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['image_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>Senda mynd</h3><div class="collapse">'
+    '#markup' => '<h3><span class="toggle-icon"></span>' . RVK_TICKETING_IMAGE_HEADLINE . '</h3><div class="collapse">'
   );
 
   $form['indication_fieldset']['image_fieldset']['post_markup'] = array(
@@ -606,7 +626,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>Veldu staðsetningu á korti (ef á við)</h3><div class="collapse">'
+    '#markup' => '<h3><span class="toggle-icon"></span>' . RVK_TICKETING_MAP_LOCATION_HEADLINE . '</h3><div class="collapse">'
   );
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
@@ -632,7 +652,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<h2>Senda ábendingu</h2><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p>',
+    '#markup' => "<h2>" . RVK_TICKETING_MAIN_HEADLINE . "</h2><p>" . RVK_TICKETING_MAIN_MESSAGE . "</p>",
   );
 
   $form['indication_fieldset']['indication_text_fieldset']['title'] = array(
@@ -662,7 +682,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
       '#type' => 'managed_file',
       '#title' => 'Mynd',
-      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+      '#description' => RVK_TICKETING_IMAGE_MESSAGE,
       '#upload_location' => 'public://indication_images/',
       '#weight' => 50,
     );
@@ -685,7 +705,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['map_fieldset']['markup_location'] = array(
     '#type' => 'markup',
-    '#markup' => '<p>Þú getur slegið inn heimilisfang eða sett punkt á kortið með því að smella á þann stað á kortinu sem tengist ábendingunni. Ef þú ert í snjallsíma geturðu virkjað staðsetninguna þína með því að ýta á <span class="locate-icon"></span> hnappinn á kortinu.</p>',
+    '#markup' => '<p>' . RVK_TICKETING_MAP_LOCATION_MESSAGE . '</p>',
     '#weight' => 21,
   );
 
@@ -722,7 +742,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['personal_info_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p>',
+    '#markup' => "<h2>" . RVK_TICKETING_USER_HEADLINE . "</h2><p>" . RVK_TICKETING_USER_MESSAGE . "</p>",
   );
 
   $form['personal_info_fieldset']['person'] = array(
