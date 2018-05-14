@@ -92,6 +92,12 @@ function rvk_ticketing_view_indications_page() {
     $new_indications_view->execute();
     $new_indications = $new_indications_view->render();
 
+    $indications_closed_view = views_get_view('indications');
+    $indications_closed_view->set_display('indications_closed');
+    $indications_closed_view->pre_execute();
+    $indications_closed_view->execute();
+    $indications_closed_markup = $indications_closed_view->render();
+
     $indications_in_progress_view = views_get_view('indications');
     $indications_in_progress_view->set_display('indications_in_process');
     $indications_in_progress_view->pre_execute();
@@ -103,12 +109,6 @@ function rvk_ticketing_view_indications_page() {
     $indications_expired_view->pre_execute();
     $indications_expired_view->execute();
     $expired = $indications_expired_view->render();
-
-    $indications_closed_view = views_get_view('indications');
-    $indications_closed_view->set_display('indications_closed');
-    $indications_closed_view->pre_execute();
-    $indications_closed_view->execute();
-    $indications_closed_markup = $indications_closed_view->render();
   }
   else {
     $new_indications_view = views_get_view('indications');
