@@ -733,16 +733,19 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['personal_info_fieldset']['person']['name'] = array(
     '#type' => 'textfield',
     '#title' => 'Nafn',
+    '#required' => TRUE,
   );
 
   $form['personal_info_fieldset']['person']['email'] = array(
     '#type' => 'textfield',
     '#title' => 'Netfang',
+    '#required' => TRUE,
   );
 
   $form['personal_info_fieldset']['person']['tel'] = array(
     '#type' => 'textfield',
     '#title' => 'Sími',
+    '#required' => TRUE,
   );
 
   $form['submit'] = array(
