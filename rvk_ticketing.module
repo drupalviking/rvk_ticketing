@@ -179,6 +179,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_text']['#access'] = FALSE;
         $form['field_indication_position_x']['#access'] = FALSE;
         $form['field_indication_position_y']['#access'] = FALSE;
+        $form['field_indication_neighborhood']['#access'] = FALSE;
         $form['field_indication_location']['#access'] = FALSE;
         $form['field_indication_respond_by']['#access'] = FALSE;
         $form['field_indication_responded_at']['#access'] = FALSE;
@@ -240,6 +241,9 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
           //Moves the markup into the fieldset group_indication_content
           $form['#group_children']['map_markup'] = "group_indication_media_items";
+
+          $form['neighborhood_markup']['#markup'] = '<div class="neighborhood-markup"><label class="control-label">Hverfi</label><p>' . $form['#node']->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] . '</p></div>';
+          $form['#group_children']['neighborhood_markup'] = "group_indication_service_cat";
         }
 
         if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
@@ -741,6 +745,14 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ),
   );
 
+  $form['indication_fieldset']['map_fieldset']['neighborhood'] = array(
+    '#type' => 'hidden',
+    '#title' => 'neighborhood',
+    '#attributes' => array(
+      'id' => array('neighborhood')
+    ),
+  );
+
   $form['personal_info_fieldset']['markup'] = array(
     '#type' => 'markup',
     '#markup' => "<h2>" . RVK_TICKETING_USER_HEADLINE . "</h2><p>" . RVK_TICKETING_USER_MESSAGE . "</p>",
@@ -1014,6 +1026,7 @@ function rvk_ticketing_create_indication_node($data) {
   elseif(strlen($data['indication_fieldset']['map_fieldset']['xcoords']) > 0) {
     $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['xcoords'];
     $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['ycoords'];
+    $node->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['neighborhood'];
   }
 
   if(strlen($data['personal_info_fieldset']['person']['name']) > 0) {

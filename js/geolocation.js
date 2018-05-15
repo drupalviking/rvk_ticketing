@@ -18,7 +18,6 @@ require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map
         scale: 1000,
     }, "LocateButton");
     geoLocatebutton.startup();
-
     //þegar kortið er tilbúið er punkti bætt á kortið
     map.on("load", function () {
         var ISN93coords = getLambert(64.132953, -21.898063);
@@ -27,6 +26,7 @@ require(["esri/map", "esri/dijit/LocateButton", "dojo/domReady!"], function (Map
     //smellt á kortið til að bæta við punkti
     map.on("click", function(evt) {
         addPointToMap(evt.mapPoint.x, evt.mapPoint.y);
+        getHverfi(evt.mapPoint.x, evt.mapPoint.y);
         document.getElementById("xcoords").value = evt.mapPoint.x;
         document.getElementById("ycoords").value = evt.mapPoint.y;
     });
@@ -118,3 +118,31 @@ function deg2rad(deg) {
     var rad = deg * 2 * Math.PI / 360;
     return rad;
 };
+
+function getHverfi(xCoord,yCoord){
+  require([
+    "esri/tasks/IdentifyTask",
+    "esri/tasks/IdentifyParameters",
+    "esri/geometry/Point"
+  ], function (
+    IdentifyTask, IdentifyParameters, Point
+  ) {
+      var identifyTask, identifyParams, result;
+
+      identifyTask = new IdentifyTask("http://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja_over/MapServer");
+      identifyParams = new IdentifyParameters();
+      identifyParams.tolerance = 3;
+      identifyParams.returnGeometry = false;
+      identifyParams.layerIds = [95];
+      identifyParams.layerOption = IdentifyParameters.LAYER_OPTION_ALL;
+      identifyParams.mapExtent = map.extent;
+
+      identifyParams.geometry = new Point(xCoord, yCoord, map.spatialReference);
+
+      identifyTask.execute(identifyParams, function (idResults) {
+        if(idResults.indexOf(0)) {
+          document.getElementById("neighborhood").value = idResults[0].feature.attributes.Borgarhluti;
+        }
+      })
+  })
+}
