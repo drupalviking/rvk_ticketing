@@ -1027,6 +1027,9 @@ function rvk_ticketing_create_indication_node($data) {
     $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['xcoords'];
     $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['ycoords'];
     $node->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['neighborhood'];
+    $neighborhood_arr = _rvk_ticketing_explode_neighborhood_string($data['indication_fieldset']['map_fieldset']['neighborhood']);
+    $node->field_indication_neighborhoodref[LANGUAGE_NONE][0]['tid'] =
+      _rvk_ticketing_get_term_from_neighborhood_number($neighborhood_arr['number'])->tid;
   }
 
   if(strlen($data['personal_info_fieldset']['person']['name']) > 0) {
@@ -1073,6 +1076,36 @@ function rvk_ticketing_create_indication_node($data) {
   node_save($node);
 
   return $node;
+}
+
+function _rvk_ticketing_get_term_from_neighborhood_number($number) {
+  $neighborhood_type_voc = taxonomy_vocabulary_machine_name_load('hverfi');
+
+  $terms = entity_load('taxonomy_term', FALSE, array('vid' => $neighborhood_type_voc->vid));
+
+  $results = null;
+  $query = new EntityFieldQuery;
+  $result = $query
+    ->entityCondition('entity_type', 'taxonomy_term')
+    ->propertyCondition('vid', $neighborhood_type_voc->vid)
+    ->fieldCondition('field_neighborhood_nr_lukr', 'value', $number, '=')
+    ->execute();
+
+  if (!empty($result['taxonomy_term'])) {
+    $results = entity_load('taxonomy_term', array_keys($result['taxonomy_term']));
+    $results = array_values($results);
+    $results = $results[0];
+  }
+
+  return $results;
+}
+
+function _rvk_ticketing_explode_neighborhood_string($str) {
+  $pos_of_period = strpos($str, '.');
+  $return_arr['number'] = substr($str, 0, $pos_of_period);
+  $return_arr['string'] = substr($str, $pos_of_period + 2);
+
+  return $return_arr;
 }
 
 /**
