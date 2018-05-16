@@ -242,7 +242,12 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           //Moves the markup into the fieldset group_indication_content
           $form['#group_children']['map_markup'] = "group_indication_media_items";
 
-          $form['neighborhood_markup']['#markup'] = '<div class="neighborhood-markup"><label class="control-label">Hverfi</label><p>' . $form['#node']->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] . '</p></div>';
+          $neighborhood_tax = taxonomy_term_load($ycoord = $form['#node']->field_indication_neighborhoodref[LANGUAGE_NONE][0]['tid']);
+          $form['neighborhood_markup']['#markup'] =
+            '<div class="neighborhood-markup">
+              <label class="control-label">Hverfi</label>
+              <p>' . $form['#node']->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] . ' => ' . $neighborhood_tax->field_city_part[LANGUAGE_NONE][0]['value'] . '</p>
+             </div>';
           $form['#group_children']['neighborhood_markup'] = "group_indication_service_cat";
         }
 
@@ -1080,8 +1085,6 @@ function rvk_ticketing_create_indication_node($data) {
 
 function _rvk_ticketing_get_term_from_neighborhood_number($number) {
   $neighborhood_type_voc = taxonomy_vocabulary_machine_name_load('hverfi');
-
-  $terms = entity_load('taxonomy_term', FALSE, array('vid' => $neighborhood_type_voc->vid));
 
   $results = null;
   $query = new EntityFieldQuery;
