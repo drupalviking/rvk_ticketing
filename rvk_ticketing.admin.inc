@@ -52,6 +52,111 @@ function rvk_ticketing_admin() {
     ),
   );
 
+  $form['rvk_ticketing_config']['rvk_ticketing_main_headline'] = array(
+    '#type' => 'textfield',
+    '#weight' => 10,
+    '#title' => t('Main headline'),
+    '#description' => t('Enter the main headline.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_main_headline',
+      'Senda ábendingu'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_main_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('Main text for the Indication'),
+    '#description' => t('Enter the main text for the indication'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_main_message',
+      'Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax 
+      eða kemur áfram á réttan stað.'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_user_headline'] = array(
+    '#type' => 'textfield',
+    '#weight' => 10,
+    '#title' => t('User headline'),
+    '#description' => t('Enter the user headline.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_user_headline',
+      'Viltu fylgjast með ábendingunni?'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_user_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('Main text for the Indication'),
+    '#description' => t('Enter the main text for the indication'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_user_message',
+      'Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu 
+      smellt á senda hnappinn hér að neðan.'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_child_services_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('Main text for child services notice'),
+    '#description' => t('Enter the main text for child services notice. The text will be displayed at the top of 
+    indication form, to direct people to correct form.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_child_services_message',
+      'Allar tilkynningar sem snúa að barnavernd er nauðsynlegt að senda í gegnum . 
+      <a href="/tilkynningar-til-barnaverndar">rafræna tilkynningagátt barnaverndar</a>'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_map_location_headline'] = array(
+    '#type' => 'textfield',
+    '#weight' => 10,
+    '#title' => t('Location headline'),
+    '#description' => t('Enter the location headline.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_map_location_headline',
+      'Veldu staðsetningu á korti (ef á við)'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_map_location_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('Main text map location.'),
+    '#description' => t('Enter the main text for the map location'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_map_location_message',
+      'Þú getur slegið inn heimilisfang eða sett punkt á kortið með því að smella á þann stað á kortinu sem 
+      tengist ábendingunni. Ef þú ert í snjallsíma geturðu virkjað staðsetninguna þína með því að ýta á 
+      <span class="locate-icon"></span> hnappinn á kortinu.'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_image_headline'] = array(
+    '#type' => 'textfield',
+    '#weight' => 10,
+    '#title' => t('Image headline'),
+    '#description' => t('Enter the image headline.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_image_headline',
+      'Senda mynd'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_image_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 10,
+    '#title' => t('Image message'),
+    '#description' => t('Enter the image message.'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_image_message',
+      'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni.'
+    ),
+  );
+
   $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_hours'] = array(
     '#type' => 'textfield',
     '#weight' => 20,

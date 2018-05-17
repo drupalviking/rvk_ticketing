@@ -5,6 +5,15 @@ define('RVK_TICKETING_SERVICE_DESK_OPENING_MINUTE', variable_get('rvk_ticketing_
 define('RVK_TICKETING_SERVICE_DESK_DURATION', variable_get('rvk_ticketing_service_desk_duration'));
 define('RVK_TICKETING_SERVICE_DESK_DAYS_TO_RESPOND', variable_get('rvk_ticketing_service_desk_days_to_respond'));
 define('RVK_TICKETING_EXPIRED_INDICATION_TEXT', variable_get('rvk_ticketing_expired_indication_text'));
+define('RVK_TICKETING_MAIN_HEADLINE', variable_get('rvk_ticketing_main_headline'));
+define('RVK_TICKETING_MAIN_MESSAGE', variable_get('rvk_ticketing_main_message'));
+define('RVK_TICKETING_USER_HEADLINE', variable_get('rvk_ticketing_user_headline'));
+define('RVK_TICKETING_USER_MESSAGE', variable_get('rvk_ticketing_user_message'));
+define('RVK_TICKETING_CHILD_SERVICES_MESSAGE', variable_get('rvk_ticketing_child_services_message'));
+define('RVK_TICKETING_IMAGE_HEADLINE', variable_get('rvk_ticketing_image_headline'));
+define('RVK_TICKETING_IMAGE_MESSAGE', variable_get('rvk_ticketing_image_message'));
+define('RVK_TICKETING_MAP_LOCATION_HEADLINE', variable_get('rvk_ticketing_map_location_headline'));
+define('RVK_TICKETING_MAP_LOCATION_MESSAGE', variable_get('rvk_ticketing_map_location_message'));
 
 /**
  * MODULE FILE
@@ -50,6 +59,16 @@ function rvk_ticketing_menu() {
   return $items;
 }
 
+/**
+ * Displays the Indication dashboard page (Stjórnborð).
+ *
+ * Will determine if the user works for Þjónustuborð (and then gets all the indications) or if he's working in one
+ * or more departments (refactored on 14/05/2018 by @drupalviking to allow multiple values). Views have to be altered
+ * as well to allow multiple values (seperated by , or a +).
+ *
+ * @author drupalviking
+ * @return array|string
+ */
 function rvk_ticketing_view_indications_page() {
   global $user;
   $indications_closed_markup = "";
@@ -59,15 +78,25 @@ function rvk_ticketing_view_indications_page() {
     return "";
   }
 
-  $user_indication_group_tid = $current_user->field_svid[LANGUAGE_NONE][0]['tid'];
-  $user_indication_group = taxonomy_term_load($user_indication_group_tid);
+  foreach($current_user->field_svid[LANGUAGE_NONE] as $svid) {
+    $user_indication_group_tid = $svid['tid'];
+    $user_indication_group = taxonomy_term_load($user_indication_group_tid);
+    $user_indication_group_name_array[] = $user_indication_group->name;
+    $user_indication_group_tid_array[] = $user_indication_group->tid;
+  }
 
-  if($user_indication_group->name == 'Þjónustuver') {
+  if(in_array('Þjónustuver', $user_indication_group_name_array)) {
     $new_indications_view = views_get_view('indications');
     $new_indications_view->set_display('indications_new');
     $new_indications_view->pre_execute();
     $new_indications_view->execute();
     $new_indications = $new_indications_view->render();
+
+    $indications_closed_view = views_get_view('indications');
+    $indications_closed_view->set_display('indications_closed');
+    $indications_closed_view->pre_execute();
+    $indications_closed_view->execute();
+    $indications_closed_markup = $indications_closed_view->render();
 
     $indications_in_progress_view = views_get_view('indications');
     $indications_in_progress_view->set_display('indications_in_process');
@@ -80,31 +109,25 @@ function rvk_ticketing_view_indications_page() {
     $indications_expired_view->pre_execute();
     $indications_expired_view->execute();
     $expired = $indications_expired_view->render();
-
-    $indications_closed_view = views_get_view('indications');
-    $indications_closed_view->set_display('indications_closed');
-    $indications_closed_view->pre_execute();
-    $indications_closed_view->execute();
-    $indications_closed_markup = $indications_closed_view->render();
   }
   else {
     $new_indications_view = views_get_view('indications');
     $new_indications_view->set_display('indications_recieved');
-    $new_indications_view->set_arguments(array($user_indication_group_tid));
+    $new_indications_view->set_arguments(array(implode(',', $user_indication_group_tid_array)));
     $new_indications_view->pre_execute();
     $new_indications_view->execute();
     $new_indications = $new_indications_view->render();
 
     $indications_in_progress_view = views_get_view('indications');
     $indications_in_progress_view->set_display('indications_in_process_contextual');
-    $indications_in_progress_view->set_arguments(array($user_indication_group_tid));
+    $indications_in_progress_view->set_arguments(array(implode(',', $user_indication_group_tid_array)));
     $indications_in_progress_view->pre_execute();
     $indications_in_progress_view->execute();
     $in_progress = $indications_in_progress_view->render();
 
     $indications_expired_view = views_get_view('indications');
     $indications_expired_view->set_display('indications_expired_contextual');
-    $indications_expired_view->set_arguments(array($user_indication_group_tid));
+    $indications_expired_view->set_arguments(array(implode(',', $user_indication_group_tid_array)));
     $indications_expired_view->pre_execute();
     $indications_expired_view->execute();
     $expired = $indications_expired_view->render();
@@ -113,9 +136,10 @@ function rvk_ticketing_view_indications_page() {
 
   $build = array(
     '#markup' => "<div class='indications-new'>" . $new_indications . "</div>" .
+                 "<div class='indications-closed'>" . $indications_closed_markup . "</div>" ,
                  "<div class='indications-in-progress'>" . $in_progress . "</div>" .
-                 "<div class='indications-expired'>" . $expired . "</div>" .
-                 "<div class='indications-closed'>" . $indications_closed_markup . "</div>",
+                 "<div class='indications-expired'>" . $expired . "</div>",
+
   );
 
   return $build;
@@ -155,6 +179,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_text']['#access'] = FALSE;
         $form['field_indication_position_x']['#access'] = FALSE;
         $form['field_indication_position_y']['#access'] = FALSE;
+        $form['field_indication_neighborhood']['#access'] = FALSE;
         $form['field_indication_location']['#access'] = FALSE;
         $form['field_indication_respond_by']['#access'] = FALSE;
         $form['field_indication_responded_at']['#access'] = FALSE;
@@ -216,6 +241,14 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
           //Moves the markup into the fieldset group_indication_content
           $form['#group_children']['map_markup'] = "group_indication_media_items";
+
+          $neighborhood_tax = taxonomy_term_load($ycoord = $form['#node']->field_indication_neighborhoodref[LANGUAGE_NONE][0]['tid']);
+          $form['neighborhood_markup']['#markup'] =
+            '<div class="neighborhood-markup">
+              <label class="control-label">Hverfi</label>
+              <p>' . $form['#node']->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] . ' => ' . $neighborhood_tax->field_city_part[LANGUAGE_NONE][0]['value'] . '</p>
+             </div>';
+          $form['#group_children']['neighborhood_markup'] = "group_indication_service_cat";
         }
 
         if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
@@ -550,6 +583,17 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   // #tree to be able to access them.
   $form['#tree'] = TRUE;
 
+  $form['child_services_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#weight' => 10,
+  );
+
+  $form['child_services_fieldset']['child_services_message'] = array(
+    '#type' => 'markup',
+    '#markup' => "<div class='child-services-markup'><p>" . RVK_TICKETING_CHILD_SERVICES_MESSAGE . "</p></div>",
+    '#weight' => -50,
+  );
+
   $form['indication_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 10,
@@ -570,7 +614,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['image_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon images"></span><span class="icon images-close"></span><span class="icon image-close"></span><span>Senda inn mynd</span></div></div><div class="collapse-outer"><div class="collapse-inner">'
+    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon images"></span><span class="icon images-close"></span><span class="icon image-close"></span><span>' . RVK_TICKETING_IMAGE_HEADLINE . '</span></div></div><div class="collapse-outer"><div class="collapse-inner">',
   );
 
   $form['indication_fieldset']['image_fieldset']['post_markup'] = array(
@@ -592,7 +636,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon location"></span><span class="icon location-close"></span><span>Staðsetja á korti</span></div></div><div class="collapse-outer"><div class="collapse-inner"><div class="icon-wrapper"><span class="icon icon-location"></span><span class="icon-bg"></span></div><h2>Kort</h2>'
+    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon location"></span><span class="icon location-close"></span><span>' . RVK_TICKETING_MAP_LOCATION_HEADLINE . '</span></div></div><div class="collapse-outer"><div class="collapse-inner"><div class="icon-wrapper"><span class="icon icon-location"></span><span class="icon-bg"></span></div><h2>Kort</h2>',
   );
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
@@ -666,7 +710,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
       '#type' => 'managed_file',
       '#title' => 'Mynd',
-      '#description' => 'Sendu inn mynd með tilkynningunni, til að gera betri grein fyrir henni',
+      '#description' => RVK_TICKETING_IMAGE_MESSAGE,
       '#upload_location' => 'public://indication_images/',
       '#weight' => 50,
     );
@@ -689,7 +733,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['map_fieldset']['markup_location'] = array(
     '#type' => 'markup',
-    '#markup' => '<p>Þú getur slegið inn heimilisfang eða sett punkt á kortið með því að smella á þann stað á kortinu sem tengist ábendingunni. Ef þú ert í snjallsíma geturðu virkjað staðsetninguna þína með því að ýta á <span class="locate-icon"></span> hnappinn á kortinu.</p>',
+    '#markup' => '<p>' . RVK_TICKETING_MAP_LOCATION_MESSAGE . '</p>',
     '#weight' => 21,
   );
 
@@ -724,9 +768,17 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     ),
   );
 
+  $form['indication_fieldset']['map_fieldset']['neighborhood'] = array(
+    '#type' => 'hidden',
+    '#title' => 'neighborhood',
+    '#attributes' => array(
+      'id' => array('neighborhood')
+    ),
+  );
+
   $form['personal_info_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<div class="create-ticket-form-personal-info"><div class="icon-wrapper"><span class="icon icon-user"></span><span class="icon-bg"></span></div><h2>Viltu fylgjast með ábendingunni?</h2><p>Ef þú vilt vita hvað verður um ábendinguna þína er nauðsynlegt að fylla þessa reiti út. Ef ekki geturðu smellt á senda hnappinn hér að neðan.</p></div>',
+    '#markup' => '<div class="create-ticket-form-personal-info"><div class="icon-wrapper"><span class="icon icon-user"></span><span class="icon-bg"></span></div><h2>'  . RVK_TICKETING_USER_HEADLINE . '</h2><p>' . RVK_TICKETING_USER_MESSAGE . '</p></div>',
   );
 
   $form['personal_info_fieldset']['person'] = array(
@@ -737,16 +789,19 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['personal_info_fieldset']['person']['name'] = array(
     '#type' => 'textfield',
     '#title' => 'Nafn',
+    '#required' => TRUE,
   );
 
   $form['personal_info_fieldset']['person']['email'] = array(
     '#type' => 'textfield',
     '#title' => 'Netfang',
+    '#required' => TRUE,
   );
 
   $form['personal_info_fieldset']['person']['tel'] = array(
     '#type' => 'textfield',
     '#title' => 'Sími',
+    '#required' => TRUE,
   );
 
   $form['submit'] = array(
@@ -836,6 +891,7 @@ function rvk_ticketing_preprocess_node(&$variables) {
    * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
    */
   if($variables['type']== 'indications' ) {
+    $variables['content']['title'][0]['#markup'] .= "<p><span class='indication-number'>Ábending nr: " . $variables['nid'] . "</span></p>";
     if(isset($variables['field_delicate_info'])) {
       if($variables['field_delicate_info'][0]['value'] == TRUE) {
         $variables['content']['field_indication_text'][0]['#markup'] = variable_get('rvk_ticketing_delicate_info');
@@ -993,6 +1049,10 @@ function rvk_ticketing_create_indication_node($data) {
   elseif(strlen($data['indication_fieldset']['map_fieldset']['xcoords']) > 0) {
     $node->field_indication_position_x[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['xcoords'];
     $node->field_indication_position_y[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['ycoords'];
+    $node->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] = $data['indication_fieldset']['map_fieldset']['neighborhood'];
+    $neighborhood_arr = _rvk_ticketing_explode_neighborhood_string($data['indication_fieldset']['map_fieldset']['neighborhood']);
+    $node->field_indication_neighborhoodref[LANGUAGE_NONE][0]['tid'] =
+      _rvk_ticketing_get_term_from_neighborhood_number($neighborhood_arr['number'])->tid;
   }
 
   if(strlen($data['personal_info_fieldset']['person']['name']) > 0) {
@@ -1039,6 +1099,34 @@ function rvk_ticketing_create_indication_node($data) {
   node_save($node);
 
   return $node;
+}
+
+function _rvk_ticketing_get_term_from_neighborhood_number($number) {
+  $neighborhood_type_voc = taxonomy_vocabulary_machine_name_load('hverfi');
+
+  $results = null;
+  $query = new EntityFieldQuery;
+  $result = $query
+    ->entityCondition('entity_type', 'taxonomy_term')
+    ->propertyCondition('vid', $neighborhood_type_voc->vid)
+    ->fieldCondition('field_neighborhood_nr_lukr', 'value', $number, '=')
+    ->execute();
+
+  if (!empty($result['taxonomy_term'])) {
+    $results = entity_load('taxonomy_term', array_keys($result['taxonomy_term']));
+    $results = array_values($results);
+    $results = $results[0];
+  }
+
+  return $results;
+}
+
+function _rvk_ticketing_explode_neighborhood_string($str) {
+  $pos_of_period = strpos($str, '.');
+  $return_arr['number'] = substr($str, 0, $pos_of_period);
+  $return_arr['string'] = substr($str, $pos_of_period + 2);
+
+  return $return_arr;
 }
 
 /**
