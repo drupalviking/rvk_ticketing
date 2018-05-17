@@ -129,7 +129,7 @@ function getHverfi(xCoord,yCoord){
   ) {
       var identifyTask, identifyParams, result;
 
-      identifyTask = new IdentifyTask("http://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja_over/MapServer");
+      identifyTask = new IdentifyTask("https://borgarvefsja.reykjavik.is/arcgis/rest/services/Borgarvefsja/Borgarvefsja_over/MapServer");
       identifyParams = new IdentifyParameters();
       identifyParams.tolerance = 3;
       identifyParams.returnGeometry = false;

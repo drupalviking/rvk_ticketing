@@ -180,6 +180,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_position_x']['#access'] = FALSE;
         $form['field_indication_position_y']['#access'] = FALSE;
         $form['field_indication_neighborhood']['#access'] = FALSE;
+        $form['field_indication_neighborhoodref']['#access'] = FALSE;
         $form['field_indication_location']['#access'] = FALSE;
         $form['field_indication_respond_by']['#access'] = FALSE;
         $form['field_indication_responded_at']['#access'] = FALSE;
