@@ -614,13 +614,13 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['image_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>' . RVK_TICKETING_IMAGE_HEADLINE . '</h3><div class="collapse">'
+    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon images"></span><span class="icon images-close"></span><span class="icon image-close"></span><span>' . RVK_TICKETING_IMAGE_HEADLINE . '</span></div></div><div class="collapse-outer"><div class="collapse-inner">',
   );
 
   $form['indication_fieldset']['image_fieldset']['post_markup'] = array(
     '#type' => 'markup',
     '#weight' => 100,
-    '#markup' => '</div>',
+    '#markup' => '</div></div>',
   );
 
   $form['indication_fieldset']['image_fieldset']['image'] = array(
@@ -636,13 +636,13 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<h3><span class="toggle-icon"></span>' . RVK_TICKETING_MAP_LOCATION_HEADLINE . '</h3><div class="collapse">'
+    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon location"></span><span class="icon location-close"></span><span>' . RVK_TICKETING_MAP_LOCATION_HEADLINE . '</span></div></div><div class="collapse-outer"><div class="collapse-inner"><div class="icon-wrapper"><span class="icon icon-location"></span><span class="icon-bg"></span></div><h2>Kort</h2>',
   );
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
     '#type' => 'markup',
     '#weight' => 100,
-    '#markup' => '</div>',
+    '#markup' => '</div></div>',
   );
 
   $form['indication_fieldset']['map_fieldset']['map'] = array(
@@ -662,7 +662,18 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => "<h2>" . RVK_TICKETING_MAIN_HEADLINE . "</h2><p>" . RVK_TICKETING_MAIN_MESSAGE . "</p>",
+    '#markup' => '<div class="create-ticket-form-info"><h2>Senda ábendingu</h2><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p></div>',
+  );
+
+  $form['indication_fieldset']['indication_text_fieldset']['markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="icon-wrapper"><span class="icon icon-document"></span><span class="icon-bg"></span></div><h2>Efni ábendingar</h2>',
+  );
+
+  $form['indication_fieldset']['post_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="media-info"><div class="media-info-inner"><h2>Staðsetning og myndir</h2><p>Hér getur þú merkt staðsetningu ábendingar á korti og sent myndir til skýringa en það getur hjálpað okkur að bregðast hratt og vel við. Þessu má einnig sleppa.</p><div class="media-info-btn-wrapper"><div class="btn btn-primary"><span class="icon location"></span><span class="icon location-close"></span><span>Staðsetja á korti</span></div><div class="btn btn-primary"><span class="icon images"></span><span class="icon images-close"></span><span>Senda inn mynd</span></div></div></div></div>',
+    '#weight' => 20,
   );
 
   $form['indication_fieldset']['indication_text_fieldset']['title'] = array(
@@ -673,7 +684,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['indication_text_fieldset']['content'] = array(
     '#type' => 'textarea',
-    '#title' => 'Efni ábendingar',
+    '#title' => 'Efni',
     '#required' => TRUE,
   );
 
@@ -688,6 +699,13 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   if (empty($form_state['num_images'])) {
     $form_state['num_images'] = 1;
   }
+
+  $form['indication_fieldset']['image_fieldset']['markup_location'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="icon-wrapper"><span class="icon icon-images"></span><span class="icon-bg"></span></div><h2>Myndir</h2>',
+    '#weight' => 24,
+  );
+
   for ($i = 0; $i < $form_state['num_images']; $i++) {
     $form['indication_fieldset']['image_fieldset']['image'][$i] = array(
       '#type' => 'managed_file',
@@ -760,7 +778,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['personal_info_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => "<h2>" . RVK_TICKETING_USER_HEADLINE . "</h2><p>" . RVK_TICKETING_USER_MESSAGE . "</p>",
+    '#markup' => '<div class="create-ticket-form-personal-info"><div class="icon-wrapper"><span class="icon icon-user"></span><span class="icon-bg"></span></div><h2>'  . RVK_TICKETING_USER_HEADLINE . '</h2><p>' . RVK_TICKETING_USER_MESSAGE . '</p></div>',
   );
 
   $form['personal_info_fieldset']['person'] = array(

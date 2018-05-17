@@ -3,16 +3,40 @@
 
   Drupal.behaviors.accordion = {
     attach: function (context, settings) {
-      $( '#edit-indication-fieldset-map-fieldset .toggle-icon' ).click(function() {
-        $(this).parent().next('.collapse').toggleClass('show-map');
-        $(this).toggleClass('flip');
-        $(this).parent().parent().parent().parent().parent().parent().toggleClass('move');
+
+      $( '#edit-indication-fieldset-map-fieldset .media-info-btn-wrapper-small .btn' ).unbind('click').bind('click', function() {
+        $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'show-map-wrapper' );
       });
 
-     
-      $( '#images-fieldset-wrapper .toggle-icon' ).click(function() {
-        $(this).parent().parent().parent().parent().parent().parent().parent().parent().toggleClass('show-image');
-        $(this).toggleClass('flip');
+      $( '.media-info-btn-wrapper .btn:nth-child(1)' ).unbind('click').bind('click', function() {
+        if ($('.show-image-wrapper').length > 0) {
+          $( '#rvk-ticketing-create-ticket-form' ).removeClass( 'show-image-wrapper' );
+          setTimeout(
+            function() 
+            {
+              $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'show-map-wrapper' );
+            }, 900);
+        } else {
+          $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'show-map-wrapper' );
+        }
+      }); 
+
+      
+      $( '#images-fieldset-wrapper .media-info-btn-wrapper-small .btn' ).unbind('click').bind('click', function() {
+        $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'show-image-wrapper' );
+      }); 
+
+      $( '.media-info-btn-wrapper .btn:nth-child(2)' ).unbind('click').bind('click', function() {
+        if ($('.show-map-wrapper').length > 0) {
+          $( '#rvk-ticketing-create-ticket-form' ).removeClass( 'show-map-wrapper' );
+          setTimeout(
+            function() 
+            {
+              $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'show-image-wrapper' );
+            }, 900);
+        } else {
+          $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'show-image-wrapper' );
+        }
       });
 
     }
