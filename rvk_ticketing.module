@@ -14,6 +14,10 @@ define('RVK_TICKETING_IMAGE_HEADLINE', variable_get('rvk_ticketing_image_headlin
 define('RVK_TICKETING_IMAGE_MESSAGE', variable_get('rvk_ticketing_image_message'));
 define('RVK_TICKETING_MAP_LOCATION_HEADLINE', variable_get('rvk_ticketing_map_location_headline'));
 define('RVK_TICKETING_MAP_LOCATION_MESSAGE', variable_get('rvk_ticketing_map_location_message'));
+define('RVK_TICKETING_ADDRESS_INVALID_ERROR_MESSAGE', variable_get('rvk_ticketing_address_invalid_error_message'));
+define('RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_CAPTION', variable_get('rvk_ticketing_map_info_not_supplied_caption'));
+define('RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_DESCRIPTION', variable_get('rvk_ticketing_map_info_not_supplied_description'));
+define('RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_ERROR_MESSAGE', variable_get('rvk_ticketing_map_info_not_supplied_error_message'));
 
 /**
  * MODULE FILE
@@ -371,6 +375,13 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#attributes' => array(
       'id' => array('neighborhood')
     ),
+  );
+
+  $form['indication_fieldset']['map_fieldset']['dont_use_map'] = array(
+    '#type' => 'checkbox',
+    '#weight' => -15,
+    '#title' => RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_CAPTION,
+    '#description' => RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_DESCRIPTION,
   );
 
   $form['personal_info_fieldset']['markup'] = array(
@@ -738,7 +749,13 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
 
   if(strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
     if(!rvk_ticketing_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
-      form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
+      form_set_error('address', RVK_TICKETING_ADDRESS_INVALID_ERROR_MESSAGE);
+    }
+  }
+
+  if($values['indication_fieldset']['map_fieldset']['dont_use_map'] == FALSE) {
+    if(strlen($values['indication_fieldset']['map_fieldset']['xcoords']) == 0) {
+      form_set_error('map_location', RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_ERROR_MESSAGE);
     }
   }
 }

@@ -157,6 +157,46 @@ function rvk_ticketing_admin() {
     ),
   );
 
+  $form['rvk_ticketing_config']['rvk_ticketing_address_invalid_error_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 15,
+    '#title' => t('Error message, when typed address is invalid'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_address_invalid_error_message',
+      'Svo virðist sem ekki hafi verið valið rétt heimilisfang.'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_map_info_not_supplied_caption'] = array(
+    '#type' => 'textarea',
+    '#weight' => 20,
+    '#title' => t('Caption for the checkbox: Not using map info'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_map_info_not_supplied_caption',
+      'Ábendingin notast ekki við upplýsingar á korti.'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_map_info_not_supplied_description'] = array(
+    '#type' => 'textarea',
+    '#weight' => 20,
+    '#title' => t('Description for the checkbox: Not using map info'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_map_info_not_supplied_description',
+      'Ef þú hakar hér þarftu ekki að veita upplýsingar á korti, annars þarftu að gera það.'
+    ),
+  );
+
+  $form['rvk_ticketing_config']['rvk_ticketing_map_info_not_supplied_error_message'] = array(
+    '#type' => 'textarea',
+    '#weight' => 20,
+    '#title' => t('Caption for the checkbox: Not using map info'),
+    '#default_value' => variable_get(
+      'rvk_ticketing_map_info_not_supplied_error_message',
+      'Staðsetning á korti hefur ekki verið valin!'
+    ),
+  );
+
   $form['rvk_service_desk_config']['rvk_ticketing_service_desk_opening_hours'] = array(
     '#type' => 'textfield',
     '#weight' => 20,
