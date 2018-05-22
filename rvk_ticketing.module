@@ -136,15 +136,21 @@ function rvk_ticketing_view_indications_page() {
 
   $build = array(
     '#markup' => "<div class='indications-new'>" . $new_indications . "</div>" .
-                 "<div class='indications-closed'>" . $indications_closed_markup . "</div>" ,
-                 "<div class='indications-in-progress'>" . $in_progress . "</div>" .
-                 "<div class='indications-expired'>" . $expired . "</div>",
+      "<div class='indications-closed'>" . $indications_closed_markup . "</div>" ,
+      "<div class='indications-in-progress'>" . $in_progress . "</div>" .
+      "<div class='indications-expired'>" . $expired . "</div>",
 
   );
 
   return $build;
 }
 
+/**
+ * Helper function. Returns the name of the department the user belongs to.
+ *
+ * @param $user
+ * @return mixed
+ */
 function _rvk_ticketing_get_user_department($user) {
   $current_user = user_load($user->uid);
   if(isset($current_user->field_svid[LANGUAGE_NONE])) {
@@ -152,416 +158,6 @@ function _rvk_ticketing_get_user_department($user) {
     return $deparment_taxonomy->name;
   }
 }
-
-/**
- * Implements form_alter().
- */
-function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
-  if($form_id == 'indications_node_form') {
-
-    $form['#attached']['css'] = array(
-      'https://js.arcgis.com/3.13/esri/css/esri.css' => array(
-        'type' => 'external',
-      ),
-      drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
-      drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
-    );
-
-    if(isset($form['#node'])) {
-      if(is_object($form['#node'])) {
-        global $user;
-        $user_department = _rvk_ticketing_get_user_department($user);
-        $is_delicate = isset($form['#node']->field_delicate_info[LANGUAGE_NONE])
-          ? $form['#node']->field_delicate_info[LANGUAGE_NONE][0]['value']
-          : FALSE;
-
-        //Disables the fields that should not be shown (eg. editable)
-        $form['field_indication_text']['#access'] = FALSE;
-        $form['field_indication_position_x']['#access'] = FALSE;
-        $form['field_indication_position_y']['#access'] = FALSE;
-        $form['field_indication_neighborhood']['#access'] = FALSE;
-        $form['field_indication_neighborhoodref']['#access'] = FALSE;
-        $form['field_indication_location']['#access'] = FALSE;
-        $form['field_indication_respond_by']['#access'] = FALSE;
-        $form['field_indication_responded_at']['#access'] = FALSE;
-        $form['field_indication_close_by']['#access'] = FALSE;
-        $form['field_indication_closed_at']['#access'] = FALSE;
-        $form['field_image']['#access'] = FALSE;
-
-        //Create the indication text markup, to display what the original indication said and change the sort order
-        //of the fields
-        $form['title']['#weight'] = -20;
-        $form['field_interpered_indication_text']['#weight'] = 100;
-        $form['field_response']['#weight'] = 200;
-        $form['field_indication_text_markup']['#weight'] = 20;
-
-        //People who do not work in Þjónustuver cannot see the indications that are marked delicate
-        //Also, if the indication is marked delicate, a normal user cannot change the delicacy status.
-        if(($is_delicate && $user_department == 'Þjónustuver') || (!$is_delicate)) {
-          $form['field_indication_text_markup']['#markup'] =
-            '<div class="indication-text-readonly">
-            <label class="control-label">Ábending</label>
-            <div>
-              <p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p>
-            </div>
-          </div>";
-        }
-        else {
-          $form['field_indication_text_markup']['#markup'] =
-            '<div class="indication-text-readonly">
-            <label class="control-label">Ábending</label>
-            <div>
-              <p>' . variable_get('rvk_ticketing_delicate_info') . "</p>
-            </div>
-          </div>";
-
-          $form['field_delicate_info']['#access'] = FALSE;
-          $form['field_interpered_indication_text']['#access'] = FALSE;
-        }
-
-        //Moves the markup into the fieldset group_indication_content
-        $form['#group_children']['field_indication_text_markup'] = "group_indication_content";
-
-        //The map and location
-        if($coords_set = isset($form['#node']->field_indication_position_x[LANGUAGE_NONE][0])) {
-          $xcoord = $form['#node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
-          $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
-          $form['coords_markup']['#markup'] = '<div class="location-text-readonly"><label class="control-label">X og Y hnit</label><p>X: ' . $xcoord . ' Y: ' . $ycoord . '</p></div>';
-          $form['coords_markup']['#weight'] = 50;
-          $form['#group_children']['coords_markup'] = "group_indication_media_items";
-
-          $coords = array(
-            'xcoord' => $xcoord,
-            'ycoord' => $ycoord,
-          );
-
-          drupal_add_js($coords, 'setting');
-
-          $form['map_markup']['#weight'] = 16;
-          $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="max-width: 920px"></div></div>';
-
-          //Moves the markup into the fieldset group_indication_content
-          $form['#group_children']['map_markup'] = "group_indication_media_items";
-
-          $neighborhood_tax = taxonomy_term_load($ycoord = $form['#node']->field_indication_neighborhoodref[LANGUAGE_NONE][0]['tid']);
-          $form['neighborhood_markup']['#markup'] =
-            '<div class="neighborhood-markup">
-              <label class="control-label">Hverfi</label>
-              <p>' . $form['#node']->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] . ' => ' . $neighborhood_tax->field_city_part[LANGUAGE_NONE][0]['value'] . '</p>
-             </div>';
-          $form['#group_children']['neighborhood_markup'] = "group_indication_service_cat";
-        }
-
-        if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
-          $images = $form['#node']->field_image[LANGUAGE_NONE];
-          $image_string = "<ul>";
-          foreach($images as $image) {
-            $image_string .= "<li>";
-            $image_string .= "<img src='" . image_style_url('medium', $image['uri']) . "' />";
-            $image_string .= "</li>";
-          }
-
-          $image_string .= "</ul>";
-
-          $form['image_markup']['#markup'] = "
-            <div class=\"indication-images-readonly\">
-              <label class\"control-label\">Myndir</label>"
-              . $image_string
-              . "</div>";
-
-          $form['#group_children']['image_markup'] = "group_indication_media_items";
-        }
-
-        if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
-          $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
-          $form['#group_children']['location_markup'] = "group_indication_media_items";
-        }
-
-        $form['created_markup']['#weight'] = 39;
-        $form['created_markup']['#markup'] = "<div class=\"response-by-time-readonly\"><label class=\"control-label\">Ábending barst</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->created) . "</p> </p></div>";
-        $form['#group_children']['created_markup'] = "group_indication_timestamps";
-
-        $respond_by_date = $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value'];
-        if($respond_by_date) {
-          $respond_by_date = strtotime($respond_by_date);
-
-          $form['respond_by_markup']['#weight'] = 40;
-          $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $respond_by_date) . "</p> </p></div>";
-          $form['#group_children']['respond_by_markup'] = "group_indication_timestamps";
-        }
-
-        //Timestamps
-        if(isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0])) {
-          $responded_at_date = $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value'];
-          if($responded_at_date) {
-            $responded_at_date = strtotime($responded_at_date);
-
-            $form['responded_at_markup']['#weight'] = 41;
-            $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $responded_at_date) . "</p> </p></div>";
-            $form['#group_children']['responded_at_markup'] = "group_indication_timestamps";
-          }
-        }
-
-        if(isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0])) {
-          $close_by_date = $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value'];
-          if($close_by_date) {
-            $close_by_date = strtotime($close_by_date);
-            $form['close_by_markup']['#weight'] = 42;
-            $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $close_by_date) . "</p> </p></div>";
-            $form['#group_children']['close_by_markup'] = "group_indication_timestamps";
-          }
-        }
-
-        if(isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0])) {
-          $closed_at_date = $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value'];
-          if($closed_at_date) {
-            $closed_at_date = strtotime($closed_at_date);
-            $form['closed_at_markup']['#weight'] = 43;
-            $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $closed_at_date) . "</p> </p></div>";
-            $form['#group_children']['closed_at_markup'] = "group_indication_timestamps";
-          }
-        }
-      }
-    }
-
-    $expired = rvk_ticketing_check_if_response_time_is_expired($form, $form_state);
-    if($expired) {
-      $form['field_indication_expired_markup']['#weight'] = -50;
-      $form['field_indication_expired_markup']['#markup'] =
-        '<div class="indication-expired-readonly"><div><p>' . RVK_TICKETING_EXPIRED_INDICATION_TEXT . '</p></div></div>';
-
-      //Moves the markup into the fieldset group_indication_content
-      $form['#group_children']['field_indication_expired_markup'] = "group_indication_content";
-    }
-
-    $form['#attached']['js'] = array(
-      'https://js.arcgis.com/3.13/init.js' => array(
-        'type' => 'external',
-      ),
-      drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js',
-      drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js',
-    );
-
-    $arg = arg(2);
-    $arg = substr($arg, 0, 4);
-    if(($form_id == 'indications_node_form') && ($arg == 'edit')){
-      drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
-    }
-  }
-}
-
-function rvk_ticketing_check_if_response_time_is_expired(&$form, &$form_state) {
-  $respond_by = (isset($form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]))
-    ? $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value']
-    : null;
-  $responded_at = (isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]))
-    ? $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']
-    : null;
-
-  $close_by = (isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0]))
-    ? $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value']
-    : null;
-
-  $closed_at = (isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]))
-    ? $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']
-    : null;
-
-  return rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at);
-}
-
-function rvk_ticketing_process_expiration_times($respond_by, $respsonded_at, $close_by, $closed_at) {
-  $today = str_replace(' ', 'T', strftime('%Y-%m-%d %H:%M:%S'));
-
-  //If the indication is closed, the response time is no longer expired, even if it was at one point
-  if(isset($closed_at)) {
-    return FALSE;
-  }
-
-  if(isset($close_by)) {
-    return (strcmp($today, $close_by) == 1) ? TRUE : FALSE;
-  }
-
-  if(isset($respond_by) || !isset($close_by) ) {
-    return (strcmp($today, $respond_by) == 1) ? TRUE : FALSE;
-  }
-
-  return FALSE;
-}
-
-/**
- * Implements hook_node_presave().
- */
-function rvk_ticketing_node_presave($node) {
-  if($node->type == 'indications' && $node->is_new == FALSE) {
-    $indication_type_voc = taxonomy_vocabulary_machine_name_load('indication_types');
-    $service_desk_tid = _rvk_ticketing_find_indication_status_by_name($indication_type_voc->vid, 'Þjónustuver');
-    $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
-    $indication_new_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Ný ábending');
-    $indication_received_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Móttekin');
-
-    // If the status is not set, it's because we're going through the initial save of the node. Set the status to
-    // Þjónustuver, but do not go through any of the other test cases.
-    if(!isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
-      $node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $service_desk_tid->tid;
-      $node->field_indication_responded_at[LANGUAGE_NONE][0] = NULL;
-      $node->field_indication_close_by[LANGUAGE_NONE][0] = NULL;
-      $node->field_indication_closed_at[LANGUAGE_NONE][0] = NULL;
-    }
-    else {
-      //If the indication is being sent to external department (as configured in a taxonomy), we'll just close the
-      //Indication
-      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
-        if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
-          $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
-          $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
-        }
-      }
-
-      //If service desk is changing the indication type reference to another department, check if they have changed the
-      //status of the indication, and if not, change it to received.
-      if($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] != $service_desk_tid->tid) {
-        if($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] == $indication_new_tax->tid) {
-          $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_received_tax->tid;
-        }
-      }
-
-      //If there is text in the indication response or the status is no longer Ný ábending, we'll create a new timestamp
-      // and log the time it was answered.
-      if(isset($node->field_indication_response[LANGUAGE_NONE][0]) ||
-        $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] != $indication_new_tax->tid) {
-        if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-          $respond_at = new DateTime('now');
-          $respond_at = $respond_at->format('Y-m-d H:i:s');
-          $respond_at = str_replace(' ', 'T', $respond_at);
-          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $respond_at;
-          $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-        }
-      }
-
-      //If there is a timestamp for when the indication was answered for the first time, we need to calculate when the
-      //indication has to be closed completely
-      if(isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-        if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-          if(isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
-            $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
-
-            $second_response_time = rvk_ticketing_get_last_response_date(
-              new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
-            )->format('Y-m-d H:i:s');
-            $second_response_time = str_replace(' ', 'T', $second_response_time);
-          }
-          else {
-            $second_response_time = rvk_ticketing_get_last_response_date(
-              new DateTime('now'), 2
-            )->format('Y-m-d H:i:s');
-            $second_response_time = str_replace(' ', 'T', $second_response_time);
-          }
-
-          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
-          $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-        }
-      }
-
-      //If the indication is closed, we need to record that timestamp, and also fill inn all the other timestamps that
-      //are missing (e.g. if the indication is closed right away).
-      if(isset($node->field_indication_status_ref[LANGUAGE_NONE][0])) {
-        $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
-        if($status_term->name == "Lokið") {
-          if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
-            $respond_by = rvk_ticketing_get_last_response_date(
-              new DateTime('now'), 2
-            )->format('Y-m-d H:i');
-            $respond_by = str_replace(' ', 'T', $respond_by);
-            $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
-            $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-          }
-          if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
-            $responded_at = new DateTime('now');
-            $responded_at = $responded_at->format('Y-M-d H:i:s');
-            $responded_at = str_replace(' ', 'T', $responded_at);
-            $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $responded_at;
-            $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-          }
-          if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
-            $close_by = rvk_ticketing_get_last_response_date(
-              new DateTime('now'), 2
-            )->format('Y-m-d H:i');
-            $close_by = str_replace(' ', 'T', $close_by);
-            $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $close_by;
-            $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-          }
-          if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
-            $closed_at = new DateTime('now');
-            $closed_at = $closed_at->format('Y-m-d H:i:s');
-            $closed_at = str_replace(' ', 'T', $closed_at);
-            $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = $closed_at;
-            $node->field_indication_closed_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
-          }
-        }
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_permission().
- */
-function rvk_ticketing_permission() {
-  return array(
-    'view ticketing content' => array(
-      'title' => t('View ticketing content'),
-    ),
-    'edit ticketing content' => array(
-      'title' => t('Edit ticketing content'),
-    ),
-    'administer ticketing content' => array(
-      'title' => t('Administer ticketing content'),
-    ),
-    'administer ticketing settings' => array(
-      'title' => t('Administer ticketing settings'),
-    ),
-  );
-}
-
-/**
- * Creates a page for the ticket to be displayed on
- *
- * @return array
- */
-function rvk_ticketing_create_indication_page() {
-  $build = array(
-    'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
-  );
-
-  return $build;
-}
-
-/**
- * Implements hook_block_info().
- */
-function rvk_ticketing_block_info() {
-  $blocks['indication_form'] = array(
-    'info' => 'Ábendingarform',
-  );
-
-  return $blocks;
-}
-
-/**
- * Implements hook_block_view().
- */
-function rvk_ticketing_block_view($delta = '') {
-  $markup = '';
-  if($delta == 'indication_form') {
-    $form = drupal_get_form('rvk_ticketing_create_ticket_form');
-    $markup .= drupal_render($form);
-  }
-
-  $block['content'] = $markup;
-
-  return $block;
-}
-
 
 /**
  * Form for submission of Incident
@@ -823,6 +419,393 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 }
 
 /**
+ * Implements form_alter().
+ */
+function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
+  if($form_id == 'indications_node_form') {
+
+    $form['#attached']['css'] = array(
+      'https://js.arcgis.com/3.13/esri/css/esri.css' => array(
+        'type' => 'external',
+      ),
+      drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css',
+      drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css',
+    );
+
+    if(isset($form['#node'])) {
+      if(is_object($form['#node'])) {
+        global $user;
+        $user_department = _rvk_ticketing_get_user_department($user);
+        $is_delicate = isset($form['#node']->field_delicate_info[LANGUAGE_NONE])
+          ? $form['#node']->field_delicate_info[LANGUAGE_NONE][0]['value']
+          : FALSE;
+
+        //Disables the fields that should not be shown (eg. editable)
+        $form['field_indication_text']['#access'] = FALSE;
+        $form['field_indication_position_x']['#access'] = FALSE;
+        $form['field_indication_position_y']['#access'] = FALSE;
+        $form['field_indication_neighborhood']['#access'] = FALSE;
+        $form['field_indication_neighborhoodref']['#access'] = FALSE;
+        $form['field_indication_location']['#access'] = FALSE;
+        $form['field_indication_respond_by']['#access'] = FALSE;
+        $form['field_indication_responded_at']['#access'] = FALSE;
+        $form['field_indication_close_by']['#access'] = FALSE;
+        $form['field_indication_closed_at']['#access'] = FALSE;
+        $form['field_image']['#access'] = FALSE;
+
+        //Create the indication text markup, to display what the original indication said and change the sort order
+        //of the fields
+        $form['title']['#weight'] = -20;
+        $form['field_interpered_indication_text']['#weight'] = 100;
+        $form['field_response']['#weight'] = 200;
+        $form['field_indication_text_markup']['#weight'] = 20;
+
+        //People who do not work in Þjónustuver cannot see the indications that are marked delicate
+        //Also, if the indication is marked delicate, a normal user cannot change the delicacy status.
+        if(($is_delicate && $user_department == 'Þjónustuver') || (!$is_delicate)) {
+          $form['field_indication_text_markup']['#markup'] =
+            '<div class="indication-text-readonly">
+            <label class="control-label">Ábending</label>
+            <div>
+              <p>' . $form['#node']->field_indication_text[LANGUAGE_NONE][0]['value'] . "</p>
+            </div>
+          </div>";
+        }
+        else {
+          $form['field_indication_text_markup']['#markup'] =
+            '<div class="indication-text-readonly">
+            <label class="control-label">Ábending</label>
+            <div>
+              <p>' . variable_get('rvk_ticketing_delicate_info') . "</p>
+            </div>
+          </div>";
+
+          $form['field_delicate_info']['#access'] = FALSE;
+          $form['field_interpered_indication_text']['#access'] = FALSE;
+        }
+
+        //Moves the markup into the fieldset group_indication_content
+        $form['#group_children']['field_indication_text_markup'] = "group_indication_content";
+
+        //The map and location
+        if($coords_set = isset($form['#node']->field_indication_position_x[LANGUAGE_NONE][0])) {
+          $xcoord = $form['#node']->field_indication_position_x[LANGUAGE_NONE][0]['value'];
+          $ycoord = $form['#node']->field_indication_position_y[LANGUAGE_NONE][0]['value'];
+          $form['coords_markup']['#markup'] = '<div class="location-text-readonly"><label class="control-label">X og Y hnit</label><p>X: ' . $xcoord . ' Y: ' . $ycoord . '</p></div>';
+          $form['coords_markup']['#weight'] = 50;
+          $form['#group_children']['coords_markup'] = "group_indication_media_items";
+
+          $coords = array(
+            'xcoord' => $xcoord,
+            'ycoord' => $ycoord,
+          );
+
+          drupal_add_js($coords, 'setting');
+
+          $form['map_markup']['#weight'] = 16;
+          $form['map_markup']['#markup'] = '<div class="map-markup"><label class="control-label">Kort</label><div id="mapDiv" style="max-width: 920px"></div></div>';
+
+          //Moves the markup into the fieldset group_indication_content
+          $form['#group_children']['map_markup'] = "group_indication_media_items";
+
+          $neighborhood_tax = taxonomy_term_load($ycoord = $form['#node']->field_indication_neighborhoodref[LANGUAGE_NONE][0]['tid']);
+          $form['neighborhood_markup']['#markup'] =
+            '<div class="neighborhood-markup">
+              <label class="control-label">Hverfi</label>
+              <p>' . $form['#node']->field_indication_neighborhood[LANGUAGE_NONE][0]['value'] . ' => ' . $neighborhood_tax->field_city_part[LANGUAGE_NONE][0]['value'] . '</p>
+             </div>';
+          $form['#group_children']['neighborhood_markup'] = "group_indication_service_cat";
+        }
+
+        if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
+          $images = $form['#node']->field_image[LANGUAGE_NONE];
+          $image_string = "<ul>";
+          foreach($images as $image) {
+            $image_string .= "<li>";
+            $image_string .= "<img src='" . image_style_url('medium', $image['uri']) . "' />";
+            $image_string .= "</li>";
+          }
+
+          $image_string .= "</ul>";
+
+          $form['image_markup']['#markup'] = "
+            <div class=\"indication-images-readonly\">
+              <label class\"control-label\">Myndir</label>"
+            . $image_string
+            . "</div>";
+
+          $form['#group_children']['image_markup'] = "group_indication_media_items";
+        }
+
+        if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
+          $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
+          $form['#group_children']['location_markup'] = "group_indication_media_items";
+        }
+
+        $form['created_markup']['#weight'] = 39;
+        $form['created_markup']['#markup'] = "<div class=\"response-by-time-readonly\"><label class=\"control-label\">Ábending barst</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $form['#node']->created) . "</p> </p></div>";
+        $form['#group_children']['created_markup'] = "group_indication_timestamps";
+
+        $respond_by_date = $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value'];
+        if($respond_by_date) {
+          $respond_by_date = strtotime($respond_by_date);
+
+          $form['respond_by_markup']['#weight'] = 40;
+          $form['respond_by_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Svara þarf fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $respond_by_date) . "</p> </p></div>";
+          $form['#group_children']['respond_by_markup'] = "group_indication_timestamps";
+        }
+
+        //Timestamps
+        if(isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0])) {
+          $responded_at_date = $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value'];
+          if($responded_at_date) {
+            $responded_at_date = strtotime($responded_at_date);
+
+            $form['responded_at_markup']['#weight'] = 41;
+            $form['responded_at_markup']['#markup'] = "<div class=\"response-time-readonly\"><label class=\"control-label\">Ábendingunni var svarað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $responded_at_date) . "</p> </p></div>";
+            $form['#group_children']['responded_at_markup'] = "group_indication_timestamps";
+          }
+        }
+
+        if(isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0])) {
+          $close_by_date = $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value'];
+          if($close_by_date) {
+            $close_by_date = strtotime($close_by_date);
+            $form['close_by_markup']['#weight'] = 42;
+            $form['close_by_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ljúka þarf ábendingunni fyrir</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $close_by_date) . "</p> </p></div>";
+            $form['#group_children']['close_by_markup'] = "group_indication_timestamps";
+          }
+        }
+
+        if(isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0])) {
+          $closed_at_date = $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value'];
+          if($closed_at_date) {
+            $closed_at_date = strtotime($closed_at_date);
+            $form['closed_at_markup']['#weight'] = 43;
+            $form['closed_at_markup']['#markup'] = "<div class=\"closing-time-readonly\"><label class=\"control-label\">Ábendingunni var lokað þann</label><p>" . strftime('%d. %B %Y klukkan %H:%M', $closed_at_date) . "</p> </p></div>";
+            $form['#group_children']['closed_at_markup'] = "group_indication_timestamps";
+          }
+        }
+      }
+    }
+
+    $expired = rvk_ticketing_check_if_response_time_is_expired($form, $form_state);
+    if($expired) {
+      $form['field_indication_expired_markup']['#weight'] = -50;
+      $form['field_indication_expired_markup']['#markup'] =
+        '<div class="indication-expired-readonly"><div><p>' . RVK_TICKETING_EXPIRED_INDICATION_TEXT . '</p></div></div>';
+
+      //Moves the markup into the fieldset group_indication_content
+      $form['#group_children']['field_indication_expired_markup'] = "group_indication_content";
+    }
+
+    $form['#attached']['js'] = array(
+      'https://js.arcgis.com/3.13/init.js' => array(
+        'type' => 'external',
+      ),
+      drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js',
+      drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js',
+    );
+
+    $arg = arg(2);
+    $arg = substr($arg, 0, 4);
+    if(($form_id == 'indications_node_form') && ($arg == 'edit')){
+      drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function rvk_ticketing_node_presave($node) {
+  if($node->type == 'indications' && $node->is_new == FALSE) {
+    $indication_type_voc = taxonomy_vocabulary_machine_name_load('indication_types');
+    $service_desk_tid = _rvk_ticketing_find_indication_status_by_name($indication_type_voc->vid, 'Þjónustuver');
+    $indication_status_voc = taxonomy_vocabulary_machine_name_load('indication_status');
+    $indication_new_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Ný ábending');
+    $indication_received_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Móttekin');
+
+    // If the status is not set, it's because we're going through the initial save of the node. Set the status to
+    // Þjónustuver, but do not go through any of the other test cases.
+    if(!isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
+      $node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $service_desk_tid->tid;
+      $node->field_indication_responded_at[LANGUAGE_NONE][0] = NULL;
+      $node->field_indication_close_by[LANGUAGE_NONE][0] = NULL;
+      $node->field_indication_closed_at[LANGUAGE_NONE][0] = NULL;
+    }
+    else {
+      //If the indication is being sent to external department (as configured in a taxonomy), we'll just close the
+      //Indication
+      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
+        if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
+          $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
+          $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
+        }
+      }
+
+      //If service desk is changing the indication type reference to another department, check if they have changed the
+      //status of the indication, and if not, change it to received.
+      if($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] != $service_desk_tid->tid) {
+        if($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] == $indication_new_tax->tid) {
+          $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_received_tax->tid;
+        }
+      }
+
+      //If there is text in the indication response or the status is no longer Ný ábending, we'll create a new timestamp
+      // and log the time it was answered.
+      if(isset($node->field_indication_response[LANGUAGE_NONE][0]) ||
+        $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] != $indication_new_tax->tid) {
+        if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+          $respond_at = new DateTime('now');
+          $respond_at = $respond_at->format('Y-m-d H:i:s');
+          $respond_at = str_replace(' ', 'T', $respond_at);
+          $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $respond_at;
+          $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+        }
+      }
+
+      //If there is a timestamp for when the indication was answered for the first time, we need to calculate when the
+      //indication has to be closed completely
+      if(isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+        if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
+          if(isset($node->field_indication_type_ref[LANGUAGE_NONE][0])) {
+            $indication_category = taxonomy_term_load($node->field_indication_type_ref[LANGUAGE_NONE][0]['tid']);
+
+            $second_response_time = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), $indication_category->field_indication_response_time[LANGUAGE_NONE][0]['value']
+            )->format('Y-m-d H:i:s');
+            $second_response_time = str_replace(' ', 'T', $second_response_time);
+          }
+          else {
+            $second_response_time = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), 2
+            )->format('Y-m-d H:i:s');
+            $second_response_time = str_replace(' ', 'T', $second_response_time);
+          }
+
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $second_response_time;
+          $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+        }
+      }
+
+      //If the indication is closed, we need to record that timestamp, and also fill inn all the other timestamps that
+      //are missing (e.g. if the indication is closed right away).
+      if(isset($node->field_indication_status_ref[LANGUAGE_NONE][0])) {
+        $status_term = taxonomy_term_load($node->field_indication_status_ref[LANGUAGE_NONE][0]['tid']);
+        if($status_term->name == "Lokið") {
+          if(!isset($node->field_indication_respond_by[LANGUAGE_NONE][0])) {
+            $respond_by = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), 2
+            )->format('Y-m-d H:i');
+            $respond_by = str_replace(' ', 'T', $respond_by);
+            $node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
+            $node->field_indication_respond_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+          if(!isset($node->field_indication_responded_at[LANGUAGE_NONE][0])) {
+            $responded_at = new DateTime('now');
+            $responded_at = $responded_at->format('Y-M-d H:i:s');
+            $responded_at = str_replace(' ', 'T', $responded_at);
+            $node->field_indication_responded_at[LANGUAGE_NONE][0]['value'] = $responded_at;
+            $node->field_indication_responded_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+          if(!isset($node->field_indication_close_by[LANGUAGE_NONE][0])) {
+            $close_by = rvk_ticketing_get_last_response_date(
+              new DateTime('now'), 2
+            )->format('Y-m-d H:i');
+            $close_by = str_replace(' ', 'T', $close_by);
+            $node->field_indication_close_by[LANGUAGE_NONE][0]['value'] = $close_by;
+            $node->field_indication_close_by[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+          if(!isset($node->field_indication_closed_at[LANGUAGE_NONE][0])) {
+            $closed_at = new DateTime('now');
+            $closed_at = $closed_at->format('Y-m-d H:i:s');
+            $closed_at = str_replace(' ', 'T', $closed_at);
+            $node->field_indication_closed_at[LANGUAGE_NONE][0]['value'] = $closed_at;
+            $node->field_indication_closed_at[LANGUAGE_NONE][0]['timezone'] = 'Atlantic/Reykjavik';
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_validate().
+ */
+function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
+  $values = $form_state['values'];
+
+  if(strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
+    if(!rvk_ticketing_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
+      form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
+    }
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function rvk_ticketing_permission() {
+  return array(
+    'view ticketing content' => array(
+      'title' => t('View ticketing content'),
+    ),
+    'edit ticketing content' => array(
+      'title' => t('Edit ticketing content'),
+    ),
+    'administer ticketing content' => array(
+      'title' => t('Administer ticketing content'),
+    ),
+    'administer ticketing settings' => array(
+      'title' => t('Administer ticketing settings'),
+    ),
+  );
+}
+
+/**
+ * Creates a page for the ticket to be displayed on
+ *
+ * @return array
+ */
+function rvk_ticketing_create_indication_page() {
+  $build = array(
+    'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
+  );
+
+  return $build;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function rvk_ticketing_block_info() {
+  $blocks['indication_form'] = array(
+    'info' => 'Ábendingarform',
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function rvk_ticketing_block_view($delta = '') {
+  $markup = '';
+  if($delta == 'indication_form') {
+    $form = drupal_get_form('rvk_ticketing_create_ticket_form');
+    $markup .= drupal_render($form);
+  }
+
+  $block['content'] = $markup;
+
+  return $block;
+}
+
+
+
+
+/**
  * Callback for both ajax-enabled buttons.
  *
  * Selects and returns the fieldset with the names in it.
@@ -840,19 +823,6 @@ function rvk_ticketing_add_image_callback($form, &$form_state) {
 function rvk_ticketing_add_more_add_one_image($form, &$form_state) {
   $form_state['num_images']++;
   $form_state['rebuild'] = TRUE;
-}
-
-/**
- * Implements hook_form_validate().
- */
-function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
-  $values = $form_state['values'];
-
-  if(strlen($values['indication_fieldset']['map_fieldset']['address']['address']) > 0) {
-    if(!rvk_ticketing_check_street_address_valid($values['indication_fieldset']['map_fieldset']['address']['address'])) {
-      form_set_error('address', 'Svo virðist sem ekki hafi verið valið rétt heimilisfang.');
-    }
-  }
 }
 
 /**
@@ -1018,8 +988,8 @@ function rvk_ticketing_create_ticket_form_submit($form, &$form_state) {
   $node = rvk_ticketing_create_indication_node($values);
 
   drupal_goto(variable_get('rvk_ticketing_thank_you_page'), array(
-    "query" => array(
-      "nid" => $node->nid
+      "query" => array(
+        "nid" => $node->nid
       ),
     )
   );
@@ -1385,4 +1355,42 @@ function rvk_ticketing_theme($existing, $type, $theme, $path) {
     'path' => drupal_get_path('module', 'rvk_ticketing') . '/templates',
   );
   return $theme;
+}
+
+function rvk_ticketing_check_if_response_time_is_expired(&$form, &$form_state) {
+  $respond_by = (isset($form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_respond_by[LANGUAGE_NONE][0]['value']
+    : null;
+  $responded_at = (isset($form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_responded_at[LANGUAGE_NONE][0]['value']
+    : null;
+
+  $close_by = (isset($form['#node']->field_indication_close_by[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_close_by[LANGUAGE_NONE][0]['value']
+    : null;
+
+  $closed_at = (isset($form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]))
+    ? $form['#node']->field_indication_closed_at[LANGUAGE_NONE][0]['value']
+    : null;
+
+  return rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at);
+}
+
+function rvk_ticketing_process_expiration_times($respond_by, $respsonded_at, $close_by, $closed_at) {
+  $today = str_replace(' ', 'T', strftime('%Y-%m-%d %H:%M:%S'));
+
+  //If the indication is closed, the response time is no longer expired, even if it was at one point
+  if(isset($closed_at)) {
+    return FALSE;
+  }
+
+  if(isset($close_by)) {
+    return (strcmp($today, $close_by) == 1) ? TRUE : FALSE;
+  }
+
+  if(isset($respond_by) || !isset($close_by) ) {
+    return (strcmp($today, $respond_by) == 1) ? TRUE : FALSE;
+  }
+
+  return FALSE;
 }
