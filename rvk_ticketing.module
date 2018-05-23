@@ -471,6 +471,8 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_close_by']['#access'] = FALSE;
         $form['field_indication_closed_at']['#access'] = FALSE;
         $form['field_image']['#access'] = FALSE;
+        $form['field_indication_cloned'] = FALSE;
+        $form['field_indication_original_node'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
         //of the fields
@@ -630,6 +632,17 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
     $arg = substr($arg, 0, 4);
     if(($form_id == 'indications_node_form') && ($arg == 'edit')){
       drupal_goto('/abendingar/breyta-abendingu/' . $form['nid']['#value']);
+    }
+
+    if(isset($form['#node']->field_indication_original_node[LANGUAGE_NONE])) {
+      if(isset($form['#node']->field_indication_original_node[LANGUAGE_NONE][0]['target_id'])) {
+        $original = node_load($form['#node']->field_indication_original_node[LANGUAGE_NONE][0]['target_id']);
+        $url = l($original->title, 'node/' . $original->nid);
+        $form['original_node_link_markup']['#weight'] = 50;
+        $form['original_node_link_markup']['#markup'] =
+          '<div class="indication-original-node"><div><p>Slóð á upprunalegu ábendinguna: ' . $url . '</p></div></div>';
+        $form['#group_children']['original_node_link_markup'] = "group_indication_service_cat";
+      }
     }
   }
 }
@@ -801,7 +814,6 @@ function _rvk_ticketing_clone_insurance_node($node, $indication_type_voc, $indic
 
   node_save($cloned_node);
 }
-
 /**
  * Implements hook_form_validate().
  */
