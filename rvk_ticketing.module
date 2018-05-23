@@ -806,7 +806,7 @@ function _rvk_ticketing_clone_insurance_node($node, $indication_type_voc, $indic
   $cloned_node->field_indication_cloned[LANGUAGE_NONE][0]['value'] = TRUE;
   $cloned_node->field_indication_original_node[LANGUAGE_NONE][0]['target_id'] = $node->nid;
 
-  $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Ný ábending');
+  $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Móttekin');
   $cloned_node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
   $insurance_tid = _rvk_ticketing_find_indication_status_by_name($indication_type_voc->vid, 'Tryggingamál');
   unset($node->field_indication_type_ref);
