@@ -135,6 +135,14 @@ function rvk_ticketing_view_indications_page() {
     $indications_expired_view->pre_execute();
     $indications_expired_view->execute();
     $expired = $indications_expired_view->render();
+
+    if(in_array('Tryggingamál', $user_indication_group_name_array)) {
+      $indications_closed_view = views_get_view('indications');
+      $indications_closed_view->set_display('indications_closed');
+      $indications_closed_view->pre_execute();
+      $indications_closed_view->execute();
+      $indications_closed_markup = $indications_closed_view->render();
+    }
   }
 
 
@@ -628,6 +636,8 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
 /**
  * Implements hook_node_presave().
+ *
+ * @throws Exception
  */
 function rvk_ticketing_node_presave($node) {
   if($node->type == 'indications' && $node->is_new == FALSE) {
@@ -737,8 +747,59 @@ function rvk_ticketing_node_presave($node) {
           }
         }
       }
+
+      // If the Insurance problem checkbox is checked and the node has not been cloned before, we clone the node,
+      // leaving the original indication intact. This is because of the nature of the indication. Hole repairs is one
+      // issue, dealing with the insurance part is another.
+      if(isset($node->field_indication_insurance_prob[LANGUAGE_NONE])) {
+        if($node->field_indication_insurance_prob[LANGUAGE_NONE][0]['value'] == TRUE &&
+           $node->field_indication_cloned[LANGUAGE_NONE][0]['value'] != TRUE) {
+          $node->field_indication_cloned[LANGUAGE_NONE][0]['value'] = TRUE;
+          drupal_register_shutdown_function(
+            '_rvk_ticketing_clone_insurance_node',
+            $node,
+            $indication_type_voc,
+            $indication_status_voc);
+        }
+      }
     }
   }
+}
+
+/**
+ * Shutdown function for node_presave, to clone the node, if the node has been marked insurance problem
+ *
+ * @param $node
+ * @throws Exception
+ */
+function _rvk_ticketing_clone_insurance_node($node, $indication_type_voc, $indication_status_voc) {
+  $cloned_node = clone($node);
+  $cloned_node->title = $cloned_node->title . " - Afrit vegna tryggingamáls";
+  $cloned_node->is_new = TRUE;
+  unset($cloned_node->nid);
+  unset($cloned_node->vid);
+  unset($cloned_node->tnid);
+
+  //Create a new respond by time stamp and clear all other timestamps
+  $respond_by = rvk_ticketing_get_last_response_date(
+    new DateTime('now'), 2
+  )->format('Y-m-d H:i');
+  $respond_by = str_replace(' ', 'T', $respond_by);
+  $cloned_node->field_indication_respond_by[LANGUAGE_NONE][0]['value'] = $respond_by;
+  unset($cloned_node->field_indication_responded_at[LANGUAGE_NONE]);
+  unset($cloned_node->field_indication_close_by[LANGUAGE_NONE]);
+  unset($cloned_node->field_indication_closed_at[LANGUAGE_NONE]);
+  unset($cloned_node->path);
+  $cloned_node->field_indication_cloned[LANGUAGE_NONE][0]['value'] = TRUE;
+  $cloned_node->field_indication_original_node[LANGUAGE_NONE][0]['target_id'] = $node->nid;
+
+  $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Ný ábending');
+  $cloned_node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
+  $insurance_tid = _rvk_ticketing_find_indication_status_by_name($indication_type_voc->vid, 'Tryggingamál');
+  unset($node->field_indication_type_ref);
+  $cloned_node->field_indication_type_ref[LANGUAGE_NONE][0]['tid'] = $insurance_tid->tid;
+
+  node_save($cloned_node);
 }
 
 /**
@@ -756,209 +817,6 @@ function rvk_ticketing_create_ticket_form_validate($form, &$form_state) {
   if($values['indication_fieldset']['map_fieldset']['dont_use_map'] == FALSE) {
     if(strlen($values['indication_fieldset']['map_fieldset']['xcoords']) == 0) {
       form_set_error('map_location', RVK_TICKETING_MAP_INFO_NOT_SUPPLIED_ERROR_MESSAGE);
-    }
-  }
-}
-
-/**
- * Implements hook_permission().
- */
-function rvk_ticketing_permission() {
-  return array(
-    'view ticketing content' => array(
-      'title' => t('View ticketing content'),
-    ),
-    'edit ticketing content' => array(
-      'title' => t('Edit ticketing content'),
-    ),
-    'administer ticketing content' => array(
-      'title' => t('Administer ticketing content'),
-    ),
-    'administer ticketing settings' => array(
-      'title' => t('Administer ticketing settings'),
-    ),
-  );
-}
-
-/**
- * Creates a page for the ticket to be displayed on
- *
- * @return array
- */
-function rvk_ticketing_create_indication_page() {
-  $build = array(
-    'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
-  );
-
-  return $build;
-}
-
-/**
- * Implements hook_block_info().
- */
-function rvk_ticketing_block_info() {
-  $blocks['indication_form'] = array(
-    'info' => 'Ábendingarform',
-  );
-
-  return $blocks;
-}
-
-/**
- * Implements hook_block_view().
- */
-function rvk_ticketing_block_view($delta = '') {
-  $markup = '';
-  if($delta == 'indication_form') {
-    $form = drupal_get_form('rvk_ticketing_create_ticket_form');
-    $markup .= drupal_render($form);
-  }
-
-  $block['content'] = $markup;
-
-  return $block;
-}
-
-
-
-
-/**
- * Callback for both ajax-enabled buttons.
- *
- * Selects and returns the fieldset with the names in it.
- */
-function rvk_ticketing_add_image_callback($form, &$form_state) {
-  $return =  $form['indication_fieldset']['image_fieldset'];
-  return $return;
-}
-
-/**
- * Submit handler for the "add-one-more" button.
- *
- * Increments the max counter and causes a rebuild.
- */
-function rvk_ticketing_add_more_add_one_image($form, &$form_state) {
-  $form_state['num_images']++;
-  $form_state['rebuild'] = TRUE;
-}
-
-/**
- * Checks to see if the address entered is valid, by looking up the address name
- * at Borgarvefsja API
- *
- * @param string $address The Address to validate
- * @return bool
- */
-function rvk_ticketing_check_street_address_valid($address) {
-  $street = borgarvefsja_search_by_address($address);
-  return($street[0]['text'] != $address) ? false : true;
-}
-
-function rvk_ticketing_preprocess_field(&$variables) {
-  if($variables['element']['#field_name'] == 'field_indication_status_ref') {
-    switch($variables['items'][0]['#markup']) {
-      case 'Móttekin' :
-        $variables['classes_array'][] = 'received';
-        break;
-      case 'Í úrvinnslu' :
-        $variables['classes_array'][] = 'in_progress';
-        break;
-      case 'Lokið' :
-        $variables['classes_array'][] = 'closed';
-        break;
-      case 'Ný ábending' :
-      default :
-        $variables['classes_array'][] = 'new_indication';
-        break;
-    }
-  }
-}
-
-function rvk_ticketing_preprocess_node(&$variables) {
-  /**
-   * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
-   */
-  if($variables['type']== 'indications' ) {
-    $variables['content']['title'][0]['#markup'] .= "<p><span class='indication-number'>Ábending nr: " . $variables['nid'] . "</span></p>";
-    if(isset($variables['field_delicate_info'])) {
-      if($variables['field_delicate_info'][0]['value'] == TRUE) {
-        $variables['content']['field_indication_text'][0]['#markup'] = variable_get('rvk_ticketing_delicate_info');
-      }
-    }
-    if(isset($variables['field_indication_position_x'])) {
-      if(isset($variables['field_indication_position_x'][0])) {
-        $xcoord = $variables['field_indication_position_x'][0]['value'];
-        $ycoord = $variables['field_indication_position_y'][0]['value'];
-
-        $coords = array(
-          'xcoord' => $xcoord,
-          'ycoord' => $ycoord,
-        );
-
-        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
-        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
-        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
-        drupal_add_js('https://js.arcgis.com/3.13/init.js');
-        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
-        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
-        drupal_add_js($coords, 'setting');
-      }
-    }
-
-    $respond_by = (isset($variables['field_indication_respond_by'][LANGUAGE_NONE]))
-      ? $variables['field_indication_respond_by'][LANGUAGE_NONE][0]['value']
-      : null;
-
-    $responded_at = (isset($variables['field_indication_responded_at'][LANGUAGE_NONE]))
-      ? $variables['field_indication_responded_at'][LANGUAGE_NONE][0]['value']
-      : null;
-
-    $close_by = (isset($variables['field_indication_close_by'][LANGUAGE_NONE]))
-      ? $variables['field_indication_close_by'][LANGUAGE_NONE][0]['value']
-      : null;
-
-    $closed_at = (isset($variables['field_indication_closed_at'][LANGUAGE_NONE]))
-      ? $variables['field_indication_closed_at'][LANGUAGE_NONE][0]['value']
-      : null;
-
-    if(rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at)) {
-      $expired = array(
-        'display_expired_status' => user_access('edit ticketing content'),
-        'expired_status' => TRUE,
-        'expired_text' => RVK_TICKETING_EXPIRED_INDICATION_TEXT,
-      );
-    }
-    else {
-      $expired = array(
-        'display_expired_status' => user_access('edit ticketing content'),
-        'expired_status' => FALSE,
-        'expired_text' => '',
-      );
-    }
-
-    drupal_add_js($expired, 'setting');
-  }
-  elseif($variables['type'] == 'page') {
-    if($variables['title'] == 'Takk fyrir ábendinguna') {
-      $param = drupal_get_query_parameters();
-      $path = $GLOBALS['base_url'] . '/abendingar/' . $param['nid'];
-
-      $variables['content']['body'][0]['#markup'] =
-        $variables['content']['body'][0]['#markup'] . '<p><a href="' . $path . '">' . $path . '</a></p>';
-    }
-  }
-}
-
-/**
- * Implements hook_preprocess_page
- */
-function rvk_ticketing_preprocess_page(&$variables) {
-
-  if(isset($variables['page'])) {
-    if(isset($variables['theme_hook_suggestions'])) {
-      if(in_array('page__abendingar__stjornbord', $variables['theme_hook_suggestions'])) {
-        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/indication_dashboard.css');
-      }
     }
   }
 }
@@ -1087,6 +945,213 @@ function rvk_ticketing_create_indication_node($data) {
   node_save($node);
 
   return $node;
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function rvk_ticketing_permission() {
+  return array(
+    'view ticketing content' => array(
+      'title' => t('View ticketing content'),
+    ),
+    'edit ticketing content' => array(
+      'title' => t('Edit ticketing content'),
+    ),
+    'administer ticketing content' => array(
+      'title' => t('Administer ticketing content'),
+    ),
+    'administer ticketing settings' => array(
+      'title' => t('Administer ticketing settings'),
+    ),
+  );
+}
+
+/**
+ * Creates a page for the ticket to be displayed on
+ *
+ * @return array
+ */
+function rvk_ticketing_create_indication_page() {
+  $build = array(
+    'indication_form' => drupal_get_form('rvk_ticketing_create_ticket_form'),
+  );
+
+  return $build;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function rvk_ticketing_block_info() {
+  $blocks['indication_form'] = array(
+    'info' => 'Ábendingarform',
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function rvk_ticketing_block_view($delta = '') {
+  $markup = '';
+  if($delta == 'indication_form') {
+    $form = drupal_get_form('rvk_ticketing_create_ticket_form');
+    $markup .= drupal_render($form);
+  }
+
+  $block['content'] = $markup;
+
+  return $block;
+}
+
+/**
+ * Callback for both ajax-enabled buttons.
+ *
+ * Selects and returns the fieldset with the names in it.
+ */
+function rvk_ticketing_add_image_callback($form, &$form_state) {
+  $return =  $form['indication_fieldset']['image_fieldset'];
+  return $return;
+}
+
+/**
+ * Submit handler for the "add-one-more" button.
+ *
+ * Increments the max counter and causes a rebuild.
+ */
+function rvk_ticketing_add_more_add_one_image($form, &$form_state) {
+  $form_state['num_images']++;
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Checks to see if the address entered is valid, by looking up the address name
+ * at Borgarvefsja API
+ *
+ * @param string $address The Address to validate
+ * @return bool
+ */
+function rvk_ticketing_check_street_address_valid($address) {
+  $street = borgarvefsja_search_by_address($address);
+  return($street[0]['text'] != $address) ? false : true;
+}
+
+/**
+ * Implements hook_preprocess_field
+ */
+function rvk_ticketing_preprocess_field(&$variables) {
+  if($variables['element']['#field_name'] == 'field_indication_status_ref') {
+    switch($variables['items'][0]['#markup']) {
+      case 'Móttekin' :
+        $variables['classes_array'][] = 'received';
+        break;
+      case 'Í úrvinnslu' :
+        $variables['classes_array'][] = 'in_progress';
+        break;
+      case 'Lokið' :
+        $variables['classes_array'][] = 'closed';
+        break;
+      case 'Ný ábending' :
+      default :
+        $variables['classes_array'][] = 'new_indication';
+        break;
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_node
+ */
+function rvk_ticketing_preprocess_node(&$variables) {
+  /**
+   * Indication pages need to have some extra css/js material, plus some variables from the node exposed.
+   */
+  if($variables['type']== 'indications' ) {
+    $variables['content']['title'][0]['#markup'] .= "<p><span class='indication-number'>Ábending nr: " . $variables['nid'] . "</span></p>";
+    if(isset($variables['field_delicate_info'])) {
+      if($variables['field_delicate_info'][0]['value'] == TRUE) {
+        $variables['content']['field_indication_text'][0]['#markup'] = variable_get('rvk_ticketing_delicate_info');
+      }
+    }
+    if(isset($variables['field_indication_position_x'])) {
+      if(isset($variables['field_indication_position_x'][0])) {
+        $xcoord = $variables['field_indication_position_x'][0]['value'];
+        $ycoord = $variables['field_indication_position_y'][0]['value'];
+
+        $coords = array(
+          'xcoord' => $xcoord,
+          'ycoord' => $ycoord,
+        );
+
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/esri.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/geolocation.css');
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/edit_indication_form_styles.css');
+        drupal_add_js('https://js.arcgis.com/3.13/init.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/indication.js');
+        drupal_add_js(drupal_get_path('module', 'rvk_ticketing') . '/js/map_for_indications.js');
+        drupal_add_js($coords, 'setting');
+      }
+    }
+
+    $respond_by = (isset($variables['field_indication_respond_by'][LANGUAGE_NONE]))
+      ? $variables['field_indication_respond_by'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $responded_at = (isset($variables['field_indication_responded_at'][LANGUAGE_NONE]))
+      ? $variables['field_indication_responded_at'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $close_by = (isset($variables['field_indication_close_by'][LANGUAGE_NONE]))
+      ? $variables['field_indication_close_by'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    $closed_at = (isset($variables['field_indication_closed_at'][LANGUAGE_NONE]))
+      ? $variables['field_indication_closed_at'][LANGUAGE_NONE][0]['value']
+      : null;
+
+    if(rvk_ticketing_process_expiration_times($respond_by, $responded_at, $close_by, $closed_at)) {
+      $expired = array(
+        'display_expired_status' => user_access('edit ticketing content'),
+        'expired_status' => TRUE,
+        'expired_text' => RVK_TICKETING_EXPIRED_INDICATION_TEXT,
+      );
+    }
+    else {
+      $expired = array(
+        'display_expired_status' => user_access('edit ticketing content'),
+        'expired_status' => FALSE,
+        'expired_text' => '',
+      );
+    }
+
+    drupal_add_js($expired, 'setting');
+  }
+  elseif($variables['type'] == 'page') {
+    if($variables['title'] == 'Takk fyrir ábendinguna') {
+      $param = drupal_get_query_parameters();
+      $path = $GLOBALS['base_url'] . '/abendingar/' . $param['nid'];
+
+      $variables['content']['body'][0]['#markup'] =
+        $variables['content']['body'][0]['#markup'] . '<p><a href="' . $path . '">' . $path . '</a></p>';
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_page
+ */
+function rvk_ticketing_preprocess_page(&$variables) {
+
+  if(isset($variables['page'])) {
+    if(isset($variables['theme_hook_suggestions'])) {
+      if(in_array('page__abendingar__stjornbord', $variables['theme_hook_suggestions'])) {
+        drupal_add_css(drupal_get_path('module', 'rvk_ticketing') . '/css/indication_dashboard.css');
+      }
+    }
+  }
 }
 
 function _rvk_ticketing_get_term_from_neighborhood_number($number) {
