@@ -454,6 +454,9 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
     if(isset($form['#node'])) {
       if(is_object($form['#node'])) {
         global $user;
+
+        $revisions = _rvk_ticketing_get_revisions($form['#node']);
+        $revisions_markup = _rvk_ticketing_get_revisions_markup($revisions);
         $user_department = _rvk_ticketing_get_user_department($user);
         $is_delicate = isset($form['#node']->field_delicate_info[LANGUAGE_NONE])
           ? $form['#node']->field_delicate_info[LANGUAGE_NONE][0]['value']
@@ -464,7 +467,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_position_x']['#access'] = FALSE;
         $form['field_indication_position_y']['#access'] = FALSE;
         $form['field_indication_neighborhood']['#access'] = FALSE;
-        $form['field_indication_neighborhoodref']['#access'] = FALSE;
+        $form['field_indication_neighborhoodref']['#access'] = TRUE;
         $form['field_indication_location']['#access'] = FALSE;
         $form['field_indication_respond_by']['#access'] = FALSE;
         $form['field_indication_responded_at']['#access'] = FALSE;
@@ -538,6 +541,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['#group_children']['neighborhood_markup'] = "group_indication_service_cat";
         }
 
+        // Image display within the form
         if(isset($form['#node']->field_image[LANGUAGE_NONE][0])) {
           $images = $form['#node']->field_image[LANGUAGE_NONE];
           $image_string = "<ul>";
@@ -558,6 +562,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
           $form['#group_children']['image_markup'] = "group_indication_media_items";
         }
 
+        // If the location parameter was set, display it
         if($location_set = isset($form['#node']->field_indication_location[LANGUAGE_NONE][0])) {
           $form['location_markup']['#markup'] = "<div class=\"location-text-readonly\"><label class=\"control-label\">Staðsetning</label><p>" . $form['#node']->field_indication_location[LANGUAGE_NONE][0]['value'] . "</p></div>";
           $form['#group_children']['location_markup'] = "group_indication_media_items";
@@ -640,11 +645,175 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $url = l($original->title, 'node/' . $original->nid);
         $form['original_node_link_markup']['#weight'] = 50;
         $form['original_node_link_markup']['#markup'] =
-          '<div class="indication-original-node"><div><p>Slóð á upprunalegu ábendinguna: ' . $url . '</p></div></div>';
+          '<div class="indication-original-node">
+            <div>
+              <p>Slóð á upprunalegu ábendinguna: ' . $url . '. Ábendingin er nr: ' . $original->nid . '</p>
+            </div>
+           </div>';
         $form['#group_children']['original_node_link_markup'] = "group_indication_service_cat";
       }
     }
+
+    $form['revisions_markup']['#markup'] = '<div class="revision-table">' . $revisions_markup . '</div>';
   }
+}
+
+/**
+ * Searches for certain revision data for node and returns it.
+ *
+ * @param $node
+ * @return array
+ */
+function _rvk_ticketing_get_revisions($node) {
+  $revisions = node_revision_list($node);
+  $fields = array(
+    array(
+      'name' => 'Svar',
+      'class' => 'answer',
+      'field_name' => 'field_indication_response_value',
+      'field_revision_name' => 'field_revision_field_indication_response',
+      'value_name' => 'field_indication_response_value',
+    ),
+    array(
+      'name' => 'Túlkuð ábending',
+      'class' => 'interpered_incident_text',
+      'field_name' => 'field_interpered_indication_text',
+      'field_revision_name' => 'field_revision_field_interpered_indication_text',
+      'value_name' => 'field_interpered_indication_text_value',
+    ),
+    array(
+      'name' => 'Staða',
+      'class' => 'status',
+      'field_name' => 'field_indication_status_ref',
+      'field_revision_name' => 'field_revision_field_indication_status_ref',
+      'value_name' => 'field_indication_status_ref_tid',
+    ),
+    array(
+      'name' => 'Ábendingategund',
+      'class' => 'indication_type_ref',
+      'field_name' => 'field_indication_type_ref',
+      'field_revision_name' => 'field_revision_field_indication_type_ref',
+      'value_name' => 'field_indication_type_ref_tid',
+    ),
+    array(
+      'name' => 'Viðkvæmar upplýsingar',
+      'class' => 'delicate_info',
+      'field_name' => 'field_delicate_info',
+      'field_revision_name' => 'field_revision_field_delicate_info',
+      'value_name' => 'field_delicate_info_value',
+    ),
+    array(
+      'name' => 'Tryggingamál',
+      'class' => 'indication_insurance_prob',
+      'field_name' => 'field_indication_insurance_prob',
+      'field_revision_name' => 'field_revision_field_indication_insurance_prob',
+      'value_name' => 'field_indication_insurance_prob_value',
+    ),
+    array(
+      'name' => 'Innri samskipti',
+      'class' => 'indication_int_comm',
+      'field_name' => 'field_indication_int_comm',
+      'field_revision_name' => 'field_revision_field_indication_int_comm',
+      'value_name' => 'field_indication_int_comm_value',
+    ),
+    array(
+      'name' => 'Áframsenda á utandaðkomandi deild',
+      'class' => 'forward_to_external_dp',
+      'field_name' => 'field_forward_to_external_dp',
+      'field_revision_name' => 'field_revision_field_forward_to_external_dp',
+      'value_name' => 'field_forward_to_external_dp_tid',
+    ),
+    array(
+      'name' => 'Áframsenda á utanaðkomandi tölvupóstfang',
+      'class' => 'forward_to_external_email',
+      'field_name' => 'field_forward_to_external_email',
+      'field_revision_name' => 'field_revision_field_forward_to_external_email',
+      'value_name' => 'field_forward_to_external_email_value',
+    ),
+  );
+  $revision_array = array();
+
+  foreach($fields as $field) {
+    $query_string = 'SELECT r.revision_id, r.delta, r.' . $field["value_name"] . ' FROM {' . $field["field_revision_name"] . '} r WHERE r.entity_id = :nid ORDER BY r.revision_id ASC';
+
+    $result = db_query($query_string,
+      array(':nid' => $node->nid)
+    );
+
+    $last_value = "";
+    $data_value = "";
+    $original_value = false;
+    $revision_id = 0;
+    foreach($result as $data) {
+      //If the data was set during node creation
+      if($data->revision_id != $node->nid) {
+        if(strstr($field['value_name'], 'tid')) {
+          $term = taxonomy_term_load($data->{$field['value_name']});
+          $data_value = $term->name;
+        }
+        else {
+          if(strcmp($data->{$field['value_name']}, 0) == 0) {
+            $data_value = "Nei";
+          }
+          else if(strcmp($data->{$field['value_name']}, 1) == 0) {
+            $data_value = "Já";
+          }
+          else {
+            $data_value = $data->{$field['value_name']};
+          }
+        }
+      }
+      else {
+        $original_value = true;
+      }
+
+      $revision_id = $data->revision_id;
+
+      if(strcmp($last_value, $data_value) != 0) {
+        $revision_array[$field['name']][] = array(
+          'changed' => $revisions[$revision_id]->timestamp,
+          'changed_by' => $revisions[$revision_id]->name,
+          'revision_id' => $revision_id,
+          'last_value' => $last_value,
+          'new_value' => $data_value,
+          'original_value' => $original_value,
+          'delta' => $data->delta,
+          'class' => $field['class'],
+        );
+      }
+
+      $last_value = $data_value;
+    }
+  }
+
+  return $revision_array;
+}
+
+/**
+ * Creates table out of revision data and returns it
+ *
+ * @param $revisions
+ * @return string
+ * @throws Exception
+ */
+function _rvk_ticketing_get_revisions_markup($revisions) {
+  $table_data = array();
+  $header = array('Hvað?', 'Dags.', 'Gamla gildið', 'Nýja gildið', 'Breytt af');
+  foreach($revisions as $title => $revision) {
+    foreach($revision as $rev) {
+      $row = array(
+          $title,
+          date('d.m.Y H:i:s', $rev['changed']),
+          ($rev['delta'] == 0) ? $rev['last_value'] : '',
+          $rev['new_value'],
+          $rev['changed_by'],
+      );
+
+      $table_data[] = array('data' => $row, 'class' => array($rev['class']));
+    }
+  }
+
+  return theme('table', array('header' => $header, 'rows' => $table_data));
 }
 
 /**
@@ -671,8 +840,10 @@ function rvk_ticketing_node_presave($node) {
     else {
       //If the indication is being sent to external department (as configured in a taxonomy), we'll just close the
       //Indication
-      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0])) {
-        if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid'])) {
+      if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]) ||
+        isset($node->field_forward_to_external_email[LANGUAGE_NONE][0])) {
+        if(isset($node->field_forward_to_external_dp[LANGUAGE_NONE][0]['tid']) ||
+          isset($node->field_forward_to_external_email[LANGUAGE_NONE][0]['value'])) {
           $indication_tax = _rvk_ticketing_find_indication_status_by_name($indication_status_voc->vid, 'Lokið');
           $node->field_indication_status_ref[LANGUAGE_NONE][0]['tid'] = $indication_tax->tid;
         }
@@ -761,9 +932,11 @@ function rvk_ticketing_node_presave($node) {
         }
       }
 
+      // THIS SHUTDOWN FUNCTION CALLED HAS BEEN DISABLED. SEE COMMENT FOR THE FUNCTION ITSELF!!!!
       // If the Insurance problem checkbox is checked and the node has not been cloned before, we clone the node,
       // leaving the original indication intact. This is because of the nature of the indication. Hole repairs is one
       // issue, dealing with the insurance part is another.
+      /**
       if(isset($node->field_indication_insurance_prob[LANGUAGE_NONE])) {
         if($node->field_indication_insurance_prob[LANGUAGE_NONE][0]['value'] == TRUE &&
            $node->field_indication_cloned[LANGUAGE_NONE][0]['value'] != TRUE) {
@@ -774,13 +947,16 @@ function rvk_ticketing_node_presave($node) {
             $indication_type_voc,
             $indication_status_voc);
         }
-      }
+      }*/
     }
   }
 }
 
 /**
- * Shutdown function for node_presave, to clone the node, if the node has been marked insurance problem
+ * NOTE!!! THIS METHOD HAS BEEN DISABLED, SINCE THE FUNCTIONALITY WAS REMOVED.
+ * I still leave it here, if the decision is reversed. (drupalviking)
+ *
+ * Shutdown function for node_presave, to clone the node, if the node has been marked insurance problem.
  *
  * @param $node
  * @throws Exception
