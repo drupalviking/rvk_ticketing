@@ -442,6 +442,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
  */
 function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'indications_node_form') {
+    array_unshift($form['#submit'],'rvk_ticketing_indications_node_form_submit');
 
     $form['#attached']['css'] = array(
       'https://js.arcgis.com/3.13/esri/css/esri.css' => array(
@@ -656,7 +657,46 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
 
     //@TODO Franz! Setja töfluna inn í rétta grouppu og stíla.
     $form['revisions_markup']['#markup'] = '<div class="revision-table">' . $revisions_markup . '</div>';
+
+    //Find available answers to common resolves and create select dropdown
+    $available_answers = _rvk_ticketing_fetch_available_answers($form['#node']->field_indication_type_ref);
+    //Since no NID is 0, 0 is interpred as nothing selected
+    $available_answer[0] = '---';
+    if($available_answers) {
+      foreach($available_answers as $key => $value) {
+        $available_answer[$key] = $value->title;
+      }
+
+      $form['available_answers'] = array(
+        '#type' => 'select',
+        '#title' => 'Aðgengileg svör',
+        '#options' => $available_answer,
+        '#description' => 'Veldu það svar sem hæfir best því verki sem þú gerðir.'
+      );
+
+      $form['#group_children']['available_answers'] = "group_answers";
+    }
   }
+}
+
+function rvk_ticketing_indications_node_form_submit(&$form, &$form_state) {
+  $form_state['values']['field_indication_answer_ref'][LANGUAGE_NONE][0]['target_id'] = $form['available_answers']['#value'];
+}
+
+function _rvk_ticketing_fetch_available_answers($indication_type_ref) {
+  $results = null;
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'node')
+    ->propertyCondition('type', 'common_answers_to_indications')
+    ->fieldCondition('field_svid', 'tid', $indication_type_ref['und'], 'IN')
+    ->execute();
+
+  if($result) {
+    $results = entity_load('node', array_keys($result['node']));
+  }
+
+  return $results;
 }
 
 /**
