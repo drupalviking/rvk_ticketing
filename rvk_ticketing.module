@@ -456,8 +456,6 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       if(is_object($form['#node'])) {
         global $user;
 
-        $revisions = _rvk_ticketing_get_revisions($form['#node']);
-        $revisions_markup = _rvk_ticketing_get_revisions_markup($revisions);
         $user_department = _rvk_ticketing_get_user_department($user);
         $is_delicate = isset($form['#node']->field_delicate_info[LANGUAGE_NONE])
           ? $form['#node']->field_delicate_info[LANGUAGE_NONE][0]['value']
@@ -475,8 +473,10 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_indication_close_by']['#access'] = FALSE;
         $form['field_indication_closed_at']['#access'] = FALSE;
         $form['field_image']['#access'] = FALSE;
-        $form['field_indication_cloned'] = FALSE;
-        $form['field_indication_original_node'] = FALSE;
+        $form['field_indication_cloned']['#access'] = FALSE;
+        $form['field_indication_original_node']['#access'] = FALSE;
+        $form['field_indication_answer_ref']['#access'] = FALSE;
+        $form['field_indication_neighborhoodref']['#access'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
         //of the fields
@@ -655,8 +655,11 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
       }
     }
 
-    //@TODO Franz! Setja töfluna inn í rétta grouppu og stíla.
+    //Revisions
+    $revisions = _rvk_ticketing_get_revisions($form['#node']);
+    $revisions_markup = _rvk_ticketing_get_revisions_markup($revisions);
     $form['revisions_markup']['#markup'] = '<div class="revision-table">' . $revisions_markup . '</div>';
+    $form['#group_children']['revisions_markup'] = "group_revisions";
 
     //Find available answers to common resolves and create select dropdown
     $available_answers = _rvk_ticketing_fetch_available_answers($form['#node']->field_indication_type_ref);
@@ -667,11 +670,16 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $available_answer[$key] = $value->title;
       }
 
+      $available_answer_value = isset($form['field_indication_answer_ref'][LANGUAGE_NONE][0]['target_id']['#entity']->field_indication_answer_ref[LANGUAGE_NONE][0]['target_id'])
+        ? $form['field_indication_answer_ref'][LANGUAGE_NONE][0]['target_id']['#entity']->field_indication_answer_ref[LANGUAGE_NONE][0]['target_id']
+        : null;
+
       $form['available_answers'] = array(
         '#type' => 'select',
         '#title' => 'Aðgengileg svör',
         '#options' => $available_answer,
-        '#description' => 'Veldu það svar sem hæfir best því verki sem þú gerðir.'
+        '#description' => 'Veldu það svar sem hæfir best því verki sem þú gerðir.',
+        '#default_value' => $available_answer_value,
       );
 
       $form['#group_children']['available_answers'] = "group_answers";
@@ -679,10 +687,22 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+/**
+ * Implements hook_form_submit.
+ *
+ * @param $form
+ * @param $form_state
+ */
 function rvk_ticketing_indications_node_form_submit(&$form, &$form_state) {
   $form_state['values']['field_indication_answer_ref'][LANGUAGE_NONE][0]['target_id'] = $form['available_answers']['#value'];
 }
 
+/**
+ * Fetches all available answers to the indication in question, based on the taxonomy term Ábendingategund
+ *
+ * @param $indication_type_ref
+ * @return array
+ */
 function _rvk_ticketing_fetch_available_answers($indication_type_ref) {
   $results = null;
   $query = new EntityFieldQuery();
@@ -728,13 +748,6 @@ function _rvk_ticketing_get_revisions($node) {
       'field_name' => 'field_indication_status_ref',
       'field_revision_name' => 'field_revision_field_indication_status_ref',
       'value_name' => 'field_indication_status_ref_tid',
-    ),
-    array(
-      'name' => 'Ábendingategund',
-      'class' => 'indication_type_ref',
-      'field_name' => 'field_indication_type_ref',
-      'field_revision_name' => 'field_revision_field_indication_type_ref',
-      'value_name' => 'field_indication_type_ref_tid',
     ),
     array(
       'name' => 'Viðkvæmar upplýsingar',
@@ -784,7 +797,7 @@ function _rvk_ticketing_get_revisions($node) {
     $last_value = "";
     $data_value = "";
     $original_value = false;
-    $revision_id = 0;
+
     foreach($result as $data) {
       //If the data was set during node creation
       if($data->revision_id != $node->nid) {
@@ -822,6 +835,57 @@ function _rvk_ticketing_get_revisions($node) {
           'class' => $field['class'],
         );
       }
+
+      $last_value = $data_value;
+    }
+  }
+
+  $indication_tax_fields = array(
+    'name' => 'Ábendingategund',
+    'class' => 'indication_type_ref',
+    'field_name' => 'field_indication_type_ref',
+    'field_revision_name' => 'field_revision_field_indication_type_ref',
+    'value_name' => 'field_indication_type_ref_tid',
+  );
+
+  $indication_query_string = 'SELECT r.revision_id, r.delta, r.' . $indication_tax_fields["value_name"] . ' FROM {' . $indication_tax_fields["field_revision_name"] . '} r WHERE r.entity_id = :nid ORDER BY r.revision_id ASC';
+  $indication_result = db_query($indication_query_string,
+    array(':nid' => $node->nid)
+  );
+
+  $indication_data_array = array();
+  foreach($indication_result as $indication_data) {
+    $indication_data_array[$indication_data->revision_id][] = $indication_data;
+  }
+
+  $last_value = "";
+  $original_value = false;
+
+  foreach($indication_data_array as $ida) {
+    $string = "";
+    $size = sizeof($ida);
+    for ($index = 0; $index < $size; $index++) {
+      if ($index == 0) {
+        $string = taxonomy_term_load($ida[$index]->field_indication_type_ref_tid)->name;
+      } else {
+        $string .= " => " . taxonomy_term_load($ida[$index]->field_indication_type_ref_tid)->name;
+      }
+    }
+
+    $data_value = $string;
+    $revision_id = $ida[0]->revision_id;
+
+    if (strcmp($last_value, $data_value) != 0) {
+      $revision_array[$indication_tax_fields['name']][] = array(
+        'changed' => $revisions[$revision_id]->timestamp,
+        'changed_by' => $revisions[$revision_id]->name,
+        'revision_id' => $revision_id,
+        'last_value' => $last_value,
+        'new_value' => $data_value,
+        'original_value' => $original_value,
+        'delta' => 0,
+        'class' => $indication_tax_fields['class'],
+      );
 
       $last_value = $data_value;
     }
@@ -1300,7 +1364,7 @@ function rvk_ticketing_preprocess_node(&$variables) {
    */
   if($variables['type']== 'indications' ) {
     $variables['content']['title'][0]['#markup'] .= "<p><span class='indication-number'>Ábending nr: " . $variables['nid'] . "</span></p>";
-    if(isset($variables['field_delicate_info'])) {
+    if(isset($variables['field_delicate_info'][0])) {
       if($variables['field_delicate_info'][0]['value'] == TRUE) {
         $variables['content']['field_indication_text'][0]['#markup'] = variable_get('rvk_ticketing_delicate_info');
       }
