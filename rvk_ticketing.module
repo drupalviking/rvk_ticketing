@@ -245,7 +245,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   $form['indication_fieldset']['map_fieldset']['pre_markup'] = array(
     '#type' => 'markup',
     '#weight' => 1,
-    '#markup' => '<div class="media-info-btn-wrapper-small"><div class="btn btn-primary"><span class="icon location"></span><span class="icon location-close"></span><span>' . RVK_TICKETING_MAP_LOCATION_HEADLINE . '</span></div></div><div class="collapse-outer"><div class="collapse-inner"><div class="icon-wrapper"><span class="icon icon-location"></span><span class="icon-bg"></span></div><h2>Kort</h2>',
+    '#markup' => '<div class="map-wrapper"><div class="collapse-inner"><div class="icon-wrapper"><span class="icon icon-location"></span><span class="icon-bg"></span></div><h2>Kort</h2>',
   );
 
   $form['indication_fieldset']['map_fieldset']['post_markup'] = array(
@@ -281,7 +281,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['post_markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<div class="media-info"><div class="media-info-inner"><h2>Staðsetning og myndir</h2><p>Hér getur þú merkt staðsetningu ábendingar á korti og sent myndir til skýringa en það getur hjálpað okkur að bregðast hratt og vel við. Þessu má einnig sleppa.</p><div class="media-info-btn-wrapper"><div class="btn btn-primary"><span class="icon location"></span><span class="icon location-close"></span><span>Staðsetja á korti</span></div><div class="btn btn-primary"><span class="icon images"></span><span class="icon images-close"></span><span>Senda inn mynd</span></div></div></div></div>',
+    '#markup' => '<div class="media-info"><div class="media-info-inner"><h2>Staðsetning og myndir</h2><p>Hér getur þú merkt staðsetningu ábendingar á korti og sent myndir til skýringa en það getur hjálpað okkur að bregðast hratt og vel við. Þessu má einnig sleppa.</p></div></div>',
     '#weight' => 20,
   );
 
