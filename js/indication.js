@@ -42,6 +42,14 @@
     }
   };
 
+  Drupal.behaviors.checkboxClick = {
+    attach: function (context, settings) {
+      $( '#edit-indication-fieldset-map-fieldset-dont-use-map' ).unbind('click').bind('click', function() {
+        $( '#rvk-ticketing-create-ticket-form' ).toggleClass( 'hide-map' );
+      });
+    }
+  };
+
     Drupal.behaviors.streetNameSearch = {
       attach: function (context) {
 

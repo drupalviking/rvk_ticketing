@@ -434,7 +434,8 @@
 	border-color: #61902a;
 }
 
-#rvk-ticketing-create-ticket-form .collapse-outer {
+#rvk-ticketing-create-ticket-form .collapse-outer,
+.hide-map .map-wrapper {
 	max-height: 0;          
     overflow-y: hidden;
     display: block;
@@ -457,11 +458,16 @@
 }
 
 .show-image-wrapper #images-fieldset-wrapper .collapse-outer,
-.show-map-wrapper #edit-indication-fieldset-map-fieldset .collapse-outer {
+.show-map-wrapper #edit-indication-fieldset-map-fieldset .collapse-outer,
+.map-wrapper {
 	overflow-y: visible;
 	max-height: 1000px;
 	opacity: 1;
 	padding-top: 56px;
+}
+
+.hide-map #images-fieldset-wrapper {
+	margin-top: 30px;
 }
 
 #rvk-ticketing-create-ticket-form #LocateButton {
@@ -600,6 +606,32 @@
 	width: 14px;
     height: 16px;
     margin-top: -8px;
+}
+
+#block-rvk-ticketing-indication-form + #block-system-main {
+	text-align: center;
+}
+
+#block-rvk-ticketing-indication-form + #block-system-main .field-name-body {
+	width: 100%;
+    max-width: 894px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+#block-rvk-ticketing-indication-form + #block-system-main h2 {
+	font-size: 32px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+#block-rvk-ticketing-indication-form + #block-system-main p {
+	line-height: 1.78;
+	color: #232121;
+    font-size: 18px;
 }
 
 @media screen and (min-width: 600px) {
