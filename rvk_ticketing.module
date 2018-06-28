@@ -658,7 +658,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
     //Revisions
     $revisions = _rvk_ticketing_get_revisions($form['#node']);
     $revisions_markup = _rvk_ticketing_get_revisions_markup($revisions);
-    $form['revisions_markup']['#markup'] = '<div class="revision-table">' . $revisions_markup . '</div>';
+    $form['revisions_markup']['#markup'] = '<div class="revision-title"><span class="icon"><span></span></span><span>Breytingasaga</span></div><div class="revision-table">' . $revisions_markup . '</div>';
     $form['#group_children']['revisions_markup'] = "group_revisions";
 
     //Find available answers to common resolves and create select dropdown

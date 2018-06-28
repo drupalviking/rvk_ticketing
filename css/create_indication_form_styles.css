@@ -1,3 +1,38 @@
+#rvk-ticketing-create-ticket-form #edit-child-services-fieldset {
+	font-size: 22px;
+	background-color: #fafafa;
+	border: 1px solid #bfbfbf;
+	padding: 38px 24px 24px;
+	font-weight: 600;
+	margin-bottom: 43px;
+}
+
+#rvk-ticketing-create-ticket-form #edit-child-services-fieldset a {
+	border-color: #2e6da4;
+	background-color: #337ab7;
+	border-radius: 100px;
+	font-size: 14px;
+	padding: 12px 24px;
+	text-transform: uppercase;
+	color: #ffffff;
+	display: block;
+	max-width: 372px;
+	margin: 12px auto 24px;
+	transition: background-color 0.325s ease-in-out;
+	font-weight: 400;
+}
+
+#rvk-ticketing-create-ticket-form #edit-child-services-fieldset a:hover {
+	color: #ffffff;
+	background-color: #7ab733;
+	border-color: #61902a;
+	text-decoration: none;
+}
+
+#rvk-ticketing-create-ticket-form #edit-child-services-fieldset p {
+	margin-bottom: 0;
+}
+
 #rvk-ticketing-create-ticket-form {
 	max-width: 1202px;
 	margin: 0 auto;
@@ -586,6 +621,7 @@
 	padding-left: 20px;
 	font-size: 14px;
     font-weight: 400;
+    margin-bottom: 9px;
 }
 
 .map-wrapper {
