@@ -1,5 +1,13 @@
 (function ($) {
   
+  Drupal.behaviors.editIndicationForm = {
+    attach: function (context, settings) {
+      $( '.revision-title' ).unbind('click').bind('click', function() {
+        $( '.revision-table' ).toggleClass( 'show-table' );
+        $( this ).toggleClass( 'flip-icon' );
+      });
+    }
+  };
 
   Drupal.behaviors.accordion = {
     attach: function (context, settings) {

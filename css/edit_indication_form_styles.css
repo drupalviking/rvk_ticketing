@@ -1,5 +1,88 @@
 /* Edit indication Form */
 
+.neighborhood-markup {
+    background-color: #dcdcdc;
+    padding: 11px 23px 13px;
+    margin-bottom: 12px;
+}
+
+.location-text-readonly {
+    background-color: #dcdcdc;
+    padding: 11px 23px 13px;
+}
+
+#indications-node-form .neighborhood-markup label {
+    padding-left: 0;
+}
+
+.revision-table {
+    padding-top: 24px;
+    max-height: 0;
+    transition: all 500ms cubic-bezier(0.645, 0.045, 0.355, 1.000);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.revision-table.show-table {
+    max-height: 3000px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.revision-title {
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.revision-title .icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    position: relative;
+    border: 1px solid #333;
+}
+
+.revision-title .icon span {
+    background: url("images/svg/arrow-down.svg") no-repeat 6px 5px;
+    transition: all 500ms cubic-bezier(0.645, 0.045, 0.355, 1.000);
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+.revision-title.flip-icon .icon span {
+    transform:scaleY(-1);
+    background-position: 6px 10px;
+}
+
+.revision-title span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.node-indications-form .indications-form-items-wrapper {
+    background-color: #4881bf;
+    position: relative;
+    width: 100%;
+    color: #ffffff;
+    border: 1px solid #3b6a9d;
+    padding: 23px;
+    border-radius: 8px;
+}
+
+.node-indications-form .indications-form-items-wrapper .form-checkbox {
+   margin: 0 20px 0 -20px;
+}
+
+.node-indications-form .indications-form-items-wrapper label {
+   padding-left: 25px;
+}
+
+.node-indications-form .indications-form-items-wrapper .field-type-list-boolean {
+   margin-bottom: 0;
+}
+
 .page-abendingar-breyta-abendingu .page-header,
 .page-abendingar-breyta-abendingu #block-system-main > h2 {
     max-width: 986px;
@@ -63,7 +146,8 @@
 
 .node-indications-form legend,
 .node-indications-form .vertical-tabs,
-.node-indications-form .grippie {
+.node-indications-form .grippie,
+#edit-preview-changes {
     display: none;
 }
 
@@ -108,14 +192,13 @@
 }
 
 .node-indications-form  select {
-    padding: 10px 23px 12px;
+    padding: 0 23px 0;
     border: 1px solid #bfbfbf;
     border-radius: 8px;
     -moz-appearance:none;
     -webkit-appearance:none;
     appearance:none;
     box-shadow: none;
-    height: auto;
     font-size: 16px
 }
 
@@ -132,7 +215,7 @@
     height: 14px;
     position: absolute;
     right: 25px;
-    top: 50px;
+    bottom: 16px;
     pointer-events: none;
 }
 
@@ -304,11 +387,21 @@
 #indications-node-form .field-type-image .form-control,
 #indications-node-form .field-type-text .form-control,
 #indications-node-form .field-widget-options-select .form-control,
-#indications-node-form .hierarchical-select .form-control {
+#indications-node-form .hierarchical-select .form-control,
+#indications-node-form .form-type-textfield .form-control,
+#indications-node-form .form-type-select .form-control {
     height: 46px;
     border-radius: 8px;
     box-shadow: unset;
     background-image: none;
+}
+
+#indications-node-form .hierarchical-select select {
+    margin-bottom: 4px;
+}
+
+#indications-node-form .hierarchical-select select:last-of-type {
+    margin-bottom: 0;
 }
 
 #indications-node-form .hierarchical-select .selects {
@@ -346,14 +439,25 @@
     padding: 0;
 }
 
-.node-indications-form .group-indication-timestamps .panel-body div {
+.node-indications-form .group-indication-timestamps .panel-body div,
+.node-indications-form table tbody tr td,
+.node-indications-form table thead tr th {
     padding: 11px 23px 13px;
 }
 
-.node-indications-form .group-indication-timestamps .panel-body div:nth-child(odd) {
+.node-indications-form table thead tr th {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.node-indications-form .group-indication-timestamps .panel-body div:nth-child(odd),
+.node-indications-form table tbody tr:nth-child(odd) {
     background-color: #dcdcdc;
 }
 
+.node-indications-form table tbody tr:nth-child(even) {
+    background-color: transparent;
+}
 
 @media screen and (min-width: 610px) {
     
