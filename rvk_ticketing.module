@@ -9,7 +9,7 @@ define('RVK_TICKETING_MAIN_HEADLINE', variable_get('rvk_ticketing_main_headline'
 define('RVK_TICKETING_MAIN_MESSAGE', variable_get('rvk_ticketing_main_message'));
 define('RVK_TICKETING_USER_HEADLINE', variable_get('rvk_ticketing_user_headline'));
 define('RVK_TICKETING_USER_MESSAGE', variable_get('rvk_ticketing_user_message'));
-define('RVK_TICKETING_CHILD_SERVICES_MESSAGE', variable_get('rvk_ticketing_child_services_message'));
+//define('RVK_TICKETING_CHILD_SERVICES_MESSAGE', variable_get('rvk_ticketing_child_services_message'));
 define('RVK_TICKETING_IMAGE_HEADLINE', variable_get('rvk_ticketing_image_headline'));
 define('RVK_TICKETING_IMAGE_MESSAGE', variable_get('rvk_ticketing_image_message'));
 define('RVK_TICKETING_MAP_LOCATION_HEADLINE', variable_get('rvk_ticketing_map_location_headline'));
@@ -192,7 +192,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
   // #tree to be able to access them.
   $form['#tree'] = TRUE;
 
-  $form['child_services_fieldset'] = array(
+  /*$form['child_services_fieldset'] = array(
     '#type' => 'fieldset',
     '#weight' => 10,
   );
@@ -201,7 +201,7 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
     '#type' => 'markup',
     '#markup' => "<div class='child-services-markup'><p>" . RVK_TICKETING_CHILD_SERVICES_MESSAGE . "</p></div>",
     '#weight' => -50,
-  );
+  );*/
 
   $form['indication_fieldset'] = array(
     '#type' => 'fieldset',
@@ -271,7 +271,8 @@ function rvk_ticketing_create_ticket_form($form, &$form_state) {
 
   $form['indication_fieldset']['markup'] = array(
     '#type' => 'markup',
-    '#markup' => '<div class="create-ticket-form-info"><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p></div>',
+    '#markup' => '<div class="create-ticket-form-info"><p>Hér geturðu sent ábendingu um hvað sem er. Ábendingin mun berast þjónustuverinu okkar sem svarar strax eða kemur áfram á réttan stað.</p><p>
+    <strong>ATH -</strong> Ábendingar sem varða barnavernd skal senda í <a href="https://reykjavik.is tilkynningar-til-barnaverndar">ábendingagátt barnaverndar</a>.</p></div>',
   );
 
   $form['indication_fieldset']['indication_text_fieldset']['markup'] = array(
