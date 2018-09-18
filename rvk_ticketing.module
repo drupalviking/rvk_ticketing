@@ -476,7 +476,7 @@ function rvk_ticketing_form_alter(&$form, &$form_state, $form_id) {
         $form['field_image']['#access'] = FALSE;
         $form['field_indication_cloned']['#access'] = FALSE;
         $form['field_indication_original_node']['#access'] = FALSE;
-        $form['field_indication_answer_ref']['#access'] = FALSE;
+        $form['field_indication_answer_ref']['#access'] = TRUE;
         $form['field_indication_neighborhoodref']['#access'] = FALSE;
 
         //Create the indication text markup, to display what the original indication said and change the sort order
